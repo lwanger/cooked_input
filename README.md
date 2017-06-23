@@ -7,4 +7,4 @@ cooked input.
 
 github archive: https://github.com/lwanger/cooked_input
 
-see [TODO.md] for list of TODO items
+see [TODO.md](TODO.md) for list of TODO items
