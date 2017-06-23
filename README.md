@@ -1,3 +1,10 @@
-# IO_prod
 
-This directory has tools for the internal IO web-site. Mainly a Flask app for managing internal databases.
+# Cooked Input Project
+
+This is a Python package for getting keyboard input from the command line. If 
+you think of input (or raw_input in legacy Python) as raw input, then this is 
+cooked input.
+
+github archive: [https://github.com/lwanger/cooked_input]{https://github.com/lwanger/cooked_input}
+
+see [TODO.md]{TODO.md} for list of TODO items
