@@ -49,6 +49,7 @@ def in_any(value, validators):
 
 import collections
 
+
 def in_all(value, validators):
     """
     return True if the value passes all of the validators - AND's the list of supplied validators.

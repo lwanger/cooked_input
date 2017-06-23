@@ -4,18 +4,16 @@
 **TODO:**
 
 * general:
-    * Talk about main motivation
-    * Talk about using for command line tools
     * Talk about using same cleaning, converting, and validation outside of CLI (e.g. apply to GUI.)
     * document value_error_strings in convertors
-    * change name to cooked_input?
     * add convenience functions for common scenarios like: get_integer_input, get_float_input, etc. Automatically put in
         the correct convertor (IntConvertor).
-    * show in documentation the motivation. first program is guess a number between 1 and 10. Show what you actually need
-        to write to make it work safely. Then show with get_integer_input(min_val=1, max_val=10, prompt='type in a number')
-    * decorators to make cleaners, convertors, etc.
+    * decorators to make cleaners, convertors, etc. decorator for strip and lower cleaners? 
+        get yes/no, get an int in a range, etc.
+    * show how to use with a web form or tkinter form
     
 * io_get_input:
+    * send error messages to stderr?
     * list convertor (return as tuple or list? list of separators) and validator (check types at various positions, min and max length)
     * option to list choices in prompt_str (???)
     * show error for validation errors

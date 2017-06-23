@@ -2,7 +2,6 @@
 
 __version__ = '0.1.0'
 
-#import io_get_input
 from .io_get_input import get_input, get_table_input, process_value
 from .io_get_input import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
 

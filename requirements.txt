@@ -1,6 +1,1 @@
-flask
-flask-user
-flask-paginate
-flask-bootstrap
-flask-restful
-reportlab
+prettytable

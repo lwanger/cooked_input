@@ -14,10 +14,9 @@ import sys
 import copy
 import logging
 import getpass
-import collections
-
 import prettytable
 
+# relative import needed to run, but sphinx need non-relative. 
 from .validators import InChoicesValidator, in_all
 from .convertors import TableConvertor
 # from validators import InChoicesValidator
@@ -49,22 +48,6 @@ def compose(value, funcs):
     return result
 
 
-# def in_any(value, validators):
-#     # return True if the value passes any of the validators
-#     result = any(validator(value) for validator in validators)
-#     return result
-#
-#
-# def in_all(value, validators):
-#     # return True if the value passes all of the validators
-#     try:
-#         result = all(validator(value) for validator in validators)
-#     except TypeError:
-#         result = validators(value)
-#
-#     return result
-
-
 def process_value(value, cleaners, convertor, validators):
     """
     runs a value through cleaning, conversion, and validation. This allows the same processing used in get_input to be
@@ -91,12 +74,7 @@ def process_value(value, cleaners, convertor, validators):
         print('value should be %s.' % convertor.value_error_str)
         return False, None
 
-    # if isinstance('validators', collections.Iterable):
-    if validators is not None:
-        valid_response = in_all(converted_response, validators)
-    else:
-        valid_response = True
-
+    valid_response = in_all(converted_response, validators)
     return valid_response, converted_response
 
 
@@ -131,6 +109,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     Options:
 
         prompt: the string to use for the prompt. For example prompt="Enter your name"
+
         blank_ok: True if a blank response is OK.
 
         default: the default value to use if a blank string is entered. This takes precedence over 

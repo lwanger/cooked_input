@@ -64,6 +64,6 @@ def get_input_guess():
 
 
 if __name__ == '__main__':
-    # simple_guess()
+    simple_guess()
     # robust_guess()
     get_input_guess()

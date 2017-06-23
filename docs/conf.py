@@ -21,6 +21,10 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../io_get_input'))
 
+# Tried this to solve the relative path import issue [LenW]
+# print('conf.py --- sys.path=%s' % sys.path)
+# add_module_names = False
+
 
 # -- General configuration ------------------------------------------------
 
