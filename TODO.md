@@ -4,6 +4,10 @@
 **TODO:**
 
 * general:
+    * Add tables (build-a-burger) to tutorial
+    * Review examples, tutorial interface. Clean up and make: easier, cleaner, more consistent.
+        Are classes needed for Validators, Convertors, Cleaners, or can the be any callable? Convertors
+        using error sting only.
     * Talk about using same cleaning, converting, and validation outside of CLI (e.g. apply to GUI.)
     * document value_error_strings in convertors
     * add convenience functions for common scenarios like: get_integer_input, get_float_input, etc. Automatically put in

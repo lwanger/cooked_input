@@ -45,11 +45,7 @@ class IntConvertor(Convertor):
     def __init__(self, base=10, value_error_str='an integer number', **kwargs):
 
         self._base = base
-        self.value_error_str = value_error_str
-        if sys.version_info[0] > 2:
-            super().__init__(value_error_str)
-        else:
-            super(IntConvertor, self).__init__(self.value_error_str)
+        super(IntConvertor, self).__init__(value_error_str)
 
     def __call__(self, value):
         result = int(value, self._base)
@@ -67,11 +63,7 @@ class FloatConvertor(Convertor):
     :param kwargs: no kwargs are currently supported.
     """
     def __init__(self, value_error_str='a float number', **kwargs):
-        self.value_error_str = value_error_str
-        if sys.version_info[0] > 2:
-            super().__init__(value_error_str)
-        else:
-            super(FloatConvertor, self).__init__(self.value_error_str)
+        super(FloatConvertor, self).__init__(value_error_str)
 
     def __call__(self, value):
         result = float(value)
@@ -89,11 +81,7 @@ class BooleanConvertor(Convertor):
     :param kwargs: no kwargs are currently supported.
     """
     def __init__(self, value_error_str='true or false', **kwargs):
-        self.value_error_str = value_error_str
-        if sys.version_info[0] > 2:
-            super().__init__(value_error_str)
-        else:
-            super(BooleanConvertor, self).__init__(self.value_error_str)
+        super(BooleanConvertor, self).__init__(value_error_str)
 
     def __call__(self, value):
         true_set = {'t', 'true', 'y', 'yes', '1'}
@@ -120,11 +108,7 @@ class DateConvertor(Convertor):
     :param kwargs: no kwargs are currently supported.
     """
     def __init__(self, value_error_str='a date', **kwargs):
-        self.value_error_str = value_error_str
-        if sys.version_info[0] > 2:
-            super().__init__(value_error_str)
-        else:
-            super(DateConvertor, self).__init__(self.value_error_str)
+        super(DateConvertor, self).__init__(value_error_str)
 
     def __call__(self, value):
         result = dateparser.parse(value)
@@ -145,11 +129,7 @@ class YesNoConvertor(Convertor):
     :param kwargs: no kwargs are currently supported.
     """
     def __init__(self, value_error_str='yes or no', **kwargs):
-        self.value_error_str = value_error_str
-        if sys.version_info[0] > 2:
-            super().__init__(value_error_str)
-        else:
-            super(YesNoConvertor, self).__init__(self.value_error_str)
+        super(YesNoConvertor, self).__init__(value_error_str)
 
     def __call__(self, value):
         yes_set = {'y', 'yes', 'yeah', 'yup', 'aye', 'qui', 'si', 'ja', 'ken', 'hai', 'gee', 'da', 'tak', 'affirmative' }
@@ -205,7 +185,6 @@ class TableConvertor(Convertor):
                     self._input_value = v
 
         if self.value_error_str is None:
-            # self.value_error_str = 'a value from the table' if self._input_value else 'an id from the table'
             if self._input_value == TABLE_ID_OR_VALUE:
                 self.value_error_str = 'an id or value from the table'
             elif self._input_value == TABLE_ID:
@@ -215,10 +194,7 @@ class TableConvertor(Convertor):
         else:
             self.value_error_str = self.value_error_str
 
-        if sys.version_info[0] > 2:
-            super().__init__(self.value_error_str)
-        else:
-            super(TableConvertor, self).__init__(self.value_error_str)
+        super(TableConvertor, self).__init__(self.value_error_str)
 
     def __call__(self, value):
         if self._convertor:

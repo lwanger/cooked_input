@@ -1,0 +1,4 @@
+*.pyc
+.idea
+docs/_build
+io_get_input.egg-info

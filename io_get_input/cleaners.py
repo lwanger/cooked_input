@@ -27,10 +27,7 @@ class Cleaner(object):
 class LowerCleaner(Cleaner):
     # make lower case
     def __init__(self, **kwargs):
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)
-        else:
-            super(LowerCleaner, self).__init__(**kwargs)
+        super(LowerCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
         result = value.lower()
@@ -43,10 +40,7 @@ class LowerCleaner(Cleaner):
 class UpperCleaner(Cleaner):
     # make upper case
     def __init__(self, **kwargs):
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)
-        else:
-            super(LowerCleaner, self).__init__(**kwargs)
+        super(UpperCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
         result = value.upper()
@@ -61,10 +55,7 @@ class StripCleaner(Cleaner):
     def __init__(self, lstrip=True, rstrip=True, **kwargs):
         self._lstrip = lstrip
         self._rstrip = rstrip
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)
-        else:
-            super(StripCleaner, self).__init__(**kwargs)
+        super(StripCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
         result = value
@@ -84,10 +75,7 @@ class ReplaceCleaner(Cleaner):
         self._old = old
         self._new = new
         # TODO - add an option count keyword arg?
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)
-        else:
-            super(LowerCleaner, self).__init__(**kwargs)
+        super(LowerCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
         result = value.replace(self._old, self._new)

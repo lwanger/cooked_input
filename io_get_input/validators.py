@@ -116,10 +116,7 @@ class ExactLengthValidator(Validator):
     def __init__(self, length=None, **kwargs):
 
         self._length = length
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)    # this type of super call is not compatible with Python2
-        else:
-            super(ExactLengthValidator, self).__init__(**kwargs)
+        super(ExactLengthValidator, self).__init__(**kwargs)
 
     def __call__(self, value):
         # TypeError thrown if value does not implement __len__
@@ -142,10 +139,7 @@ class InLengthValidator(Validator):
     def __init__(self, min_len=None, max_len=None, **kwargs):
         self._min_len = min_len
         self._max_len = max_len
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)
-        else:
-            super(InLengthValidator, self).__init__(**kwargs)
+        super(InLengthValidator, self).__init__(**kwargs)
 
     def __call__(self, value):
         # TypeError thrown if value does not implement __len__
@@ -168,10 +162,7 @@ class ExactValueValidator(Validator):
     def __init__(self, value, **kwargs):
 
         self._value = value
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)
-        else:
-            super(ExactValueValidator, self).__init__(**kwargs)
+        super(ExactValueValidator, self).__init__(**kwargs)
 
     def __call__(self, value):
         condition1 = (self._value is None or value == self._value)
@@ -193,10 +184,7 @@ class InRangeValidator(Validator):
     def __init__(self, min_val=None, max_val=None, **kwargs):
         self._min_val = min_val
         self._max_val = max_val
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)
-        else:
-            super(InRangeValidator, self).__init__(**kwargs)
+        super(InRangeValidator, self).__init__(**kwargs)
 
     def __call__(self, value):
         min_condition = (self._min_val is None or value >= self._min_val)
@@ -217,10 +205,7 @@ class InChoicesValidator(Validator):
     def __init__(self, choices, **kwargs):
         # note: if choices is mutable, the choices can change after instantiation
         self._choices = choices
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)
-        else:
-            super(InChoicesValidator, self).__init__(**kwargs)
+        super(InChoicesValidator, self).__init__(**kwargs)
 
     def __call__(self, value):
         result = value in self._choices
@@ -241,10 +226,7 @@ class NotInValidator(Validator):
 
         # note: if choices is mutable, the choices can change after instantiation
         self._validators = validators
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)
-        else:
-            super(NotInValidator, self).__init__(**kwargs)
+        super(NotInValidator, self).__init__(**kwargs)
 
     def __call__(self, value):
         # result = value in self._choices
@@ -267,10 +249,7 @@ class InAnyValidator(Validator):
 
         # note: if choices is mutable, the choices can change after instantiation
         self._validators = validators
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)
-        else:
-            super(InAnyValidator, self).__init__(**kwargs)
+        super(InAnyValidator, self).__init__(**kwargs)
 
     def __call__(self, value):
         # result = value in self._choices
@@ -291,10 +270,7 @@ class RegexValidator(Validator):
     def __init__(self, regex, **kwargs):
         # note: if choices is mutable, the choices can change after instantiation
         self._regex = regex
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)
-        else:
-            super(RegexValidator, self).__init__(**kwargs)
+        super(RegexValidator, self).__init__(**kwargs)
 
     def __call__(self, value):
         result = re.search(self._regex, value)
@@ -336,10 +312,7 @@ class PasswordValidator(Validator):
             # disallowed_chars = disallowed
             self.valid_chars -= set(disallowed)
 
-        if sys.version_info[0] > 2:
-            super().__init__(**kwargs)
-        else:
-            super(PasswordValidator, self).__init__(**kwargs)
+        super(PasswordValidator, self).__init__(**kwargs)
 
     def __call__(self, value):
         if len(set(value) - self.valid_chars):
