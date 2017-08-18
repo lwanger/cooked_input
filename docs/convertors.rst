@@ -34,7 +34,7 @@ looks like::
 
 .. autoclass:: BooleanConvertor
 
-.. autoclass: ListConvertor
+.. autoclass:: ListConvertor
 
 .. autoclass:: DateConvertor
 
