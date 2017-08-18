@@ -8,6 +8,7 @@ see https://packaging.python.org/en/latest/distributing.html
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
+from distutils.core import setup
 
 here = path.abspath(path.dirname(__file__))
 
@@ -32,6 +33,7 @@ setup(
 
     # The project's main homepage.
     url='https://github.com/lwanger/cooked_input',
+    download_url='https://github.com/lwanger/cooked_input/archive/V0.1.1.tar.gz',
 
     # Author details
     author='Len Wanger',
