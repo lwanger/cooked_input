@@ -11,7 +11,7 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
-import io_get_input
+import cooked_input
 
 
 # Get the long description from the README file
@@ -19,19 +19,19 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='io_get_input',
+    name='cooked_input',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
     #version='0.1.0',
-    version=io_get_input.__version__,
+    version=cooked_input.__version__,
 
     description='Toolkit for getting input from the keyboard.',
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/lwanger/io_get_input',
+    url='https://github.com/lwanger/cooked_input',
 
     # Author details
     author='Len Wanger',

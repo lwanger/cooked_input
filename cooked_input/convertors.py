@@ -13,6 +13,8 @@ Copyright: Len Wanger, 2017
 import sys
 import re
 import dateparser
+import csv
+from io import StringIO
 
 
 TABLE_ID = 0
@@ -104,17 +106,40 @@ class ListConvertor(Convertor):
     convert to a list.
 
     :param value_error_str: the error string to use when an improper value is input.
+    :param delimiter: the single character delimiter to use for parsing the list. If None, will sniff the value
+        (ala CSV library.)
+    :param elem_convertor: the convertor function to use for each element of the list (e.g. IntConvertor converts each
+        element of the list to an integer.
     :param kwargs: no kwargs are currently supported.
     """
-    def __init__(self, value_error_str='list of values', **kwargs):
+    def __init__(self, value_error_str='list of values', delimiter=',', elem_convertor=None, **kwargs):
+        self.delimeter = delimiter
+        self.elem_convertor = elem_convertor
         super(ListConvertor, self).__init__(value_error_str)
 
     def __call__(self, value):
-        lst = re.split(r'[;,\s]\s*', value)
-        if lst:
-            return lst
+        buffer = StringIO(value)
+
+        if self.delimeter is None:
+            dialect = csv.Sniffer().sniff(value)
+            dialect.skipinitialspace = True
         else:
-            raise ValueError('value not a list.')
+            csv.register_dialect('my_dialect', delimiter=self.delimeter, quoting=csv.QUOTE_MINIMAL, skipinitialspace=True)
+            dialect = csv.get_dialect('my_dialect')
+
+        reader = csv.reader(buffer, dialect)
+        lst = next(reader)
+
+        try:
+            if self.elem_convertor:
+                converted_list = [self.elem_convertor(item) for item in lst]
+            else:
+                converted_list = lst
+        except ValueError:
+            raise ValueError(self.elem_convertor.value_error_str)
+
+        return converted_list
+
 
     def __repr__(self):
         return 'ListConvertor(%s)' % self.value_error_str

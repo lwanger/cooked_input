@@ -341,3 +341,34 @@ class PasswordValidator(Validator):
     def __repr__(self):
         return 'PasswordValidator(allowed=%r, min_length=%r, max_length=%r, min_lowercase=%r, min_uppercase=%r, min_digits=%r, min_puncts=%r)' %\
                (self.valid_chars, self.min_length, self.max_length, self.min_lower, self.min_upper, self.min_digits, self.min_puncts)
+
+
+class ListValidator(Validator):
+    """
+    Run a set of validators on a list.
+
+    :param len_validator: a validator to run on the list length.
+    :param elem_validators: a single or list of validators to apply to the elements of the list.
+    :param kwargs: no kwargs are currently supported.
+    """
+    def __init__(self, len_validator=None, elem_validators=None, **kwargs):
+        self._len_validator = len_validator
+        self._elem_validators = elem_validators
+        super(ListValidator, self).__init__(**kwargs)
+
+    def __call__(self, value):
+        if self._len_validator:
+            result = self._len_validator(value)
+            if not result:
+                return False
+
+        if self._elem_validators:
+            for item in value:
+                result = compose(item, self._elem_validators)
+                if not result:
+                    return False
+
+        return True
+
+    def __repr__(self):
+        return 'ListValidator()'.format()

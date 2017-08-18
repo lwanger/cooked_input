@@ -48,6 +48,8 @@ a specified length looks like::
 
 .. autoclass:: PasswordValidator
 
+.. autoclass:: ListValidator
+
 helper functions:
 -----------------
 
