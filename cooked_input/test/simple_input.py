@@ -47,7 +47,7 @@ def robust_guess():
         print('Ding ding... you guessed it!')
 
 
-from io_get_input import get_input, IntConvertor, InRangeValidator
+from cooked_input import get_input, IntConvertor, InRangeValidator
 
 def get_input_guess():
     number = random.randint(1, 10)

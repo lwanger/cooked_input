@@ -1,7 +1,7 @@
 
-from io_get_input import get_table_input
-from io_get_input.convertors import IntConvertor
-from io_get_input.validators import InRangeValidator
+from cooked_input import get_table_input
+from cooked_input.convertors import IntConvertor
+from cooked_input.validators import InRangeValidator
 from collections import namedtuple
 
 if __name__ == '__main__':

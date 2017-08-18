@@ -1,7 +1,7 @@
 import sqlite3
 from collections import Counter
-import io_get_input
-from io_get_input import get_table_input
+import cooked_input
+from cooked_input import get_table_input
 
 def create_db():
     # Create an in memory sqlite database of hamburger options
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     buns = { bun[0]: (bun[1], bun[2]) for bun in cursor.fetchall() }
     table = [ (k, '{}'.format(v[0], v[1])) for k,v in buns.items() ]
     default_val = 'plain'
-    bun = get_table_input(table=table, input_value=io_get_input.TABLE_ID_OR_VALUE, return_value=io_get_input.TABLE_ID,
+    bun = get_table_input(table=table, input_value=cooked_input.TABLE_ID_OR_VALUE, return_value=cooked_input.TABLE_ID,
                             show_table=True, default=default_val, prompt='Which kind of bun do you want', value_error='a valid bun id or type')
     price += buns[bun][1]
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     patties = {patty[0]: (patty[1], patty[2]) for patty in cursor.fetchall()}
     table = [(k, '{}'.format(v[0], v[1])) for k, v in patties.items()]
     default_val = 'hamburger'
-    patty = get_table_input(table=table, input_value=io_get_input.TABLE_ID_OR_VALUE, return_value=io_get_input.TABLE_ID,
+    patty = get_table_input(table=table, input_value=cooked_input.TABLE_ID_OR_VALUE, return_value=cooked_input.TABLE_ID,
                                 default=default_val, prompt='Which kind of patty do you want', value_error='a valid patty id or type')
     price += patties[patty][1]
 
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     while True:
         extra = get_table_input(table=table, cleaners=None, convertor=None, validators=None,
-                                input_value=io_get_input.TABLE_ID_OR_VALUE, return_value=io_get_input.TABLE_ID,
+                                input_value=cooked_input.TABLE_ID_OR_VALUE, return_value=cooked_input.TABLE_ID,
                                 prompt='Which kind of extra do you want (hit return when done choosing extras)',
                                 value_error='a valid extra id or type', blank_ok=True)
         if extra is None:

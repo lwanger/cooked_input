@@ -2,9 +2,9 @@
 Test to test getting an integer values
 """
 
-from io_get_input import get_input
-from io_get_input.convertors import IntConvertor
-from io_get_input.validators import InRangeValidator, ExactValueValidator, NotInValidator, InAnyValidator
+from cooked_input import get_input
+from cooked_input.convertors import IntConvertor
+from cooked_input.validators import InRangeValidator, ExactValueValidator, NotInValidator, InAnyValidator
 
 if __name__ == '__main__':
     int_convertor = IntConvertor()

@@ -5,10 +5,11 @@ Test to test getting a string values
 - show cleaners: strip, upper, lower
 """
 
-from io_get_input import get_input
-from io_get_input.validators import ExactLengthValidator, InLengthValidator, InChoicesValidator, NotInValidator
-from io_get_input.cleaners import StripCleaner, LowerCleaner, UpperCleaner
-from io_get_input.convertors import YesNoConvertor
+from cooked_input import get_input
+from cooked_input.validators import ExactLengthValidator, InLengthValidator, InChoicesValidator, NotInValidator
+from cooked_input.cleaners import StripCleaner, LowerCleaner, UpperCleaner
+from cooked_input.cleaners import CapitalizeCleaner
+from cooked_input.convertors import YesNoConvertor
 
 if __name__ == '__main__':
     colors = ['red', 'green', 'blue']
@@ -26,6 +27,8 @@ if __name__ == '__main__':
     strip_cleaner = StripCleaner()
     lower_cleaner = LowerCleaner()
     upper_cleaner = UpperCleaner()
+    capitalize_cleaner = CapitalizeCleaner(all_words=False)
+    capitalize_all_cleaner = CapitalizeCleaner(all_words=True)
 
     # get any string
     print(get_input(prompt='Enter any string'))
@@ -34,6 +37,11 @@ if __name__ == '__main__':
             cleaners=[strip_cleaner, lower_cleaner]))
     print(get_input(prompt='Enter any string (will be stripped of trailing spaces and converted to upper)',
             cleaners=[strip_cleaner, upper_cleaner]))
+
+    print(get_input(prompt='Enter your name (first word will be capitalized)',
+            cleaners=capitalize_cleaner))
+    print(get_input(prompt='Enter your name (all words will be capitalized)',
+            cleaners=capitalize_cleaner))
 
     prompt_str = "What is your favorite flavor jelly bean (don't say licorice!)?"
     print(get_input(prompt=prompt_str, validators=not_in_choices_validator, default='cherry'))
@@ -52,4 +60,8 @@ if __name__ == '__main__':
     prompt_str = 'What is your favorite color (%s)' % ', '.join(colors)
     print(get_input(prompt=prompt_str, default='green'))
 
+    print(get_input(prompt=prompt_str, cleaners=cleaners, validators=validators, default='cherry'))
+
     print(get_input(prompt="Yes or no?", cleaners=strip_cleaner, convertor=YesNoConvertor(), default='Y'))
+
+

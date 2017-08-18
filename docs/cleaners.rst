@@ -31,6 +31,10 @@ case looks like::
 
     Makes input value all Upper case.
 
+.. autoclass:: CapitalizeCleaner
+
+    Capitlizes input value.
+
 
 .. autoclass:: StripCleaner
 

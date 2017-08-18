@@ -8,6 +8,7 @@ Copyright: Len Wanger, 2017
 """
 
 import sys
+from string import capwords
 
 
 ####
@@ -48,6 +49,30 @@ class UpperCleaner(Cleaner):
 
     def __repr__(self):
         return 'UpperCleaner()'
+
+
+class CapitalizeCleaner(Cleaner):
+    # capitalize the input
+    def __init__(self, all_words=False, **kwargs):
+        """
+        Capitalize the value
+
+        :param all_words: capitalize all of the words of the value if True, if False, only capitalize the first word.
+        :param kwargs:
+        """
+        self.all_words = all_words
+        super(CapitalizeCleaner, self).__init__(**kwargs)
+
+    def __call__(self, value):
+        if self.all_words:
+            result = value.capitalize()
+        else:
+            result = capwords(value)
+
+        return result
+
+    def __repr__(self):
+        return 'CapitalizeCleaner(all_words={})'.format(self.all_words)
 
 
 class StripCleaner(Cleaner):

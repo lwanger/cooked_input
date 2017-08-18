@@ -1,6 +1,6 @@
 
-from io_get_input import get_input
-from io_get_input.validators import PasswordValidator
+from cooked_input import get_input
+from cooked_input.validators import PasswordValidator
 
 
 if __name__ == '__main__':
