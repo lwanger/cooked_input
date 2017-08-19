@@ -3,8 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to cooked_input's documentation!
-========================================
+Cooked Input
+============
+
+
+This is documentation for cooked_input |my_version|, generated |my_date|.
 
 .. toctree::
    :maxdepth: 2
@@ -13,6 +16,13 @@ Welcome to cooked_input's documentation!
    README
    tutorial
 
+** API **
+
+.. toctree::
+   get_input
+   cleaners
+   convertors
+   validators
 
 
 Indices and tables

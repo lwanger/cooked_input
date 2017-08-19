@@ -25,18 +25,11 @@ case looks like::
 
 .. autoclass:: LowerCleaner
 
-    Makes input value all lower case.
-
 .. autoclass:: UpperCleaner
 
-    Makes input value all Upper case.
-
+.. autoclass:: CapitalizeCleaner
 
 .. autoclass:: StripCleaner
 
-    Strips white space from the input value. Strips from the left side if lstrip=True, and from the
-        right side if rstrip=True. Both are True by default (i.e. strips from left and right).
-
 .. autoclass:: ReplaceCleaner
 
-    Replaces all occurances of "old" string with "new" string white space from the input value
