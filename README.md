@@ -7,6 +7,6 @@ cooked input.
 
 github archive: https://github.com/lwanger/cooked_input
 
-for the latest documentation, go to: [[cooked-input.readthedocs.io](cooked-input.readthedocs.io)]([cooked-input.readthedocs.io](cooked-input.readthedocs.io))
+for the latest documentation, go to: https://readthedocs.org/projects/cooked-input/
 
 see [TODO.md](TODO.md) for list of TODO items
