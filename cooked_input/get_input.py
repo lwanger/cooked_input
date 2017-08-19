@@ -104,8 +104,6 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     get_input prompts the user for an input. The input is then cleaned, converted, and validated, 
     and the validated response is returned.
 
-    <stay tuned for more...>
-
     Options:
 
         prompt: the string to use for the prompt. For example prompt="Enter your name"

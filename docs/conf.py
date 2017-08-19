@@ -25,7 +25,6 @@ import datetime
 sys.path.insert(0, os.path.abspath('..'))
 
 from cooked_input import __version__
-#__version__ = '0.1.3'
 
 today = datetime.date.today()
 today_str = today.strftime('%b %d, %Y')
@@ -36,8 +35,6 @@ rst_epilog = """
 .. |my_date| replace:: %s
 """ % (__version__, today_str)
 
-# Tried this to solve the relative path import issue [LenW]
-# print('conf.py --- sys.path=%s' % sys.path)
 # add_module_names = False
 
 
