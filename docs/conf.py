@@ -22,7 +22,8 @@ import sys
 import datetime
 sys.path.insert(0, os.path.abspath('../cooked_input'))
 
-from cooked_input import __version__
+#from cooked_input import __version__
+__version__ = '0.1.1'
 
 today = datetime.date.today()
 today_str = today.strftime('%b %d, %Y')
