@@ -7,7 +7,10 @@ Have error messages for all fields
 
 
 """
-Example of using cooked_input to get user login information.
+Example of using cooked_input to get user login information. This example shows several features of 
+cooked_input:
+
+- Dealing with hidden inputs, retries, passwords, validating with validus, and writing custom validators.
 
 First, it gets the login and password from the user, then it updates the user's profile information.
 
@@ -85,6 +88,8 @@ if __name__ == '__main__':
         'bob': hash('bob'),
         'jeff': hash('ffej'),
     }
+
+    # Fake list of allowed roles
     roles_list = ['admin', 'user', 'reviewer']
 
     strip_cleaner = StripCleaner()
@@ -102,7 +107,7 @@ if __name__ == '__main__':
         print('Maximum retries exceeded.... exiting')
         sys.exit(1)
 
-    # Get update profile information for the user:
+    # Get updated profile information for the user:
     password = get_input(prompt='Enter new Password', cleaners=None, validators=strong_password_validator, hidden=True)
 
     try:
@@ -116,4 +121,5 @@ if __name__ == '__main__':
     email = get_input(prompt='Email', cleaners=default_cleaners, validators=isemail, blank_ok=False)
     roles = get_input(prompt=role_prompt, cleaners=default_cleaners, convertor=ListConvertor(), validators=role_validtor, blank_ok=False)
 
-    print('\nuser info: user_name: {}, password: {}, first_name: {}, last_name: {}, email: {}, roles: {}'.format(user_name, password, first_name, last_name, email, roles))
+    print('\nUpdated user profile info: user_name: {}, password: {}, first_name: {}, last_name: {}, email: {}, roles: {}'.format(
+        user_name, password, first_name, last_name, email, roles))

@@ -17,6 +17,6 @@ if __name__ == '__main__':
     print('password result=%r' % (result))
 
     result = get_input(cleaners=None, convertor=None, validators=[disallowed_chars_password_val],
-                       prompt='type in a password (type in a; password(no; vowels, even; digits or !, *, \ %)',
+                       prompt='type in a password (type in a password(no vowels, even digits or !, *, \ %)',
                        blank_ok=False, hidden=True)
     print('password result=%r' % (result))

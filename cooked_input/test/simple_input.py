@@ -1,6 +1,10 @@
 
 """
+Three versions of a simple guessing game:
 
+    simple_guess: the naive version. Not robust.
+    robust_guess: trying to beef up the naive version, lots of code for a simple input of an integer!
+    cooked_input_guess: implemented with cooked_input
 """
 
 import sys
@@ -53,7 +57,7 @@ def get_input_guess():
     number = random.randint(1, 10)
     print('I am thinking of a number between 1 and 10.')
     guess = get_input(prompt='Guess what number I am thinking of', convertor=IntConvertor(),
-                      validators=InRangeValidator(min_val=1, max_val=10, ))
+                        validators=InRangeValidator(min_val=1, max_val=10, ))
 
     if guess < number:
         print('Buzz.... you guessed too low.')
@@ -64,6 +68,4 @@ def get_input_guess():
 
 
 if __name__ == '__main__':
-    simple_guess()
-    # robust_guess()
     get_input_guess()
