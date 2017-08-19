@@ -21,10 +21,8 @@ import os
 import sys
 import datetime
 
-sys.path.insert(0, os.path.abspath('../cooked_input'))
+#sys.path.insert(0, os.path.abspath('../cooked_input'))
 sys.path.insert(0, os.path.abspath('..'))
-#sys.path.insert(0, os.path.abspath('../..'))
-#sys.path.insert(0, os.path.abspath('../cooked_input/cooked_input'))
 
 from cooked_input import __version__
 #__version__ = '0.1.3'
