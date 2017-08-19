@@ -1,5 +1,5 @@
 
-Cooked-Input Project
+Cooked Input Project
 ====================
 
 This is a Python package for getting keyboard input from the command line. If 
@@ -8,7 +8,8 @@ cooked input.
 
 github archive: https://github.com/lwanger/cooked_input
 
-See the tutorial in the documentation for usage. Further examples can
-be found in the test directory.
+----
+
+This is the readme for the project.
 
 see TODO.md for list of TODO items
