@@ -20,9 +20,17 @@ get_table_input
 
 .. autofunction:: cooked_input.get_table_input
 
-helper functions:
------------------
+validate
+--------
+
+
+.. autofunction:: cooked_input.validate
+
+process_value
+-------------
 
 .. autofunction:: cooked_input.process_value
-.. autofunction:: cooked_input.validate
+
+helper functions:
+-----------------
 .. autofunction:: cooked_input.make_pretty_table

@@ -50,14 +50,15 @@ def compose(value, funcs):
 
 def process_value(value, cleaners, convertor, validators):
     """
-    runs a value through cleaning, conversion, and validation. This allows the same processing used in get_input to be
-    performed on a value. For instance, the same processing used for getting keyboard input can be applied to the value
-    from a web form input.
+    runs a value through cleaning, conversion, and validation. This allows the same processing used
+    in get_input to be performed on a value. For instance, the same processing used for getting 
+    keyboard input can be applied to the value from a gui or web form input.
 
     :param value: the value to process
     :param cleaners: list of cleaners to apply to clean the value
     :param convertor: the convertor to apply to the cleaned value
     :param validators: list of validators to apply to validate the cleaned and converted value
+
     :return: if the value is valid, return the cleaned, converted, valided value, otherwise return None
     """
     if cleaners:
@@ -310,92 +311,3 @@ def validate(value, validators=None):
     :return: True if the input passed validation, else False
     """
     return compose(value, validators)
-
-
-if __name__ == '__main__':
-    pass
-    # if False:
-    #     length_val = InLengthValidator(5, 10)
-    #     exact_len_val = ExactLengthValidator(7)
-    #     between_val = InRangeValidator(10, 20)
-    #     exact_val_val = ExactValueValidator(11)
-    #
-    #     choice_list = [5, 10, 15]
-    #     in_choices = InChoicesValidator(choice_list)
-    #
-    #     choice_str_list = ['1234567', 'abcdefg', 'foobars']
-    #     in_str_choices = InChoicesValidator(choice_str_list)
-    #
-    #     print('length_val = %r' % length_val )
-    #     print('exact_len_val = %r' % exact_len_val )
-    #     print('between_val = %r' % between_val )
-    #
-    #     print('length_val(\'does not pass\')=%r' % length_val('does not pass'))
-    #     print('length_val(\'passes\')=%r' % length_val('passes'))
-    #     print('exact_len_val(\'not passess\')=%r' % exact_len_val('not passess'))
-    #     print('exact_len_val(\'passess\')=%r' % exact_len_val('passess'))
-    #     print('between_val(5)=%r' % between_val(5))
-    #     print('between_val(11)=%r' % between_val(11))
-    #     print('exact_val_val(11)=%r' % exact_val_val(11))
-    #
-    #     # throw a TypeError exception
-    #     try:
-    #         print('length_val(11)=%r' % length_val(11))
-    #     except:
-    #         print('TypeError as expected from: length_val(11)=%r' % length_val)
-    #
-    #     # try choices
-    #     print('in_choices(\'foo\', %r)' % choice_list, in_choices('foo'))
-    #     print('in_choices(10, %r)' % choice_list, in_choices(10))
-    #
-    #     # Try any and all:
-    #     print('in_any(11, [%r, %r])' % (exact_val_val, between_val), in_any(11, [exact_val_val, between_val]))
-    #     print('in_all(11, [%r, %r, %r])' % (exact_val_val, between_val, in_choices), in_all(11, [exact_val_val, between_val, in_choices]))
-    #     print('in_all(10, [%r, %r])' % (between_val, in_choices), in_all(10, [between_val, in_choices]))
-    #
-    #     # choices has a mutable list so can be changed dynamically
-    #     choice_list.remove(10)
-    #     print('not in_choices(10, %r)' % choice_list, not in_choices(10))
-    #
-    #     # Test cleaners and compose
-    #     lower_cleaner = LowerCleaner()
-    #     strip_cleaner = StripCleaner(lstrip=True, rstrip=True)
-    #     unclean_str = 'Foo \t'
-    #     funcs = [lower_cleaner, strip_cleaner]
-    #     result = compose(unclean_str, funcs)
-    #     print('compose(\'%s\', %r)=%s' % (unclean_str, funcs, result))
-    #
-    #     # test validate
-    #     print(validate('foo', validators=[ExactLengthValidator(3)]))
-    #     print(validate(13.3, validators=[ExactValueValidator(13.3)]))
-    #     print(validate(13.3, validators=[InRangeValidator(13.1, 13.4)]))
-    #     print('expect False: %r' % validate(13.3, validators=[InRangeValidator(12.1, 12.4)]))
-    #
-    #     # test get_input
-    #     result = get_input(cleaners=[lower_cleaner, strip_cleaner], convertor=None, validators=[])
-    #     print('string input result=%r' % (result))
-    #
-    #     options = {'prompt': 'give me an integer between 10 and 20', 'default': '15', 'blank_ok': True}
-    #     prompt_str = 'give me an integer between 10 and 20'
-    #     result = get_input(cleaners=None, convertor=IntConvertor(), validators=[between_val], prompt=prompt_str, default=15, blank_ok=True)
-    #     print('int input result=%r' % (result))
-    #
-    #     result = get_input(cleaners=[LowerCleaner()], convertor=None, validators=[in_str_choices], prompt='give me a string', retries=2)
-    #     print('str in choice input result=%r' % (result))
-    #
-    #     # Test getting a password
-    #     password_val = PasswordValidator(disallowed='[]', min_length=5, max_length=15, min_lower=2, min_upper=2, min_digits=1, min_puncts=2)
-    #     result = get_input(cleaners=None, convertor=None, validators=[password_val], prompt='password', blank_ok=False, hidden=True)
-    #     print('password result=%r' % (result))
-    #
-    # # test get_table_input:
-    # traveler_data = {}
-    # table = [(1, 'ben'), (2, 'darren'), (4, 'elan'), (6, 'schlomo')]
-    # cur_val = 'ben'
-    #
-    # ir_list = [(TABLE_ID, 'id'), (TABLE_VALUE, 'value'), (TABLE_ID_OR_VALUE, 'id or value')]
-    # for ir in ir_list:
-    #     print('get_table by %s' % ir[1])
-    #     technician = get_table_input(table=table, cleaners=None, convertor=None, validators=None, input_value=ir[0], return_value=TABLE_VALUE, show_table=True,
-    #                                  default=cur_val, prompt='Enter the %s of the technician to use'%ir[1], value_error='not a valid technician %s'%ir[1])
-    #     print('technician=%s' % (technician))
