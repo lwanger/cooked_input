@@ -26,8 +26,8 @@ sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../..'))
 sys.path.insert(0, os.path.abspath('../cooked_input/cooked_input'))
 
-#from cooked_input import __version__
-__version__ = '0.1.3'
+from cooked_input import __version__
+#__version__ = '0.1.3'
 
 today = datetime.date.today()
 today_str = today.strftime('%b %d, %Y')
