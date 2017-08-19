@@ -12,16 +12,12 @@ cooked_input contains the top-level calls for the cooked_input library.
 get_input
 ---------
 
-
 .. autofunction:: cooked_input.get_input
-
-
 
 get_table_input
 ---------------
 
 .. autofunction:: cooked_input.get_table_input
-
 
 helper functions:
 -----------------

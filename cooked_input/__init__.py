@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 from .io_get_input import get_input, get_table_input, process_value, make_pretty_table
 from .io_get_input import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
