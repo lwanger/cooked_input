@@ -26,7 +26,9 @@ class Cleaner(object):
 
 
 class LowerCleaner(Cleaner):
-    # make lower case
+    """
+    Make the value all lower case.
+    """
     def __init__(self, **kwargs):
         super(LowerCleaner, self).__init__(**kwargs)
 
@@ -39,7 +41,9 @@ class LowerCleaner(Cleaner):
 
 
 class UpperCleaner(Cleaner):
-    # make upper case
+    """
+    Make the value all upper case.
+    """
     def __init__(self, **kwargs):
         super(UpperCleaner, self).__init__(**kwargs)
 
@@ -52,7 +56,11 @@ class UpperCleaner(Cleaner):
 
 
 class CapitalizeCleaner(Cleaner):
-    # capitalize the input
+    """
+    Capitalize the value all upper case.
+
+    :param all_words: capitalize all of the words of the value if True, only capitalize the first word if False (default).
+    """
     def __init__(self, all_words=False, **kwargs):
         """
         Capitalize the value
@@ -76,7 +84,13 @@ class CapitalizeCleaner(Cleaner):
 
 
 class StripCleaner(Cleaner):
-    # strip off white space
+    """
+    Strips white space from the input value. Strips from the left side if lstrip=True, and from the
+    right side if rstrip=True. Both are True by default (i.e. strips from left and right).
+
+    :param lstrip: strips white space from the left side of the value if True
+    :param rstrip: strips white space from the right side of the value if True
+    """
     def __init__(self, lstrip=True, rstrip=True, **kwargs):
         self._lstrip = lstrip
         self._rstrip = rstrip
@@ -95,12 +109,17 @@ class StripCleaner(Cleaner):
 
 
 class ReplaceCleaner(Cleaner):
-    # Replace the find_str with the replace_str
+    """
+    Replaces all occurances of "old" string with "new" string white space from the input value
+
+    :param old: string to replace
+    :param new: string to put in the place of all occurances of old
+    """
     def __init__(self, old, new, **kwargs):
         self._old = old
         self._new = new
         # TODO - add an option count keyword arg?
-        super(LowerCleaner, self).__init__(**kwargs)
+        super(ReplaceCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
         result = value.replace(self._old, self._new)

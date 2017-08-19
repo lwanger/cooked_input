@@ -7,7 +7,7 @@ Cooked Input
 ============
 
 
-This is documentation for cooked_input [release], generated [today].
+This is documentation for cooked_input |my_version|, generated |my_date|.
 
 .. toctree::
    :maxdepth: 2
@@ -19,7 +19,7 @@ This is documentation for cooked_input [release], generated [today].
 ** API **
 
 .. toctree::
-   io_get_input
+   get_input
    cleaners
    convertors
    validators

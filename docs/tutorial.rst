@@ -1,5 +1,5 @@
 
-IO Get Input Tutorial
+Cooked Input Tutorial
 =====================
 
 Command line tools and terminal input are very useful. I end up writing lots of programs that get some simple input
@@ -30,9 +30,9 @@ Looks simple enough right? What happens when the user responds with 'a':
     I am thinking of a number between 1 and 10.
     Guess what number I am thinking of: a
     Traceback (most recent call last):
-      File "D:/Dropbox/IO/code/cooked_input/io_get_input/test/simple_input.py", line 67, in <module>
+      File "D:/Dropbox/IO/code/cooked_input/cooked_input/test/simple_input.py", line 67, in <module>
         simple_guess()
-      File "D:/Dropbox/IO/code/cooked_input/io_get_input/test/simple_input.py", line 13, in simple_guess
+      File "D:/Dropbox/IO/code/cooked_input/cooked_input/test/simple_input.py", line 13, in simple_guess
         guess = int(input('Guess what number I am thinking of: '))
     ValueError: invalid literal for int() with base 10: 'a'
 
@@ -133,7 +133,7 @@ Or to get from a list of choices:
     colors = ['red', 'green', 'blue']
     color_validator = InChoicesValidator(choices=colors)
     prompt_str = 'What is your favorite color (%s)' % ', '.join(colors)
-    print(get_input(prompt=prompt_str, cleaners=[StripCleaner(), LowerCleaner()] validators=color_validator default='green'))
+    result = get_input(prompt=prompt_str, cleaners=[StripCleaner(), LowerCleaner()] validators=color_validator default='green')
 
 Or not in a set of choices
 
@@ -160,6 +160,6 @@ Or of course, composing lots of these together (get from a set of choice, but no
     validators = [good_flavor_validator, not_in_choices_validator]
     response = get_input(prompt=prompt_str, cleaners=cleaners, validators=validators, default='cherry')
 
-There are a lot of examples in the test directory.
-
-see TODO.md for list of TODO items
+Cooked_input has a lot more of functionality for getting input of different types (floats, Booelans, Dates, lists,
+passwords, etc.), as well as lots of validators and cleaners. It also has a number of features for getting input from
+tables (which is nice for working with values in database tables). There are a lot of examples in the test directory.

@@ -269,4 +269,4 @@ class TableConvertor(Convertor):
         return result
 
     def __repr__(self):
-        return 'DateConvertor(%s)' % self.value_error_str
+        return 'TableConvertor(%s)' % self.value_error_str

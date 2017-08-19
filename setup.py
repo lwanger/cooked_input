@@ -10,6 +10,7 @@ from codecs import open
 from os import path
 from distutils.core import setup
 
+
 here = path.abspath(path.dirname(__file__))
 
 import cooked_input
@@ -20,7 +21,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='cooked_input',
+    name='cooked-input',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
