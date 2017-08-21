@@ -1,5 +1,7 @@
 """
-Test to test getting an integer values
+cooked input examples of getting an integer values
+
+Len Wanger, 2017
 """
 
 from cooked_input import get_input

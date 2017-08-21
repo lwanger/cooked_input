@@ -1,6 +1,7 @@
 """
-Test to test getting lists
+cooked input examples of getting an list values
 
+Len Wanger, 2017
 """
 
 from cooked_input import get_input
@@ -20,10 +21,10 @@ if __name__ == '__main__':
     upper_cleaner = UpperCleaner()
 
     # get any string
-    print(get_input(prompt='Enter a list', convertor=ListConvertor()))
-    print(get_input(prompt='Enter a list (blank OK)', convertor=ListConvertor(),  blank_ok=True))
-    print(get_input(prompt='Enter a list (blank not OK)', convertor=ListConvertor(), blank_ok=False))
-    print(get_input(prompt='Enter a list (stripped)', convertor=ListConvertor(), cleaners=strip_cleaner))
+    print(get_input(prompt='Enter a list (separated by commas)', convertor=ListConvertor()))
+    print(get_input(prompt='Enter a list (separated by commas, blank OK)', convertor=ListConvertor(),  blank_ok=True))
+    print(get_input(prompt='Enter a list (separated by commas, blank not OK)', convertor=ListConvertor(), blank_ok=False))
+    print(get_input(prompt='Enter a list (separated by commas, stripped)', convertor=ListConvertor(), cleaners=strip_cleaner))
 
     # specified delimiter
     print(get_input(prompt='Enter a list (separated by commas)', convertor=ListConvertor(delimiter=',')))

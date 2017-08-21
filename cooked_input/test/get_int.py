@@ -12,6 +12,7 @@ from cooked_input import get_input, IntConvertor, InRangeValidator
 
 
 class redirect_stdin():
+    # context manager for redirecting stdin. Usable with "with" keyword
     def __init__(self, f):
         self.f = f
 
@@ -20,6 +21,7 @@ class redirect_stdin():
 
     def __exit__(self, *args):
         sys.stdin = sys.__stdin__
+
 
 test_get_int_str="""
 10

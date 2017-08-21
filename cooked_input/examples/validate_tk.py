@@ -14,9 +14,9 @@ from cooked_input import process_value, IntConvertor, InRangeValidator, StripCle
 
 def on_button():
     value = entry1.get()
-    processed_value = process_value(value, cleaners=StripCleaner(), convertor=IntConvertor(), validators=InRangeValidator(min_val=1, max_val=10))
+    valid, processed_value = process_value(value, cleaners=StripCleaner(), convertor=IntConvertor(), validators=InRangeValidator(min_val=1, max_val=10))
 
-    if processed_value:
+    if valid:
         messagebox.showinfo("Integer is...", "Integer is good: {}".format(processed_value))
         top.quit()
     else:

@@ -1,3 +1,9 @@
+"""
+cooked input example showing how to use with entries from database tables.
+
+Len Wanger, 2017
+"""
+
 import sqlite3
 from collections import Counter
 import cooked_input

@@ -1,7 +1,5 @@
 """
-get_input module to get values from the command line.
-
-This file contains validator classes for io_get_input
+This file contains validator classes for cooked_input
 
 For more validators: look at using validus:
     https://shopnilsazal.github.io/validus/readme.html
@@ -10,23 +8,9 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
-import sys
 import string
 import re
-
-
-def compose(value, funcs):
-    # compose functions and return the result: compose(value, [f1,f2,f3]) = f3(f2(f1(value)))
-    result = None
-    if callable(funcs):
-        result = funcs(value)
-    else:
-        for func in funcs:
-            if not result:
-                result = func(value)
-            else:
-                result = func(result)
-    return result
+import collections
 
 
 def in_any(value, validators):
@@ -38,16 +22,16 @@ def in_any(value, validators):
     :return: True if any of the validators pass, False if they all fail.
     """
 
-    if isinstance(validators, collections.Iterable):
-        result = any(validator(value) for validator in validators)
-    elif validators is None:
+    if validators is None:
         result = True
-    else:
+    elif isinstance(validators, collections.Iterable):  # list of validators (or other iterable)
+        result = any(validator(value) for validator in validators)
+    elif callable(validators): # single validator function
         result = validators(value)
+    else:   # single value
+        result = value == validators
 
     return result
-
-import collections
 
 
 def in_all(value, validators):
@@ -59,12 +43,14 @@ def in_all(value, validators):
     :return: True if all of the validators pass, False if they all fail.
     """
 
-    if isinstance(validators, collections.Iterable):
-        result = all(validator(value) for validator in validators)
-    elif validators is None:
+    if validators is None:
         result = True
-    else:
+    elif isinstance(validators, collections.Iterable):
+        result = all(validator(value) for validator in validators)
+    elif callable(validators):
         result = validators(value)
+    else:
+        result = value == validators
 
     return result
 
@@ -77,8 +63,7 @@ def not_in(value, validators):
     :param validators: an iterable (list or tuple) containing the validators to use.
     :return: True if none of the validators pass, False if they any of them pass.
     """
-    result = in_any(value, validators)
-    return not result
+    return not in_any(value, validators)
 
 
 def validate(value, validators=None):
@@ -89,7 +74,15 @@ def validate(value, validators=None):
     :param validators: list of validators to run on the value.
     :return: True if the input passed validation, else False
     """
-    return compose(value, validators)
+    if callable(validators):
+        result = validators(value)
+    else:
+        for v in validators:
+            result = v(value)
+            if not result:
+                break
+
+    return result
 
 
 ####
@@ -364,7 +357,7 @@ class ListValidator(Validator):
 
         if self._elem_validators:
             for item in value:
-                result = compose(item, self._elem_validators)
+                result = validate(item, self._elem_validators)
                 if not result:
                     return False
 

@@ -1,3 +1,9 @@
+"""
+cooked input examples of getting entry from menus
+
+Len Wanger, 2017
+"""
+
 
 from cooked_input import get_table_input
 from cooked_input.convertors import IntConvertor

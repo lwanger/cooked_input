@@ -8,11 +8,6 @@ cooked input.
 
 github archive: https://github.com/lwanger/cooked_input
 
-
 for the latest documentation, see: https://readthedocs.org/projects/cooked-input/
-
-----
-
-This is the readme for the project.
 
 see TODO.md for list of TODO items

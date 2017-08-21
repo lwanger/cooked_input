@@ -1,17 +1,10 @@
 """
-get_input module to get values from the command line.
-
-convertor classes
-
-This file contains convertors classes for io_get_input
-
+This file contains convertors classes for cooked_input
 
 Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
-import sys
-import re
 import dateparser
 import csv
 from io import StringIO

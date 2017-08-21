@@ -2,9 +2,7 @@
 """
 get_input module to get values from the command line.
 
-document usage.
-point to examples
-talk about convertors, cleaners, and validators
+see: https://github.com/lwanger/cooked_input for more information.
 
 Author: Len Wanger
 Copyright: Len Wanger, 2017
@@ -16,11 +14,8 @@ import logging
 import getpass
 import prettytable
 
-# relative import needed to run, but sphinx need non-relative. 
-from .validators import InChoicesValidator, in_all
+from .validators import InChoicesValidator, in_all, validate
 from .convertors import TableConvertor
-# from validators import InChoicesValidator
-# from convertors import TableConvertor
 
 
 TABLE_ID = 0
@@ -305,14 +300,3 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
                         return t[TABLE_VALUE]
                     else:
                         return t[TABLE_ID]
-
-
-def validate(value, validators=None):
-    """
-    Run validators on a value.
-
-    :param value: the value to validate.
-    :param validators: list of validators to run on the value.
-    :return: True if the input passed validation, else False
-    """
-    return compose(value, validators)

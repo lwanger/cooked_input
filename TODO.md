@@ -4,6 +4,7 @@
 **TODO:**
 
 * general:
+    * Ship example and test dirs.
     * Need to work on error messages. Not handled well now.
     * Add tables (build-a-burger) to tutorial
     * Review examples, tutorial interface. Clean up and make: easier, cleaner, more consistent.
@@ -48,3 +49,7 @@
  
 * validators:
     * add: date range, date day of week
+    * allow forcing to validate all validators instead of stopping on first failure
+    * return list of all validation failures
+    * provide list of hints for what is required
+    * password validator should create hint of what's required for password

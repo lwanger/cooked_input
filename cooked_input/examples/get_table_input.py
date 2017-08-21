@@ -1,3 +1,8 @@
+"""
+cooked input examples of getting inputs from tables
+
+Len Wanger, 2017
+"""
 
 import cooked_input
 from cooked_input import get_table_input

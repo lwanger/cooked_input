@@ -1,8 +1,7 @@
 """
-No error msgs for password
+cooked input examples of getting inputs from tables
 
-Have Password validator create hints for proper input.  Expand that idea?
-Have error messages for all fields
+Len Wanger, 2017
 """
 
 
@@ -98,6 +97,9 @@ if __name__ == '__main__':
     strong_password_validator = PasswordValidator(disallowed='[]', min_length=5, max_length=15, min_lower=2, min_puncts=2)
     role_validtor = ListValidator(elem_validators=InChoicesValidator(roles_list))
     role_prompt = 'Roles ({}, separated by commas)'.format(sorted(roles_list))
+
+    # TODO -- remove me!!!
+    roles = get_input(prompt=role_prompt, cleaners=default_cleaners, convertor=ListConvertor(), validators=role_validtor, blank_ok=False)
 
     # Simulate logging the user in:
     try:

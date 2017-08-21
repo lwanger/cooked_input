@@ -5,6 +5,8 @@ Three versions of a simple guessing game:
     simple_guess: the naive version. Not robust.
     robust_guess: trying to beef up the naive version, lots of code for a simple input of an integer!
     cooked_input_guess: implemented with cooked_input
+
+Len Wanger, 2017
 """
 
 import sys

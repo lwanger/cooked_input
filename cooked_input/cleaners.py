@@ -1,13 +1,10 @@
 """
-get_input module to get values from the command line.
-
-This file contains cleaner classes for io_get_input
+This file contains cleaner classes for cooked_input
 
 Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
-import sys
 from string import capwords
 
 
@@ -73,9 +70,9 @@ class CapitalizeCleaner(Cleaner):
 
     def __call__(self, value):
         if self.all_words:
-            result = value.capitalize()
-        else:
             result = capwords(value)
+        else:
+            result = value.capitalize()
 
         return result
 

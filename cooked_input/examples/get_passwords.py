@@ -1,3 +1,8 @@
+"""
+cooked input examples of getting password values
+
+Len Wanger, 2017
+"""
 
 from cooked_input import get_input
 from cooked_input.validators import PasswordValidator
