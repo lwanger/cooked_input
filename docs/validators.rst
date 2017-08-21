@@ -16,21 +16,19 @@ for more information on validus see: https://github.com/shopnilsazal/validus
 
 
 
-Validators
-----------
+Creating Validators
+-------------------
 
 Validator classes inherit from the Validator metaclass. They must be callable, with the __call__ dunder
 method taking one parameter, the value. An example of a validator to verify that the input is exactly
 a specified length looks like::
 
     class ExactLengthValidator(Validator):
-        # check a value is exactly a length
         def __init__(self, length=None, **kwargs):
             self._length = length
             super(ExactLengthValidator, self).__init__(**kwargs)
 
         def __call__(self, value):
-            # TypeError thrown if value does not implement __len__
             val_len = len(value)
             condition1 = (self._length is None or val_len == self._length)
             return True if condition1 else False
@@ -39,28 +37,25 @@ a specified length looks like::
             return 'ExactLengthValidator(value=%s)' % (self._length)
 
 
-.. autoclass:: ExactLengthValidator
+Validators
+----------
 
-.. autoclass:: InLengthValidator
+.. autoclass:: cooked_input.ExactLengthValidator
 
-.. autoclass:: ExactValueValidator
+.. autoclass:: cooked_input.InLengthValidator
 
-.. autoclass:: InRangeValidator
+.. autoclass:: cooked_input.ExactValueValidator
 
-.. autoclass:: InChoicesValidator
+.. autoclass:: cooked_input.InRangeValidator
 
-.. autoclass:: NotInValidator
+.. autoclass:: cooked_input.InChoicesValidator
 
-.. autoclass:: InAnyValidator
+.. autoclass:: cooked_input.NotInValidator
 
-.. autoclass:: RegexValidator
+.. autoclass:: cooked_input.InAnyValidator
 
-.. autoclass:: PasswordValidator
+.. autoclass:: cooked_input.RegexValidator
 
-.. autoclass:: ListValidator
+.. autoclass:: cooked_input.PasswordValidator
 
-helper functions:
------------------
-
-.. autofunction:: validate
-
+.. autoclass:: cooked_input.ListValidator

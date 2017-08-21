@@ -7,8 +7,8 @@ Convertors classes for converting the string input to the desired output. Conver
 validation.
 
 
-Convertors
-----------
+Creating Convertors
+-------------------
 
 Convertor classes inherit from the Convertor metaclass. They must be callable, with the __call__ dunder
 method taking one parameter, the value. An example of a convertor to change the input value to an integer
@@ -28,18 +28,21 @@ looks like::
         def __repr__(self):
             return 'IntConvertor(base=%d, value_error_str=%s)' % (self._base, self.value_error_str)
 
-.. autoclass:: IntConvertor
+Convertors
+----------
 
-.. autoclass:: FloatConvertor
+.. autoclass:: cooked_input.IntConvertor
 
-.. autoclass:: BooleanConvertor
+.. autoclass:: cooked_input.FloatConvertor
 
-.. autoclass:: ListConvertor
+.. autoclass:: cooked_input.BooleanConvertor
 
-.. autoclass:: DateConvertor
+.. autoclass:: cooked_input.ListConvertor
 
-.. autoclass:: YesNoConvertor
+.. autoclass:: cooked_input.DateConvertor
 
-.. autoclass:: TableConvertor
+.. autoclass:: cooked_input.YesNoConvertor
+
+.. autoclass:: cooked_input.TableConvertor
 
 

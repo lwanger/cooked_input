@@ -23,7 +23,6 @@ get_table_input
 validate
 --------
 
-
 .. autofunction:: cooked_input.validate
 
 process_value

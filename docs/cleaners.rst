@@ -6,8 +6,8 @@ Cleaners
 Cleaner classes for cleaning input before conversion and validation.
 
 
-Cleaners
---------
+Creating Cleaners
+-----------------
 
 Cleaner classes inherit from the Cleaner metaclass. They must be callable, with the __call__ dunder
 method taking one parameter, the value. An example of a cleaner to change the input value to lower
@@ -22,17 +22,16 @@ case looks like::
             result = value.lower()
             return result
 
+Cleaners
+--------
 
-
-.. autoclass:: LowerCleaner
+.. autoclass:: cooked_input.StripCleaner
 
 .. autoclass:: cooked_input.LowerCleaner
 
-.. autoclass:: UpperCleaner
+.. autoclass:: cooked_input.UpperCleaner
 
-.. autoclass:: CapitalizeCleaner
+.. autoclass:: cooked_input.CapitalizeCleaner
 
-.. autoclass:: StripCleaner
-
-.. autoclass:: ReplaceCleaner
+.. autoclass:: cooked_input.ReplaceCleaner
 
