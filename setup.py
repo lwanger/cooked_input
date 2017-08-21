@@ -105,7 +105,7 @@ setup(
     package_data={
         # 'sample': ['package_data.dat'],
     },
-    
+
     include_package_data=True,
 
     # Although 'package_data' is the preferred approach, in some case you may

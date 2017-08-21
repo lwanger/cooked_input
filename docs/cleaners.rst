@@ -23,7 +23,10 @@ case looks like::
             return result
 
 
+
 .. autoclass:: LowerCleaner
+
+.. autoclass:: cooked_input.LowerCleaner
 
 .. autoclass:: UpperCleaner
 
