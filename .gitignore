@@ -1,4 +1,6 @@
 *.pyc
 .idea
 docs/_build
-io_get_input.egg-info
+build/*
+dist/*
+cooked_input.egg_info
