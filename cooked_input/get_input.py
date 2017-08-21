@@ -31,13 +31,15 @@ if sys.version_info[0] > 2: # For Python 3
 
 def compose(value, funcs):
     # compose functions and return the result: compose(value, [f1,f2,f3]) = f3(f2(f1(value)))
-    result = None
+    first_func = True
+
     if callable(funcs):
         result = funcs(value)
     else:
         for func in funcs:
-            if not result:
+            if first_func:
                 result = func(value)
+                first_func = False
             else:
                 result = func(result)
     return result

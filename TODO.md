@@ -4,7 +4,8 @@
 **TODO:**
 
 * general:
-    * Ship example and test dirs.
+    * Improve the README file
+    * Add automated tests (pytest?)
     * Need to work on error messages. Not handled well now.
     * Add tables (build-a-burger) to tutorial
     * Review examples, tutorial interface. Clean up and make: easier, cleaner, more consistent.
@@ -14,11 +15,14 @@
     * add convenience functions for common scenarios like: get_integer_input, get_float_input, etc. Automatically put in
         the correct convertor (IntConvertor).
     * decorators to make cleaners, convertors, etc. decorator for strip and lower cleaners? 
-        get yes/no, get an int in a range, etc.
+        get yes/no, get an int in a range, etc. Use decorators to reduce boilerplate code.
+    * add part 2 (and part 3?) to tutorial to show more examples: passwords (get_user_info), tables,
+        menus, and databases?
 
 * get_input:
     * send error messages to stderr?
     * option to list choices in prompt_str (???)? Show hints?
+    * replace raw_input with version using sys.stdin.readline()
     * show error for validation errors? Perform like flash messages where can have a list of them?
     * provide kwarg to run all validators, instead of failing on first one, so can see all errors.
     * autocomplete (???)
