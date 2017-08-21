@@ -59,7 +59,8 @@ def process_value(value, cleaners, convertor, validators):
     :param convertor: the convertor to apply to the cleaned value
     :param validators: list of validators to apply to validate the cleaned and converted value
 
-    :return: if the value is valid, return the cleaned, converted, valided value, otherwise return None
+    :return: Return of tuple (valid, converted_value), if the values was cleaned, converted and validated successfully,
+        valid is True and converted value is the converted and cleaned value. If not, valid is False, and value is None.
     """
     if cleaners:
         cleaned_response = compose(value, cleaners)
@@ -73,10 +74,14 @@ def process_value(value, cleaners, convertor, validators):
             converted_response = cleaned_response
     except ValueError:
         print('value should be %s.' % convertor.value_error_str)
-        return None
+        return (False, None)
 
     valid_response = in_all(converted_response, validators)
-    return converted_response if valid_response else None
+
+    if valid_response:
+        return (True, converted_response)
+    else:
+        return (False, None)
 
 
 def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):

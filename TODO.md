@@ -4,24 +4,23 @@
 **TODO:**
 
 * general:
+    * Need to work on error messages. Not handled well now.
     * Add tables (build-a-burger) to tutorial
     * Review examples, tutorial interface. Clean up and make: easier, cleaner, more consistent.
         Are classes needed for Validators, Convertors, Cleaners, or can the be any callable? Convertors
         using error string only.
-    * Talk about using same cleaning, converting, and validation outside of CLI (e.g. apply to GUI.)
     * document value_error_strings in convertors
     * add convenience functions for common scenarios like: get_integer_input, get_float_input, etc. Automatically put in
         the correct convertor (IntConvertor).
     * decorators to make cleaners, convertors, etc. decorator for strip and lower cleaners? 
         get yes/no, get an int in a range, etc.
-    * show how to use with a web form or tkinter form
-    
+
 * get_input:
     * send error messages to stderr?
-    * option to list choices in prompt_str (???)
-    * show error for validation errors
+    * option to list choices in prompt_str (???)? Show hints?
+    * show error for validation errors? Perform like flash messages where can have a list of them?
+    * provide kwarg to run all validators, instead of failing on first one, so can see all errors.
     * autocomplete (???)
-    * add color to prompts and error messages (use colorfy?)
     * add routine to make menus more easily
 
 * get_table_input
@@ -32,7 +31,7 @@
        
 * examples/tests:
     * change to examples
-    * add: date, 
+    * add: date
     * add: ReplaceCleaner
 
 * cleaners:
@@ -40,6 +39,7 @@
     * cleaner for Unicode normalization
     * cleaner for html quoting/unquoting
     * make a single capitalization cleaner with parameter for upper, lower, or capitalized
+    * make a single strip cleaner with parameter for left, right, or both
     * strip sql injection when dealing with tables
 
 * convertors:
@@ -48,4 +48,3 @@
  
 * validators:
     * add: date range, date day of week
-    * get in_any validator
