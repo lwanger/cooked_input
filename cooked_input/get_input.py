@@ -14,7 +14,8 @@ import logging
 import getpass
 import prettytable
 
-from .validators import InChoicesValidator, in_all, validate
+from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
+from .validators import InChoicesValidator, in_all
 from .convertors import TableConvertor
 
 
@@ -45,7 +46,8 @@ def compose(value, funcs):
     return result
 
 
-def process_value(value, cleaners, convertor, validators):
+def process_value(value, cleaners, convertor, validators, error_callback=print_error,
+                    convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
     """
     runs a value through cleaning, conversion, and validation. This allows the same processing used
     in get_input to be performed on a value. For instance, the same processing used for getting 
@@ -55,6 +57,9 @@ def process_value(value, cleaners, convertor, validators):
     :param cleaners: list of cleaners to apply to clean the value
     :param convertor: the convertor to apply to the cleaned value
     :param validators: list of validators to apply to validate the cleaned and converted value
+    :param error_callback: list of validators to apply to validate the cleaned and converted value
+    :param convertor_error_fmt: format string fro convertor errors (defaults to DEFAULT_CONVERTOR_ERROR)
+    :param validator_error_fmt: format string fro validator errors (defaults to DEFAULT_VALIDATOR_ERROR)
 
     :return: Return of tuple (valid, converted_value), if the values was cleaned, converted and validated successfully,
         valid is True and converted value is the converted and cleaned value. If not, valid is False, and value is None.
@@ -66,14 +71,13 @@ def process_value(value, cleaners, convertor, validators):
 
     try:
         if convertor:
-            converted_response = convertor(cleaned_response)
+            converted_response = convertor(cleaned_response, error_callback, convertor_error_fmt)
         else:
             converted_response = cleaned_response
     except ValueError:
-        print('value should be %s.' % convertor.value_error_str)
         return (False, None)
 
-    valid_response = in_all(converted_response, validators)
+    valid_response = in_all(converted_response, validators, error_callback, validator_error_fmt)
 
     if valid_response:
         return (True, converted_response)
@@ -123,6 +127,16 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
 
         retries: the maximum number of attempts to allow before raising a RuntimeError.
 
+        error_callback: a callback function to call when an error is encountered. Defaults to print_error
+
+        convertor_error_fmt: format string to use for convertor errors. Defaults to DEFAULT_CONVERTOR_ERROR.
+            Format string receives two variables - {value} the value that failed conversion, and {error_content}
+            set by the convertor.
+
+        validator_error_fmt: format string ti use fir validator errors. Defaults to DEFAULT_VALIDATOR_ERROR.
+            Format string receives two variables - {value} the value that failed conversion, and {error_content}
+            set by the validator.
+
     :param cleaners: list of cleaners to apply to clean the value
     :param convertor: the convertor to apply to the cleaned value
     :param validators: list of validators to apply to validate the cleaned and converted value
@@ -136,6 +150,9 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     default_string = None
     hidden = False
     max_retries = None
+    error_callback = print_error
+    convertor_error_fmt = DEFAULT_CONVERTOR_ERROR
+    validator_error_fmt = DEFAULT_VALIDATOR_ERROR
 
     for k, v in options.items():
         if k=='prompt':
@@ -150,6 +167,12 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
             hidden = v
         elif k == 'retries':
             max_retries = v
+        elif k == 'error_callback':
+            error_callback = v
+        elif k == 'convertor_error_fmt':
+            convertor_error_fmt = v
+        elif k == 'validator_error_fmt':
+            validator_error_fmt = v
         else:
             logging.warning('Warning: get_input received unknown option (%s)' % k)
 
@@ -181,13 +204,15 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
         if blank_ok and not response:
             return None
         elif default_val and not response:
-            valid_response, converted_response = process_value(default_val, cleaners, convertor, validators)
+            valid_response, converted_response = process_value(default_val, cleaners, convertor, validators,
+                                                                error_callback, convertor_error_fmt, validator_error_fmt)
             if valid_response:
                 return converted_response
             else:
                 raise ValueError('default did not pass validation.')
         elif response:
-            valid_response, converted_response  = process_value(response, cleaners, convertor, validators)
+            valid_response, converted_response  = process_value(response, cleaners, convertor, validators,
+                                                                error_callback, convertor_error_fmt, validator_error_fmt)
 
             if valid_response:
                 break
@@ -220,6 +245,8 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
         sort_by_value: whether to sort the table rows by value (True) or id (False). Defaults to sort by id.
         default: the default value to use.
 
+        All additional get_input options are also supported (see above.)
+
     :param table: list of tuples, with each tuple being: (id, value) for the items in the table.
     :param cleaners: list of cleaners to apply to the inputted value.
     :param convertor: the convertor to apply to the cleaned input value.
@@ -232,6 +259,8 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
     show_table = True
     default_val = None
     sort_by_value = False
+    valid_get_input_opts = ('value_error', 'prompt', 'blank_ok', 'default_str', 'hidden', 'retries', 'error_callback',
+                                'convertor_error_fmt','validator_error_fmt')
 
     for k, v in options.items():
         if k == 'input_value':
@@ -247,7 +276,7 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
             default_val = v
         elif k == 'sort_by_id':
             sort_by_value = v
-        elif k not in ('value_error', 'prompt', 'blank_ok' ):
+        elif k not in valid_get_input_opts:
             logging.warning('Warning: get_table_input received unknown option (%s)' % k)
 
     # put together options to pass to get_input.

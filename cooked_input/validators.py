@@ -8,12 +8,16 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
+import sys
 import string
 import re
 import collections
+import logging
+
+from .error_callbacks import print_error, silent_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
 
 
-def in_any(value, validators):
+def in_any(value, validators, error_callback, validator_fmt_str):
     """
     return True if the value passes any of the validators - OR's the list of supplied validators.
 
@@ -25,16 +29,16 @@ def in_any(value, validators):
     if validators is None:
         result = True
     elif isinstance(validators, collections.Iterable):  # list of validators (or other iterable)
-        result = any(validator(value) for validator in validators)
+        result = any(validator(value, error_callback, validator_fmt_str) for validator in validators)
     elif callable(validators): # single validator function
-        result = validators(value)
+        result = validators(value, error_callback, validator_fmt_str)
     else:   # single value
         result = value == validators
 
     return result
 
 
-def in_all(value, validators):
+def in_all(value, validators, error_callback, validator_fmt_str):
     """
     return True if the value passes all of the validators - AND's the list of supplied validators.
 
@@ -46,16 +50,16 @@ def in_all(value, validators):
     if validators is None:
         result = True
     elif isinstance(validators, collections.Iterable):
-        result = all(validator(value) for validator in validators)
+        result = all(validator(value, error_callback, validator_fmt_str) for validator in validators)
     elif callable(validators):
-        result = validators(value)
+        result = validators(value, error_callback, validator_fmt_str)
     else:
         result = value == validators
 
     return result
 
 
-def not_in(value, validators):
+def not_in(value, validators, error_callback, validator_fmt_str):
     """
     return True if the value does not pass any of the validators - NOT's the list of supplied validators.
 
@@ -63,10 +67,28 @@ def not_in(value, validators):
     :param validators: an iterable (list or tuple) containing the validators to use.
     :return: True if none of the validators pass, False if they any of them pass.
     """
-    return not in_any(value, validators)
+    # result = in_any(value, validators, error_callback, validator_fmt_str)
+
+    if validators is None:
+        result = True
+    elif isinstance(validators, collections.Iterable):  # list of validators (or other iterable)
+        for validator in validators:
+            result = validator(value, silent_error, validator_fmt_str)
+            if result:
+                break
+    elif callable(validators): # single validator function
+        result = validators(value, error_callback, validator_fmt_str)
+    else:   # single value
+        result = value == validators
+
+    if not result:
+        return True
+    else:
+        error_callback(validator_fmt_str, 'value', 'cannot match {}'.format(value))
+        return False
 
 
-def validate(value, validators=None):
+def validate(value, validators, error_callback=print_error, validator_fmt_str=DEFAULT_VALIDATOR_ERROR):
     """
     Run validators on a value.
 
@@ -75,10 +97,10 @@ def validate(value, validators=None):
     :return: True if the input passed validation, else False
     """
     if callable(validators):
-        result = validators(value)
+        result = validators(value, error_callback, validator_fmt_str)
     else:
         for v in validators:
-            result = v(value)
+            result = v(value, error_callback, validator_fmt_str)
             if not result:
                 break
 
@@ -95,7 +117,7 @@ class Validator(object):
         pass
 
     # @abstractmethod   # introduced in Python 3
-    def __call__(self, value):
+    def __call__(self, value, error_callback, validator_fmt_str):
         pass
 
 
@@ -111,11 +133,16 @@ class ExactLengthValidator(Validator):
         self._length = length
         super(ExactLengthValidator, self).__init__(**kwargs)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, validator_fmt_str):
         # TypeError thrown if value does not implement __len__
         val_len = len(value)
         condition1 = (self._length is None or val_len == self._length)
-        return True if condition1 else False
+
+        if condition1:
+            return True
+        else:
+            error_callback(validator_fmt_str, value, 'not length {}'.format(self._length))
+            return False
 
     def __repr__(self):
         return 'ExactLengthValidator(value=%s)' % (self._length)
@@ -134,12 +161,20 @@ class InLengthValidator(Validator):
         self._max_len = max_len
         super(InLengthValidator, self).__init__(**kwargs)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, validator_fmt_str):
         # TypeError thrown if value does not implement __len__
         val_len = len(value)
         min_condition = (self._min_len is None or val_len >= self._min_len)
         max_condition = (self._max_len is None or val_len <= self._max_len)
-        return True if min_condition and max_condition else False
+
+        if min_condition and max_condition:
+            return True
+        elif not min_condition:
+            error_callback(validator_fmt_str, value, 'too short (min_len={})'.format(self._min_len))
+            return False
+        else:
+            error_callback(validator_fmt_str, value, 'too long (max_len={})'.format(self._max_len))
+            return False
 
     def __repr__(self):
         return 'InLengthValidator(min_len=%s, max_len=%s)' % (self._min_len, self._max_len)
@@ -157,9 +192,14 @@ class ExactValueValidator(Validator):
         self._value = value
         super(ExactValueValidator, self).__init__(**kwargs)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, validator_fmt_str):
         condition1 = (self._value is None or value == self._value)
-        return True if condition1 else False
+
+        if condition1:
+            return True
+        else:
+            error_callback(validator_fmt_str, 'value', 'not equal to {}'.format(self._value))
+            return False
 
     def __repr__(self):
         return 'ExactValueValidator(value=%s)' % (self._value)
@@ -179,10 +219,18 @@ class InRangeValidator(Validator):
         self._max_val = max_val
         super(InRangeValidator, self).__init__(**kwargs)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, validator_fmt_str):
         min_condition = (self._min_val is None or value >= self._min_val)
         max_condition = (self._max_val is None or value <= self._max_val)
-        return True if min_condition and max_condition else False
+
+        if min_condition and max_condition:
+            return True
+        elif not min_condition:
+            error_callback(validator_fmt_str, value, 'too low (min_val={})'.format(self._min_val))
+            return False
+        else:
+            error_callback(validator_fmt_str, value, 'too high (max_val={})'.format(self._max_val))
+            return False
 
     def __repr__(self):
         return 'InRangeValidator(min_val=%s, max_val=%s)' % (self._min_val, self._max_val)
@@ -197,12 +245,29 @@ class InChoicesValidator(Validator):
     """
     def __init__(self, choices, **kwargs):
         # note: if choices is mutable, the choices can change after instantiation
-        self._choices = choices
+        if sys.version_info[0] < 3 and isinstance(choices, unicode):  # For Python 2 - unicode is different than strings
+            self._choices = []
+            self._choices.append(choices)
+        if sys.version_info[0] > 2 and isinstance(choices, bytes):  # For Python 3 - check for bytes
+            self._choices = []
+            self._choices.append(choices)
+        elif  isinstance(choices, str):
+            self._choices = []
+            self._choices.append(choices)
+        elif isinstance(choices, collections.Iterable):  # list or other iterable
+            self._choices = choices
+        else: # single non-iterable value
+            self._choices = tuple(choices)
         super(InChoicesValidator, self).__init__(**kwargs)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, validator_fmt_str):
         result = value in self._choices
-        return result
+
+        if result:
+            return True
+        else:
+            error_callback(validator_fmt_str, 'value', 'must be one of: {}'.format(', '.join(self._choices)))
+            return False
 
     def __repr__(self):
         return 'InChoicesValidator(choices={})'.format(self._choices)
@@ -221,9 +286,10 @@ class NotInValidator(Validator):
         self._validators = validators
         super(NotInValidator, self).__init__(**kwargs)
 
-    def __call__(self, value):
-        # result = value in self._choices
-        result = not_in(value, self._validators)
+    def __call__(self, value, error_callback, validator_fmt_str):
+        result = not_in(value, self._validators, error_callback, validator_fmt_str)
+
+        # error callback handled within not_in call
         return result
 
     def __repr__(self):
@@ -244,9 +310,49 @@ class InAnyValidator(Validator):
         self._validators = validators
         super(InAnyValidator, self).__init__(**kwargs)
 
-    def __call__(self, value):
-        # result = value in self._choices
-        result = in_any(value, self._validators)
+    def __call__(self, value, error_callback, validator_fmt_str):
+        result = in_any(value, self._validators, error_callback, validator_fmt_str)
+        return result
+
+    def __repr__(self):
+        return 'InAnyValidator(validators={})'.format(self._validators)
+
+
+class SimpleValidator(Validator):
+    """
+    check if a value matches any function that takes a single value value and returns a Boolean.
+
+    :param validators an iterable list of validators. When the validators is called, return True once any of the validators matches.
+    :param kwargs: kwargs: no kwargs are currently supported.
+
+    optinal kwargs:
+
+        name: a string to use for the validator name in error messages
+
+    """
+    def __init__(self, function, **kwargs):
+
+        # note: if choices is mutable, the choices can change after instantiation
+        self._validator = function
+        self._name = None
+
+        for k, v in kwargs.items():
+            if k == 'name':
+                self._name = '%s' % v
+            else:
+                logging.warning('Warning: SimpleValidator received unknown option (%s)' % k)
+
+        super_options_to_skip = {'name'}
+        super_kwargs = {k: v for k, v in kwargs.items() if k not in super_options_to_skip}
+
+        super(SimpleValidator, self).__init__(**super_kwargs)
+
+    def __call__(self, value, error_callback, validator_fmt_str):
+        result = self._validator(value)
+
+        if not result:
+            error_callback(validator_fmt_str, value, 'is not a valid {}'.format(self._name))
+
         return result
 
     def __repr__(self):
@@ -259,15 +365,36 @@ class RegexValidator(Validator):
 
     :param regex: the regular expression to match.
     :param kwargs: kwargs: no kwargs are currently supported.
+    
+    options:
+    
+    regex_desc: a human readable string to use for the regex (used for error messages)
     """
-    def __init__(self, regex, **kwargs):
+    def __init__(self, regex, **options):
         # note: if choices is mutable, the choices can change after instantiation
         self._regex = regex
+        self._regex_desc = regex
+
+        for k, v in options.items():
+            if k == 'regex_desc':
+                self._regex_desc = v
+            else:
+                logging.warning('Warning: get_input received unknown option (%s)' % k)
+
+
         super(RegexValidator, self).__init__(**kwargs)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, validator_fmt_str):
         result = re.search(self._regex, value)
-        return True if result else False
+        # return True if result else False
+        if result:
+            return True
+        else:
+            if self._regex == self._regex_desc:
+                error_callback(validator_fmt_str, value, 'does not match pattern: {}'.format(self._regex_desc))
+            else:
+                error_callback(validator_fmt_str, value, 'is not a valid {}'.format(self._regex_desc))
+            return False
 
     def __repr__(self):
         return 'RegexValidator(regegx={})'.format(self._regex)
@@ -298,35 +425,44 @@ class PasswordValidator(Validator):
         self.min_upper = min_upper
         self.min_digits = min_digits
         self.min_puncts = min_puncts
+        self.disallowed = set(disallowed)
 
         if allowed is not None:
             self.valid_chars = set(allowed)
         elif disallowed is not None:
-            # disallowed_chars = disallowed
-            self.valid_chars -= set(disallowed)
+            # self.valid_chars -= set(disallowed)
+            self.valid_chars -= self.disallowed
 
         super(PasswordValidator, self).__init__(**kwargs)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, validator_fmt_str):
         if len(set(value) - self.valid_chars):
+            error_callback(validator_fmt_str, 'password', 'cannot contain any of the following characters: {}'.format(set(value) - self.valid_chars))
             return False
 
         if self.min_length and len(value) < self.min_length:
+            error_callback(validator_fmt_str, 'password', 'too short (minimum length is {})'.format(self.min_length))
             return False
 
         if self.max_length and len(value) > self.max_length:
+            error_callback(validator_fmt_str, 'password', 'too long (maximum length is {})'.format(self.max_length))
             return False
 
         if self.min_lower and len([c for c in value if c in string.ascii_lowercase]) < self.min_lower:
+            error_callback(validator_fmt_str, 'password', 'too few lower case characters (minimum is {})'.format(self.min_lower))
             return False
 
         if self.min_upper and len([c for c in value if c in string.ascii_uppercase]) < self.min_upper:
+            error_callback(validator_fmt_str, 'password', 'too few upper case characters (minimum is {})'.format(self.min_upper))
             return False
 
         if self.min_digits and len([c for c in value if c in string.digits]) < self.min_digits:
+            error_callback(validator_fmt_str, 'password', 'too few digit characters (minimum is {})'.format(self.min_digits))
             return False
 
         if self.min_puncts and len([c for c in value if c in string.punctuation]) < self.min_puncts:
+            error_callback(validator_fmt_str, 'password', 'too few punctuation characters (minimum is {} from)'.format(self.min_puncts,
+                                                                            set(string.punctuation) - self.disallowed))
             return False
 
         return True
@@ -349,16 +485,18 @@ class ListValidator(Validator):
         self._elem_validators = elem_validators
         super(ListValidator, self).__init__(**kwargs)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, validator_fmt_str):
         if self._len_validator:
-            result = self._len_validator(value)
+            result = self._len_validator(value, error_callback, validator_fmt_str)
             if not result:
+                # error callback performed in len_validator
                 return False
 
         if self._elem_validators:
             for item in value:
-                result = validate(item, self._elem_validators)
+                result = validate(item, self._elem_validators, error_callback, validator_fmt_str)
                 if not result:
+                    # error callback performed in validate
                     return False
 
         return True

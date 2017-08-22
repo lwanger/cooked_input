@@ -25,7 +25,7 @@ class Convertor(object):
         self.value_error_str = value_error_str
 
     # @abstractmethod
-    def __call__(self, value):
+    def __call__(self, value, error_callback, convertor_fmt_str):
         pass
 
 
@@ -43,8 +43,13 @@ class IntConvertor(Convertor):
         self._base = base
         super(IntConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value):
-        result = int(value, self._base)
+    def __call__(self, value, error_callback, convertor_fmt_str):
+        try:
+            result = int(value, self._base)
+        except ValueError:
+            error_callback(convertor_fmt_str, value, self.value_error_str)
+            raise   # re-raise the exception
+
         return result
 
     def __repr__(self):
@@ -61,8 +66,13 @@ class FloatConvertor(Convertor):
     def __init__(self, value_error_str='a float number', **kwargs):
         super(FloatConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value):
-        result = float(value)
+    def __call__(self, value, error_callback, convertor_fmt_str):
+        try:
+            result = float(value)
+        except ValueError:
+            error_callback(convertor_fmt_str, value, self.value_error_str)
+            raise   # re-raise the exception
+
         return result
 
     def __repr__(self):
@@ -79,7 +89,7 @@ class BooleanConvertor(Convertor):
     def __init__(self, value_error_str='true or false', **kwargs):
         super(BooleanConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, convertor_fmt_str):
         true_set = {'t', 'true', 'y', 'yes', '1'}
         false_set = {'f', 'false', 'n', 'no', '0'}
 
@@ -88,6 +98,7 @@ class BooleanConvertor(Convertor):
         elif value.lower() in false_set:
             return False
         else:
+            error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ValueError('value not true or false.')
 
     def __repr__(self):
@@ -110,7 +121,7 @@ class ListConvertor(Convertor):
         self.elem_convertor = elem_convertor
         super(ListConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, convertor_fmt_str):
         buffer = StringIO(value)
 
         if self.delimeter is None:
@@ -125,7 +136,7 @@ class ListConvertor(Convertor):
 
         try:
             if self.elem_convertor:
-                converted_list = [self.elem_convertor(item) for item in lst]
+                converted_list = [self.elem_convertor(item, error_callback, convertor_fmt_str) for item in lst]
             else:
                 converted_list = lst
         except ValueError:
@@ -150,11 +161,12 @@ class DateConvertor(Convertor):
     def __init__(self, value_error_str='a date', **kwargs):
         super(DateConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, convertor_fmt_str):
         result = dateparser.parse(value)
         if result:
             return result
         else:
+            error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ValueError('value not a valid date')
 
     def __repr__(self):
@@ -171,7 +183,7 @@ class YesNoConvertor(Convertor):
     def __init__(self, value_error_str='yes or no', **kwargs):
         super(YesNoConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, convertor_fmt_str):
         yes_set = {'y', 'yes', 'yeah', 'yup', 'aye', 'qui', 'si', 'ja', 'ken', 'hai', 'gee', 'da', 'tak', 'affirmative' }
         no_set = {'n', 'no', 'nope', 'na', 'nae', 'non', 'negatory', 'nein', 'nie', 'nyet', 'lo'}
 
@@ -180,6 +192,7 @@ class YesNoConvertor(Convertor):
         elif value.lower() in no_set:
             return 'no'
         else:
+            error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ValueError('value not yes or no.')
 
     def __repr__(self):
@@ -236,9 +249,9 @@ class TableConvertor(Convertor):
 
         super(TableConvertor, self).__init__(self.value_error_str)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, convertor_fmt_str):
         if self._convertor:
-            result = self._convertor(value)
+            result = self._convertor(value, error_callback, convertor_fmt_str)
         else:
             result = value
 
@@ -246,10 +259,12 @@ class TableConvertor(Convertor):
             if result is not None and result in (item[1] for item in self._table):
                 return result
             else:
+                error_callback(convertor_fmt_str, value, 'a valid table value')
                 raise ValueError('%s not a valid table value' % value)
         elif self._input_value == TABLE_ID:
             result = int(value)
             if result is None or result not in (item[0] for item in self._table):
+                error_callback(convertor_fmt_str, value, 'a valid table id')
                 raise ValueError('%s not a valid table id' % value)
         else: # input_value == TABLE_ID_OR_VALUE
             if result in (item[1] for item in self._table):
@@ -257,6 +272,7 @@ class TableConvertor(Convertor):
             elif int(result) in (item[0] for item in self._table):
                 return int(result)
             else:
+                error_callback(convertor_fmt_str, value, 'a valid table id')
                 raise ValueError('%s not a valid table id' % value)
 
         return result

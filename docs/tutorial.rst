@@ -128,7 +128,7 @@ To get 'yes' or 'no':
 
 Or to get from a list of choices:
 
-::
+.. code-block:: python
 
     colors = ['red', 'green', 'blue']
     color_validator = InChoicesValidator(choices=colors)
@@ -137,7 +137,7 @@ Or to get from a list of choices:
 
 Or not in a set of choices
 
-::
+.. code-block:: python
 
     bad_flavors = ['licorice', 'booger']
     not_in_choices_validator = NotInValidator(validators=InChoicesValidator(choices=bad_flavors))
@@ -147,7 +147,7 @@ Or not in a set of choices
 
 Or of course, composing lots of these together (get from a set of choice, but not in another set, with a default value...)
 
-::
+.. code-block:: python
 
     good_flavors = ['cherry', 'lime', 'lemon', 'orange']
     bad_flavors = ['licorice']

@@ -3,4 +3,4 @@
 docs/_build
 build/*
 dist/*
-cooked_input.egg_info
+cooked_input.egg-info/*

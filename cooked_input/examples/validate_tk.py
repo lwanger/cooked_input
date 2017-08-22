@@ -12,16 +12,20 @@ from tkinter import messagebox
 from cooked_input import process_value, IntConvertor, InRangeValidator, StripCleaner
 
 
+def tk_msg_box_error(fmt_str, value, error_content):
+    # display the error in a message box
+    messagebox.showerror('Entry not valid', fmt_str.format(value=value, error_content=error_content))
+
+
 def on_button():
     value = entry1.get()
-    valid, processed_value = process_value(value, cleaners=StripCleaner(), convertor=IntConvertor(), validators=InRangeValidator(min_val=1, max_val=10))
+    valid, processed_value = process_value(value, cleaners=StripCleaner(), convertor=IntConvertor(),
+                                           validators=InRangeValidator(min_val=1, max_val=10), error_callback=tk_msg_box_error)
 
     if valid:
         messagebox.showinfo("Integer is...", "Integer is good: {}".format(processed_value))
         top.quit()
-    else:
-        messagebox.showinfo("Integer is...", "Integer is invalid, try again".format())
-        btn.flash()
+
 
 
 if __name__ == '__main__':

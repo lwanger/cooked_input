@@ -18,7 +18,7 @@ case looks like::
             super(LowerCleaner, self).__init__(**kwargs)
             # initialize any specific state for the cleaner.
 
-        def __call__(self, value):
+        def __call__(self, value, error_callback, convertor_fmt_str):
             result = value.lower()
             return result
 

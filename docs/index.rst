@@ -14,6 +14,7 @@ This is documentation for cooked_input |my_version|, generated |my_date|.
    :caption: Contents:
 
    README
+   CHANGELOG
    tutorial
 
 ** API **
@@ -23,6 +24,7 @@ This is documentation for cooked_input |my_version|, generated |my_date|.
    cleaners
    convertors
    validators
+   error_callbacks
 
 
 Indices and tables

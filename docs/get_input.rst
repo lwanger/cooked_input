@@ -32,4 +32,5 @@ process_value
 
 helper functions:
 -----------------
+
 .. autofunction:: cooked_input.make_pretty_table

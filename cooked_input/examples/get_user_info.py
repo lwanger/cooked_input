@@ -47,6 +47,7 @@ from cooked_input import get_input
 from cooked_input.cleaners import StripCleaner, LowerCleaner, CapitalizeCleaner
 from cooked_input.convertors import ListConvertor
 from cooked_input.validators import Validator, PasswordValidator, ListValidator, InChoicesValidator, ExactValueValidator
+from cooked_input.validators import SimpleValidator
 
 
 class CheckUserValidator(Validator):
@@ -59,8 +60,13 @@ class CheckUserValidator(Validator):
     def __init__(self, **kwargs):
         super(CheckUserValidator, self).__init__(**kwargs)
 
-    def __call__(self, value):
-        return True if value in user_list else False
+    def __call__(self, value, error_callback, validator_fmt_str):
+        if value in user_list:
+            return True
+        else:
+            valid_users = [ k for k in user_list.keys() ]
+            error_callback(validator_fmt_str, value, 'not in list of users ({})'.format(valid_users))
+            return False
 
 
 class CheckPasswordValidator(Validator):
@@ -74,10 +80,15 @@ class CheckPasswordValidator(Validator):
         self.username = username
         super(CheckPasswordValidator, self).__init__(**kwargs)
 
-    def __call__(self, value):
+    def __call__(self, value, error_callback, validator_fmt_str):
         hashed_value = hash(value)
         is_match = user_list[self.username] == hashed_value
-        return is_match
+
+        if is_match:
+            return True
+        else:
+            error_callback(validator_fmt_str, 'entered password', 'does not match current password'.format())
+            return False
 
 
 if __name__ == '__main__':
@@ -95,11 +106,10 @@ if __name__ == '__main__':
     default_cleaners = [StripCleaner(), LowerCleaner()]
     name_cleaners = [StripCleaner(), CapitalizeCleaner()]
     strong_password_validator = PasswordValidator(disallowed='[]', min_length=5, max_length=15, min_lower=2, min_puncts=2)
+    email_validator = SimpleValidator(isemail, name='email')    # validator from validus function
     role_validtor = ListValidator(elem_validators=InChoicesValidator(roles_list))
     role_prompt = 'Roles ({}, separated by commas)'.format(sorted(roles_list))
-
-    # TODO -- remove me!!!
-    roles = get_input(prompt=role_prompt, cleaners=default_cleaners, convertor=ListConvertor(), validators=role_validtor, blank_ok=False)
+    password_confirm_fmt_str = 'password does not match'
 
     # Simulate logging the user in:
     try:
@@ -113,14 +123,15 @@ if __name__ == '__main__':
     password = get_input(prompt='Enter new Password', cleaners=None, validators=strong_password_validator, hidden=True)
 
     try:
-        password = get_input(prompt='Confirm new Password', cleaners=None, validators=ExactValueValidator(password), hidden=True, retries=3)
+        password = get_input(prompt='Confirm new Password', cleaners=None, validators=ExactValueValidator(password),
+                             hidden=True, retries=3, validator_error_fmt=password_confirm_fmt_str)
     except RuntimeError:
         print('Maximum retries exceeded.... exiting')
         sys.exit(1)
 
     first_name = get_input(prompt='First name', cleaners=name_cleaners)
     last_name = get_input(prompt='Last name', cleaners=name_cleaners)
-    email = get_input(prompt='Email', cleaners=default_cleaners, validators=isemail, blank_ok=False)
+    email = get_input(prompt='Email', cleaners=default_cleaners, validators=email_validator, blank_ok=False)
     roles = get_input(prompt=role_prompt, cleaners=default_cleaners, convertor=ListConvertor(), validators=role_validtor, blank_ok=False)
 
     print('\nUpdated user profile info: user_name: {}, password: {}, first_name: {}, last_name: {}, email: {}, roles: {}'.format(
