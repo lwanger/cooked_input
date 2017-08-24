@@ -7,45 +7,46 @@ Len Wanger, 2017
 
 import sys
 from io import StringIO
+import pytest
 
 from cooked_input import get_input, IntConvertor, InRangeValidator
 
-
-class redirect_stdin():
-    # context manager for redirecting stdin. Usable with "with" keyword
-    def __init__(self, f):
-        self.f = f
-
-    def __enter__(self):
-        sys.stdin = self.f
-
-    def __exit__(self, *args):
-        sys.stdin = sys.__stdin__
+from .utils import redirect_stdin
 
 
-test_get_int_str="""
-10
-5
--1
-1
+class TestGetInt(object):
 
-"""
+    def test_get_int(self):
+        test_get_int_str = """
+            10
+            5
+            -1
+            1
+    
+            """
+
+        irv = InRangeValidator(min_val=1, max_val=10)
+        with redirect_stdin(StringIO(test_get_int_str)):
+            result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
+            print(result)
+            assert(result==10)
+
+            result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
+            print(result)
+            assert(result==5)
+
+            result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
+            print(result)
+            assert(result==1)
 
 
-def test_get_int():
-    irv = InRangeValidator(min_val=1, max_val=10)
-    with redirect_stdin(StringIO(test_get_int_str)):
-        result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
-        print(result)
-        assert(result==10)
+    def test_raise_value_exception(self):
+        test_raise_value_error_exception_str = """
+            foo
+            101
+            """
 
-        result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
-        print(result)
-        assert(result==5)
-
-        result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
-        print(result)
-        assert(result==1)
-
-
-test_get_int()
+        with redirect_stdin(StringIO(test_raise_value_error_exception_str)):
+            # with pytest.raises(ValueError):
+            result = get_input(prompt='Enter an integer', convertor=IntConvertor())
+            assert(result==101)
