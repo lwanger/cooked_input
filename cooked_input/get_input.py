@@ -11,6 +11,7 @@ Copyright: Len Wanger, 2017
 import sys
 import copy
 import logging
+import collections
 import getpass
 import prettytable
 
@@ -36,13 +37,16 @@ def compose(value, funcs):
 
     if callable(funcs):
         result = funcs(value)
-    else:
+    elif isinstance(funcs, collections.Iterable):
         for func in funcs:
             if first_func:
                 result = func(value)
                 first_func = False
             else:
                 result = func(result)
+    else:
+        raise ValueError('funcs cannot be called')
+
     return result
 
 
