@@ -53,13 +53,12 @@ def robust_guess():
         print('Ding ding... you guessed it!')
 
 
-from cooked_input import get_input, IntConvertor, InRangeValidator
+from cooked_input import get_int, IntConvertor, InRangeValidator
 
 def get_input_guess():
     number = random.randint(1, 10)
     print('I am thinking of a number between 1 and 10.')
-    guess = get_input(prompt='Guess what number I am thinking of', convertor=IntConvertor(),
-                        validators=InRangeValidator(min_val=1, max_val=10, ))
+    guess = get_int(prompt='Guess what number I am thinking of', validators=InRangeValidator(min_val=1, max_val=10, ))
 
     if guess < number:
         print('Buzz.... you guessed too low.')

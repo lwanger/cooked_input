@@ -4,8 +4,8 @@ Cooked Input Tutorial
 
 Command line tools and terminal input are very useful. I end up writing lots of programs that get some simple input
 from the user and process it. It may be a creating a report from a database or a simple text-based game. While it sounds
-trivial, handling command line prompts is not easy, and the the Python standard library doesn't have anything to make
-this easier. Let's start with a simple example.
+trivial, handling all of the exceptions and corner cases of command line input is not easy, and the the Python standard
+library doesn't have anything to make it easier. Let's start with a simple example.
 
 The first program in an introduction to Python usually looks something like this:
 
@@ -23,9 +23,7 @@ The first program in an introduction to Python usually looks something like this
     else:
         print('Ding ding... you guessed it!')
 
-Looks simple enough right? What happens when the user responds with 'a':
-
-::
+Looks simple enough right? What happens when the user responds with 'a'::
 
     I am thinking of a number between 1 and 10.
     Guess what number I am thinking of: a
@@ -36,10 +34,8 @@ Looks simple enough right? What happens when the user responds with 'a':
         guess = int(input('Guess what number I am thinking of: '))
     ValueError: invalid literal for int() with base 10: 'a'
 
-But let's look at what it actually takes to make the input robust. Checking that the input is
-valid, within the correct range, works with Python 2 and 3, etc. suddenly becomes:
-
-::
+Let's look at what it takes to make the input robust. Checking that the input is: valid,
+within the correct range, works with legacy Python (ie. version 2) and 3, etc. becomes::
 
         while True:
             if sys.version_info.major > 2:
@@ -56,21 +52,31 @@ valid, within the correct range, works with Python 2 and 3, etc. suddenly become
             except ValueError:
                 print('That is not an integer, try again.')
 
-And all of this for the simplest of inputs. This boiler plate code is replicated and expanded for each input from the
-command line. The purpose of the cooked_input library is to make it easier to get command line input from the user. It
+That's a lot of code to handle the simplest of inputs. This boiler plate code is replicated and expanded for each input from the
+command line. Just think of how much code you would need to get and validate a new password from a user --
+making sure the input is hidden, doesn't match the previous password, and the password is at least 8 characters long,
+with at least 2 upper case letter, 2 punctuation marks, 1 number, doesn't use the characters '[', ']', or '&', and
+exits after 3 failed attempts.
+
+The purpose of the cooked_input library is to make it easier to get command line input from the user. It
 takes care of cleaning, converting, and validating the input. It also helps put together the prompt message and error
-messages. In cooked_input, we get back to a single call to get the number for the use:
+messages. In cooked_input, safely getting the value from the user in the guessing game becomes::
 
-::
+    guess = get_int(prompt='Enter an integer between 0 and 10', validators=InRangeValidator(min_val=0, max_val=10))
 
-    guess = get_input(prompt='Enter an integer between 0 and 10', convertor=IntConvertor(),
-                        validators=InRangeValidator(min_val=0, max_val=10))
+For a complete listing of the guessing game code using cooked_input, see simple_input.py in the examples directory.
+
+Oh, and in cooked_input the password example is::
+
+    good_password = PasswordValidator(min_length=8, min_upper=2, min_digits=1, min_puncts=2, disallowed='[]&')
+    not_last_password = NotInValidator(ExactValueValidator([old_password]))
+    password = get_input(prompt='Enter a new password', validators=[good_password, not_last_password], hidden=True, retries=3)
 
 
 Breaking down get_input:
 ------------------------
 
-Let's break this `get_input` statement down. The simplest call to `get_input` is:
+The call to get_int uses the basic function of cooke_input, the get_input function. The simplest call to `get_input` is:
 
 .. code-block:: python
 

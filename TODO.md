@@ -52,6 +52,8 @@
     * add dollar convertor that has minimum of 0.00 and strips off $ sign and commas. Returns float
  
 * validators:
+    * NotInValidator - if a value or list is passed in should use those as exact values. 
+        NotInValidator('foo') causes a TypeError for now.
     * add: date range, date day of week
     * allow forcing to validate all validators instead of stopping on first failure
     * return list of all validation failures

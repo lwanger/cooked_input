@@ -4,7 +4,7 @@ cooked input examples of getting an string values
 Len Wanger, 2017
 """
 
-from cooked_input import get_input
+from cooked_input import get_input, get_string
 from cooked_input.validators import ExactLengthValidator, InLengthValidator, InChoicesValidator, NotInValidator
 from cooked_input.cleaners import StripCleaner, LowerCleaner, UpperCleaner
 from cooked_input.cleaners import CapitalizeCleaner
@@ -31,6 +31,9 @@ if __name__ == '__main__':
     capitalize_all_cleaner = CapitalizeCleaner(all_words=True)
     strip_and_lower_cleaners = [strip_cleaner, lower_cleaner]
 
+
+    # simplest way
+    print(get_string())
 
     # get any string
     print(get_input(prompt='Enter any string'))

@@ -17,9 +17,11 @@ Len Wanger, 2017
 """
 
 from io import StringIO
-from cooked_input import get_input, silent_error, IntConvertor, InRangeValidator, ExactValueValidator
+from cooked_input import get_input, get_int, silent_error
+from cooked_input import IntConvertor, InRangeValidator, ExactValueValidator
 from cooked_input import NotInValidator, InAnyValidator
 from .utils import redirect_stdin
+# from cooked_input.tests.utils import redirect_stdin   # needed this to run under main here
 
 
 def my_print_error(fmt_str, value, error_content):
@@ -40,7 +42,7 @@ class TestGetInt(object):
     validator_fmt = '@ {value} {error_content} @'
 
 
-    def test_get_int(self):
+    def test_get_input_int(self):
         input_str = """
             10
             5
@@ -210,3 +212,33 @@ class TestGetInt(object):
                         error_callback=silent_error,
                         convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
             assert (result == 4)
+
+
+    def test_get_int(self):
+        input_str = """
+            foo
+            3.14
+            101
+            5
+            """
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_int()
+            assert (result == 101)
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_int(prompt='Enter an integer')
+            assert (result == 101)
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_int(validators=[self.zero_to_ten_validator],
+                        error_callback=my_print_error,
+                        convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
+            assert (result == 5)
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_int(validators=[self.zero_to_ten_validator],
+                        prompt='Enter a integer between 0 and 10',
+                        error_callback=my_print_error,
+                        convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
+            assert (result == 5)

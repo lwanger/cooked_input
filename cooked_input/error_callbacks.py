@@ -10,6 +10,15 @@ Copyright: Len Wanger, 2017
 
 import logging
 
+### cooked input custom exceptions
+class MaxRetriesExceeded(RuntimeError):
+    # Exception raised when the maximum number of retries is exceeded.
+    pass
+
+class ValidationError(ValueError):
+    # Exception raised when a value does not pass validation.
+    pass
+
 
 ### Default error callback format strings
 DEFAULT_CONVERTOR_ERROR = '"{value}" cannot be converted to {error_content}'

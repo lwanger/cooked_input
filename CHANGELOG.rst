@@ -10,6 +10,23 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+v0.2.1:
+-------
+
+* Added convenience functions for: get_sring, get_int, get_float, get_boolean, get_list, get_date, and get_yes_no.
+
+* Added examples of calling the convenience functions to the examples (e.g. get_ints, get_lists, get_strs, simple_input).
+
+* Updated the tutorial to use the get_int convenience function. Also show example of PasswordValidator.
+
+* Created exception for: MaxRetriesExceeded (subclassed from RuntimeError), raised when the maximum number of retries is exceeded.
+
+* Created exception for: ValidationError (subclassed from ValueError), raised when a value does not pass validation.
+
+* Get_*, Convertors and validators now raise MaxRetriesExceeded and ValidationError.
+
+* Added pytest tests for getting ints and floats. A lot more case to add.
+
 v0.2.0:
 -------
 

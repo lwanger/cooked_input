@@ -4,7 +4,7 @@ cooked input examples of getting an list values
 Len Wanger, 2017
 """
 
-from cooked_input import get_input
+from cooked_input import get_input, get_list
 from cooked_input.validators import ExactLengthValidator, InLengthValidator, InChoicesValidator, NotInValidator, ListValidator
 from cooked_input.cleaners import StripCleaner, LowerCleaner, UpperCleaner
 from cooked_input.convertors import ListConvertor, IntConvertor, YesNoConvertor
@@ -20,7 +20,10 @@ if __name__ == '__main__':
     lower_cleaner = LowerCleaner()
     upper_cleaner = UpperCleaner()
 
-    # get any string
+    # simplest way
+    print(get_list())
+
+    # get any list
     print(get_input(prompt='Enter a list (separated by commas)', convertor=ListConvertor()))
     print(get_input(prompt='Enter a list (separated by commas, blank OK)', convertor=ListConvertor(),  blank_ok=True))
     print(get_input(prompt='Enter a list (separated by commas, blank not OK)', convertor=ListConvertor(), blank_ok=False))

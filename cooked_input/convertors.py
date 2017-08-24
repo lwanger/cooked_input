@@ -9,6 +9,8 @@ import dateparser
 import csv
 from io import StringIO
 
+from .error_callbacks import ValidationError
+
 
 TABLE_ID = 0
 TABLE_VALUE = 1
@@ -46,9 +48,9 @@ class IntConvertor(Convertor):
     def __call__(self, value, error_callback, convertor_fmt_str):
         try:
             result = int(value, self._base)
-        except ValueError:
+        except (ValueError) as ve:
             error_callback(convertor_fmt_str, value, self.value_error_str)
-            raise   # re-raise the exception
+            raise ValidationError from ve  # re-raise the exception as a ValidationError
 
         return result
 
@@ -69,9 +71,9 @@ class FloatConvertor(Convertor):
     def __call__(self, value, error_callback, convertor_fmt_str):
         try:
             result = float(value)
-        except ValueError:
+        except ValueError as ve:
             error_callback(convertor_fmt_str, value, self.value_error_str)
-            raise   # re-raise the exception
+            raise ValidationError from ve  # re-raise the exception as a ValidationError
 
         return result
 
@@ -99,7 +101,7 @@ class BooleanConvertor(Convertor):
             return False
         else:
             error_callback(convertor_fmt_str, value, self.value_error_str)
-            raise ValueError('value not true or false.')
+            raise ValidationError('value not true or false.')
 
     def __repr__(self):
         return 'BooleanConvertor(%s)' % self.value_error_str
@@ -139,8 +141,8 @@ class ListConvertor(Convertor):
                 converted_list = [self.elem_convertor(item, error_callback, convertor_fmt_str) for item in lst]
             else:
                 converted_list = lst
-        except ValueError:
-            raise ValueError(self.elem_convertor.value_error_str)
+        except ValidationError:
+            raise ValidationError(self.elem_convertor.value_error_str)
 
         return converted_list
 
@@ -167,7 +169,7 @@ class DateConvertor(Convertor):
             return result
         else:
             error_callback(convertor_fmt_str, value, self.value_error_str)
-            raise ValueError('value not a valid date')
+            raise ValidationError('value not a valid date')
 
     def __repr__(self):
         return 'DateConvertor(%s)' % self.value_error_str
@@ -193,7 +195,7 @@ class YesNoConvertor(Convertor):
             return 'no'
         else:
             error_callback(convertor_fmt_str, value, self.value_error_str)
-            raise ValueError('value not yes or no.')
+            raise ValidationError('value not yes or no.')
 
     def __repr__(self):
         return 'YesNoConvertor(%s)' % self.value_error_str
@@ -260,12 +262,12 @@ class TableConvertor(Convertor):
                 return result
             else:
                 error_callback(convertor_fmt_str, value, 'a valid table value')
-                raise ValueError('%s not a valid table value' % value)
+                raise ValidationError('%s not a valid table value' % value)
         elif self._input_value == TABLE_ID:
             result = int(value)
             if result is None or result not in (item[0] for item in self._table):
                 error_callback(convertor_fmt_str, value, 'a valid table id')
-                raise ValueError('%s not a valid table id' % value)
+                raise ValidationError('%s not a valid table id' % value)
         else: # input_value == TABLE_ID_OR_VALUE
             if result in (item[1] for item in self._table):
                 result = value
@@ -273,7 +275,7 @@ class TableConvertor(Convertor):
                 return int(result)
             else:
                 error_callback(convertor_fmt_str, value, 'a valid table id')
-                raise ValueError('%s not a valid table id' % value)
+                raise ValidationError('%s not a valid table id' % value)
 
         return result
 

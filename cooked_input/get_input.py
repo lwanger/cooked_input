@@ -15,14 +15,13 @@ import collections
 import getpass
 import prettytable
 
+from .error_callbacks import MaxRetriesExceeded, ValidationError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
 from .validators import InChoicesValidator, in_all
-from .convertors import TableConvertor
+from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor, YesNoConvertor, ListConvertor
+from .cleaners import StripCleaner
 
-
-TABLE_ID = 0
-TABLE_VALUE = 1
-TABLE_ID_OR_VALUE = -1
+from .convertors import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
 
 
 if sys.version_info[0] > 2: # For Python 3
@@ -45,7 +44,7 @@ def compose(value, funcs):
             else:
                 result = func(result)
     else:
-        raise ValueError('funcs cannot be called')
+        raise RuntimeError('funcs cannot be called')
 
     return result
 
@@ -78,7 +77,7 @@ def process_value(value, cleaners, convertor, validators, error_callback=print_e
             converted_response = convertor(cleaned_response, error_callback, convertor_error_fmt)
         else:
             converted_response = cleaned_response
-    except ValueError:
+    except ValidationError:
         return (False, None)
 
     valid_response = in_all(converted_response, validators, error_callback, validator_error_fmt)
@@ -129,7 +128,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
 
         hidden: the input typed should not be displayed. This is useful for entering passwords.
 
-        retries: the maximum number of attempts to allow before raising a RuntimeError.
+        retries: the maximum number of attempts to allow before raising a MaxRetriesExceeded exception.
 
         error_callback: a callback function to call when an error is encountered. Defaults to print_error
 
@@ -145,7 +144,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     :param convertor: the convertor to apply to the cleaned value
     :param validators: list of validators to apply to validate the cleaned and converted value
     :param options:  see above
-    :return: the cleaned, converted, validated input. Returns None if a valid input was not entered within max retries.
+    :return: the cleaned, converted, validated input
     """
 
     prompt_str = ''
@@ -213,7 +212,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
             if valid_response:
                 return converted_response
             else:
-                raise ValueError('default did not pass validation.')
+                raise ValidationError('default did not pass validation.')
         elif response:
             valid_response, converted_response  = process_value(response, cleaners, convertor, validators,
                                                                 error_callback, convertor_error_fmt, validator_error_fmt)
@@ -228,7 +227,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     if valid_response:
         return converted_response
     else:
-        raise RuntimeError('Maximum retries exceeded')
+        raise MaxRetriesExceeded('Maximum retries exceeded')
 
 
 def get_table_input(table=None, cleaners=None, convertor=None, validators=None, **options):
@@ -255,7 +254,8 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
     :param cleaners: list of cleaners to apply to the inputted value.
     :param convertor: the convertor to apply to the cleaned input value.
     :param validators: list of validators to apply to the cleaned, converted input value.
-    :param options: see above
+    :param options: all get_input options supported, see get_input documentation for details.
+
     :return: the cleaned, converted, validated input value. This is an id or value from the table depending on input_value.
     """
     input_value = TABLE_VALUE
@@ -335,3 +335,140 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
                         return t[TABLE_VALUE]
                     else:
                         return t[TABLE_ID]
+
+
+#############################
+### Convenience Functions ###
+#############################
+
+def get_string(cleaners=[StripCleaner()], validators=None, **options):
+    """
+    Convenience function to get a string value.
+
+    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
+    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param options: all get_input options supported, see get_input documentation for details.
+
+    :return: the cleaned, converted, validated string
+    """
+    new_options = dict(options)
+
+    if not 'prompt' in options:
+        new_options['prompt'] = 'Enter some text'
+
+    result = get_input(cleaners=cleaners, convertor=None, validators=validators, **new_options)
+    return result
+
+
+def get_int(cleaners=None, validators=None, **options):
+    """
+    Convenience function to get an integer value.
+
+    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
+    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param options: all get_input options supported, see get_input documentation for details.
+
+    :return: the cleaned, converted, validated int value
+    """
+    new_options = dict(options)
+
+    if not 'prompt' in options:
+        new_options['prompt'] = 'Enter a whole (integer) number'
+
+    result = get_input(cleaners=None, convertor=IntConvertor(), validators=validators, **new_options)
+    return result
+
+
+def get_float(cleaners=None, validators=None, **options):
+    """
+    Convenience function to get an float value.
+
+    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
+    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param options: all get_input options supported, see get_input documentation for details.
+
+    :return: the cleaned, converted, validated float value
+    """
+    new_options = dict(options)
+
+    if not 'prompt' in options:
+        new_options['prompt'] = 'Enter an real (floating point) number'
+
+    result = get_input(cleaners=None, convertor=FloatConvertor(), validators=validators, **new_options)
+    return result
+
+
+def get_boolean(cleaners=None, validators=None, **options):
+    """
+    Convenience function to get an Boolean value.
+
+    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
+    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param options: all get_input options supported, see get_input documentation for details.
+
+    :return: the cleaned, converted, validated boolean value
+    """
+    new_options = dict(options)
+
+    if not 'prompt' in options:
+        new_options['prompt'] = 'Enter true or false'
+
+    result = get_input(cleaners=None, convertor=BooleanConvertor(), validators=validators, **new_options)
+    return result
+
+
+def get_date(cleaners=None, validators=None, **options):
+    """
+    Convenience function to get an date value.
+
+    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
+    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param options: all get_input options supported, see get_input documentation for details.
+
+    :return: the cleaned, converted, validated date value
+    """
+    new_options = dict(options)
+
+    if not 'prompt' in options:
+        new_options['prompt'] = 'Enter a date'
+
+    result = get_input(cleaners=None, convertor=DateConvertor(), validators=validators, **new_options)
+    return result
+
+
+def get_yes_no(cleaners=None, validators=None, **options):
+    """
+    Convenience function to get an yes/no value.
+
+    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
+    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param options: all get_input options supported, see get_input documentation for details.
+
+    :return: the cleaned, converted, validated yes/no value
+    """
+    new_options = dict(options)
+
+    if not 'prompt' in options:
+        new_options['prompt'] = 'Enter yes or no'
+
+    result = get_input(cleaners=None, convertor=YesNoConvertor(), validators=validators, **new_options)
+    return result
+
+
+def get_list(cleaners=None, validators=None, **options):
+    """
+    Convenience function to get a list of values.
+
+    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
+    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param options: all get_input options supported, see get_input documentation for details.
+
+    :return: the cleaned, converted, validated list of values
+    """
+    new_options = dict(options)
+
+    if not 'prompt' in options:
+        new_options['prompt'] = 'Enter a list of values (separated by commas)'
+
+    result = get_input(cleaners=None, convertor=ListConvertor(), validators=validators, **new_options)
+    return result

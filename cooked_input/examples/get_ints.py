@@ -4,7 +4,7 @@ cooked input examples of getting an integer values
 Len Wanger, 2017
 """
 
-from cooked_input import get_input, silent_error
+from cooked_input import get_input, silent_error, get_int
 from cooked_input.convertors import IntConvertor
 from cooked_input.validators import InRangeValidator, ExactValueValidator, NotInValidator, InAnyValidator
 
@@ -25,6 +25,9 @@ if __name__ == '__main__':
     not_0_or_5_validator = NotInValidator(validators=[exactly_0_validator, exactly_5_validator])
     convertor_fmt = '# {value} cannot be converted to {error_content} #'
     validator_fmt = '@ {value} {error_content} @'
+
+    # get any integer - simplest way
+    print(get_int())
 
     # get any integer - use a constructor for convertor, now the int_convertor variable
     print(get_input(convertor=IntConvertor(), prompt='Enter an integer'))
