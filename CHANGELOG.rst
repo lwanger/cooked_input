@@ -19,7 +19,7 @@ v0.2.1:
 
 * Updated the tutorial to use the get_int convenience function. Also show example of PasswordValidator.
 
-* Created exception for: MaxRetriesExceeded (subclassed from RuntimeError), raised when the maximum number of retries is exceeded.
+* Created exception for: MaxRetriesError (subclassed from RuntimeError), raised when the maximum number of retries is exceeded.
 
 * Created exception for: ValidationError (subclassed from ValueError), raised when a value does not pass validation.
 
