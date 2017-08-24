@@ -11,7 +11,7 @@ Copyright: Len Wanger, 2017
 import logging
 
 ### cooked input custom exceptions
-class MaxRetriesExceeded(RuntimeError):
+class MaxRetriesError(RuntimeError):
     # Exception raised when the maximum number of retries is exceeded.
     pass
 

@@ -15,7 +15,7 @@ import collections
 import getpass
 import prettytable
 
-from .error_callbacks import MaxRetriesExceeded, ValidationError
+from .error_callbacks import MaxRetriesError, ValidationError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
 from .validators import InChoicesValidator, in_all
 from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor, YesNoConvertor, ListConvertor
@@ -128,7 +128,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
 
         hidden: the input typed should not be displayed. This is useful for entering passwords.
 
-        retries: the maximum number of attempts to allow before raising a MaxRetriesExceeded exception.
+        retries: the maximum number of attempts to allow before raising a MaxRetriesError exception.
 
         error_callback: a callback function to call when an error is encountered. Defaults to print_error
 
@@ -227,7 +227,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     if valid_response:
         return converted_response
     else:
-        raise MaxRetriesExceeded('Maximum retries exceeded')
+        raise MaxRetriesError('Maximum retries exceeded')
 
 
 def get_table_input(table=None, cleaners=None, convertor=None, validators=None, **options):
