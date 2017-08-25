@@ -31,7 +31,7 @@ Cooked Input Project
 line. If you think of input (raw_input in legacy Python) as raw input, then this is cooked input.
 
 Documentation
-=============
+-------------
 
 Read the full documentation at readthedocs.org:
 
@@ -39,26 +39,26 @@ Read the full documentation at readthedocs.org:
 
 
 Python 2/3 Support
-==================
+------------------
 
   - Python 2.7
   - Python 3.2/3.3/3.4/3.5
 
 Installation
-============
+------------
 
 From pypi::
 
   pip install cooked_input
 
 Project Page
-============
+------------
 
 Source code and other project information available at the github archive: https://github.com/lwanger/cooked_input
 
 
 Tutorial
-========
+--------
 
 The best way to get started is the tutorial at: <http://cooked-input.readthedocs.io/en/latest/tutorial.html>
 
