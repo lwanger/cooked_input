@@ -62,7 +62,7 @@ The purpose of the cooked_input library is to make it easier to get command line
 takes care of cleaning, converting, and validating the input. It also helps put together the prompt message and error
 messages. In cooked_input, safely getting the value from the user in the guessing game becomes::
 
-    guess = get_int(prompt='Enter an integer between 0 and 10', validators=InRangeValidator(min_val=0, max_val=10))
+    guess = get_int(prompt='Enter an integer between 0 and 10', minimum=0, maximum=10)
 
 For a complete listing of the guessing game code using cooked_input, see simple_input.py in the examples directory.
 

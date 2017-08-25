@@ -29,6 +29,16 @@ if __name__ == '__main__':
     # get any integer - simplest way
     print(get_int())
 
+    # more convenience function tests
+    print(get_int(validators=not_0_validator, prompt='Enter an integer that is not 0'))
+    print(get_int(validators=None, minimum=-10, maximum=10, prompt='Enter an integer between -10 and 10'))
+    print(get_int(validators=None, minimum=1, prompt='Enter an integer greater than 0'))
+    print(get_int(validators=None, maximum=10, prompt='Enter an integer less than than 11'))
+    print(get_int(validators=None, minimum=1, maximum=10, prompt='Enter an integer between 1 and 10'))
+    print(get_int(validators=not_0_validator, minimum=-10, maximum=10, prompt='Enter an integer between -10 and 10, but not 0'))
+    print(get_int(validators=[not_0_validator, not_5_validator], minimum=-10, maximum=10, prompt='Enter an integer between -10 and 10, but not 0 or 5'))
+
+
     # get any integer - use a constructor for convertor, now the int_convertor variable
     print(get_input(convertor=IntConvertor(), prompt='Enter an integer'))
 

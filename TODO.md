@@ -6,14 +6,12 @@
 * general:
     * Improve the README file
     * Add automated tests (pytest?)
-    * Need to work on error messages. Not handled well now.
+    * Add queue_errors error handler. Use for an example to send flash_messages for Flask support. Add option to 
+        validators to force running all validators vs. quiting after first error found.
     * Add tables (build-a-burger) to tutorial
     * Review examples, tutorial interface. Clean up and make: easier, cleaner, more consistent.
         Are classes needed for Validators, Convertors, Cleaners, or can the be any callable? Convertors
         using error string only.
-    * document value_error_strings in convertors
-    * add convenience functions for common scenarios like: get_integer_input, get_float_input, etc. Automatically put in
-        the correct convertor (IntConvertor).
     * decorators to make cleaners, convertors, etc. decorator for strip and lower cleaners? 
         get yes/no, get an int in a range, etc. Use decorators to reduce boilerplate code.
     * add part 2 (and part 3?) to tutorial to show more examples: passwords (get_user_info), tables,
@@ -21,9 +19,9 @@
 
 * get_input:
     * send error messages to stderr?
-    * option to list choices in prompt_str (???)? Show hints?
+    * option to list choices in prompt_str (???)? Show hints? Create Mini-language of /cmds
     * replace raw_input with version using sys.stdin.readline()
-    * show error for validation errors? Perform like flash messages where can have a list of them?
+    * show all errors for validation errors? Perform like flash messages where can have a list of them?
     * provide kwarg to run all validators, instead of failing on first one, so can see all errors.
     * autocomplete (???)
     * add routine to make menus more easily
@@ -41,10 +39,9 @@
 
 * cleaners:
     * make default cleaners = [Stripcleaner]
-    * cleaner for Unicode normalization
+    * cleaner for Unicode normalization and character encodings
     * cleaner for html quoting/unquoting
     * make a single capitalization cleaner with parameter for upper, lower, or capitalized
-    * make a single strip cleaner with parameter for left, right, or both
     * strip sql injection when dealing with tables
 
 * convertors:

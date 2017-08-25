@@ -242,3 +242,53 @@ class TestGetInt(object):
                         error_callback=my_print_error,
                         convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
             assert (result == 5)
+
+    def test_get_int_part2(self):
+        input_str = """
+            foo
+            3.14
+            101
+            5
+            """
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_int(validators=self.not_0_validator, prompt='Enter an integer that is not 0')
+            assert (result == 101)
+
+        input_str = """
+            -11
+            11
+            5
+            """
+        with redirect_stdin(StringIO(input_str)):
+            result = get_int(validators=None, minimum=-10, maximum=10, prompt='Enter an integer between -10 and 10')
+            assert (result == 5)
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_int(validators=None, minimum=1, prompt='Enter an integer greater than 0')
+            assert (result == 11)
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_int(validators=None, maximum=10, prompt='Enter an integer less than than 11')
+            assert (result == -11)
+
+        input_str = """
+            -11
+            11
+            0
+            5
+            6
+            """
+        with redirect_stdin(StringIO(input_str)):
+            result = get_int(validators=None, minimum=1, maximum=10, prompt='Enter an integer between 1 and 10')
+            assert (result == 5)
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_int(validators=self.not_0_validator, minimum=-10, maximum=10,
+                      prompt='Enter an integer between -10 and 10, but not 0')
+            assert (result == 5)
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_int(validators=[self.not_0_validator, self.not_5_validator], minimum=-10, maximum=10,
+                      prompt='Enter an integer between -10 and 10, but not 0 or 5')
+            assert (result == 6)

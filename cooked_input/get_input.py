@@ -17,7 +17,7 @@ import prettytable
 
 from .error_callbacks import MaxRetriesError, ValidationError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
-from .validators import InChoicesValidator, in_all
+from .validators import InRangeValidator, InChoicesValidator, in_all
 from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor, YesNoConvertor, ListConvertor
 from .cleaners import StripCleaner
 
@@ -360,12 +360,14 @@ def get_string(cleaners=[StripCleaner()], validators=None, **options):
     return result
 
 
-def get_int(cleaners=None, validators=None, **options):
+def get_int(cleaners=None, validators=None, minimum=None, maximum=None, **options):
     """
     Convenience function to get an integer value.
 
     :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
     :param validators: list of validators to apply to validate the cleaned and converted value
+    :param minimum: minimum value allowed. Use None (default) for no minimum value.
+    :param maximum: maximum value allowed. Use None (default) for no maximum value.
     :param options: all get_input options supported, see get_input documentation for details.
 
     :return: the cleaned, converted, validated int value
@@ -375,16 +377,29 @@ def get_int(cleaners=None, validators=None, **options):
     if not 'prompt' in options:
         new_options['prompt'] = 'Enter a whole (integer) number'
 
-    result = get_input(cleaners=None, convertor=IntConvertor(), validators=validators, **new_options)
+    if minimum is None and maximum is None:
+        val_list = validators
+    else:
+        irv = InRangeValidator(min_val=minimum, max_val=maximum)
+        if validators is None:
+            val_list = irv
+        elif callable(validators):
+            val_list = [validators, irv]
+        else:
+            val_list = validators + [irv]
+
+    result = get_input(cleaners=None, convertor=IntConvertor(), validators=val_list, **new_options)
     return result
 
 
-def get_float(cleaners=None, validators=None, **options):
+def get_float(cleaners=None, validators=None, minimum=None, maximum=None, **options):
     """
     Convenience function to get an float value.
 
     :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
     :param validators: list of validators to apply to validate the cleaned and converted value
+    :param minimum: minimum value allowed. Use None (default) for no minimum value.
+    :param maximum: maximum value allowed. Use None (default) for no maximum value.
     :param options: all get_input options supported, see get_input documentation for details.
 
     :return: the cleaned, converted, validated float value
@@ -394,7 +409,18 @@ def get_float(cleaners=None, validators=None, **options):
     if not 'prompt' in options:
         new_options['prompt'] = 'Enter an real (floating point) number'
 
-    result = get_input(cleaners=None, convertor=FloatConvertor(), validators=validators, **new_options)
+    if minimum is None and maximum is None:
+        val_list = validators
+    else:
+        irv = InRangeValidator(min_val=minimum, max_val=maximum)
+        if validators is None:
+            val_list = irv
+        elif callable(validators):
+            val_list = [validators, irv]
+        else:
+            val_list = validators + [irv]
+
+    result = get_input(cleaners=None, convertor=FloatConvertor(), validators=val_list, **new_options)
     return result
 
 

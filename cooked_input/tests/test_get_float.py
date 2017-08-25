@@ -21,12 +21,22 @@ from io import StringIO
 from pytest import approx
 
 from cooked_input import get_input, get_float, FloatConvertor
+from cooked_input import InRangeValidator, ExactValueValidator, NotInValidator, InAnyValidator
 from .utils import redirect_stdin
 # from cooked_input.tests.utils import redirect_stdin   # needed this to run under main here
 
 
 class TestGetFloat(object):
     float_convertor = FloatConvertor()
+
+    # pos_float_validator = InRangeValidator(min_val=0.0, max_val=None)
+    # zero_to_ten_validator = InRangeValidator(min_val=0.0, max_val=10.0)
+    exactly_0_validator = ExactValueValidator(value=0.0)
+    exactly_512_validator = ExactValueValidator(value=5.12)
+    not_0_validator = NotInValidator(validators=[exactly_0_validator])
+    not_512_validator = NotInValidator(validators=[exactly_512_validator])
+    # in_0_or_5_validator = InAnyValidator(validators=[exactly_0_validator, exactly_5_validator])
+    # not_0_or_5_validator = NotInValidator(validators=[exactly_0_validator, exactly_5_validator])
 
     def test_get_input_float(self):
         input_str = """
@@ -60,6 +70,61 @@ class TestGetFloat(object):
 
             result = get_float(prompt='Enter an float')
             assert (result == approx(101.0))
+
+    def test_get_float_part2(self):
+        input_str = """
+            foo
+            0.0
+            3.14
+            101
+            """
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_float(validators=self.not_0_validator, prompt='Enter an float that is not 0')
+            assert (result == approx(3.14))
+
+        input_str = """
+            -12
+            10.001
+            0.0
+            10.000000000001
+            101
+            8.71
+            """
+        with redirect_stdin(StringIO(input_str)):
+            result = get_float(validators=None, minimum=-10.0, maximum=10.0, prompt='Enter an float between -10.0 and 10.0')
+            assert (result == approx(0.0))
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_float(validators=None, minimum=1., prompt='Enter an float greater than 0')
+            assert (result == approx(10.001))
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_float(validators=None, maximum=10., prompt='Enter an float less than than 10.0')
+            assert (result == approx(-12.0))
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_float(validators=None, minimum=0.05, maximum=10.0, prompt='Enter an float between 1 and 10')
+            assert (result == approx(8.71))
+
+        input_str = """
+            -12
+            10.001
+            0.0
+            5.12
+            10.000000000001
+            101
+            8.71
+            """
+        with redirect_stdin(StringIO(input_str)):
+            result = get_float(validators=self.not_0_validator, minimum=-10, maximum=10,
+                      prompt='Enter an float between -10.0 and 10.0, but not 0')
+            assert (result == approx(5.12))
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_float(validators=[self.not_0_validator, self.not_512_validator], minimum=-10, maximum=10,
+                      prompt='Enter an float between -10 and 10, but not 0 or 5.12')
+            assert (result == approx(8.71))
 
 
 # if __name__ == '__main__':
