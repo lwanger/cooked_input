@@ -10,6 +10,12 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+v0.2.2:
+-------
+
+* Added minimum and maximum parameters to get_int and get_float convenience functions.
+
+
 v0.2.1:
 -------
 
