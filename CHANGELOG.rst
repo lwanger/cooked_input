@@ -13,9 +13,6 @@ see TODO.md for list of TODO items
 v0.2.3:
 -------
 
-
-* Added minimum and maximum parameters to get_int and get_float convenience functions.
-
 * Added count option to ReplaceCleaner
 
 * Added RegexCleaner
@@ -25,6 +22,12 @@ v0.2.3:
 * Added cleaner example, for choice, replace and regex cleaners.
 
 * Added default values to get_user_info example and pythonized the user table.
+
+
+v0.2.2:
+-------
+
+* Added minimum and maximum parameters to get_int and get_float convenience functions.
 
 
 v0.2.1:
