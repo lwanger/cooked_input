@@ -94,12 +94,13 @@ class CheckPasswordValidator(Validator):
 if __name__ == '__main__':
     # The BBC would like to appologize for this fake list of users. passwords are encrypted with the Python hash function for simplicity. See warnings above!
     user_list = {
+        'len': {'first_name': 'Len', 'last_name': 'Wanger', 'email': 'lwanger@yahoo.com', 'password': hash('12345'), 'roles': ['admin'] },
         'gc': {'first_name': 'Graham', 'last_name': 'Chapman', 'email': 'king.arthur@camelot.com', 'password': hash('IWasBrian2!'), 'roles': ['arthur'] },
         'jc': {'first_name': 'John', 'last_name': 'Cleese', 'email': 'basel@fawlty-towers.com', 'password': hash('&Now4SomethingCompletelyDifferent...'), 'roles': ['praline']},
         'tg': {'first_name': 'Terry', 'last_name': 'Gilliam', 'email': 'director@movie.com.br', 'password': hash('Its-Spelled-Color'), 'roles': ['animator']},
         'tj': {'first_name': 'Terry', 'last_name': 'Jones', 'email': 'erik@drag.com.np', 'password': hash('Hes_1_very_naughty_boy'), 'roles': ['mandy']},
         'mp': {'first_name': 'Michael', 'last_name': 'Palin', 'email': 'south_pole@pbs.org', 'password': hash('Face*2*Face'), 'roles': ['anchovy', 'travel-guide']},
-        'ei': {'first_name': 'Eric', 'last_name': 'Idle', 'email': 'nudge@nudge.com', 'password': hash('1/2aB'), 'roles': ['timmy', 'stig']},
+        'ei': {'first_name': 'Eric', 'last_name': 'Idle', 'email': 'nudge@nudge.com', 'password': hash('1/2aB'), 'roles': ['arthur', 'timmy', 'stig']},
     }
 
     # Fake list of allowed roles

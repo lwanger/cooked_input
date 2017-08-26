@@ -5,6 +5,8 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
+import re
+import logging
 from string import capwords
 
 
@@ -105,22 +107,119 @@ class StripCleaner(Cleaner):
         return 'StripCleaner(lstrip=%r, rstrip=%s)' % (self._lstrip, self._rstrip)
 
 
+class ChoiceCleaner(Cleaner):
+    """
+    ChoiceCleaner tries to replace the input value with a single element from a list of choices by finding the unique
+    element starting with the input value. If not single element can be identified, the input value is returned (i.e. no
+    cleaning is performed.) This is a complicated way of saying you can type in the first few letters of an input and
+    the cleaner will return the choice that starts with those letters if it can determine which one it is.
+
+    For example::
+
+    ChoiceCleaner(choices=['blue', 'black', 'brown', 'green'])
+
+    will with the following input values would return the following values:
+
+        +-------+---------+-----------------------------------------------------------------+
+        | value | returns |                              Note                               |
+        +-------+---------+-----------------------------------------------------------------+
+        | 'g'   | 'green' |                                                                 |
+        | 'br'  | 'brown' |                                                                 |
+        | 'blu' | 'blue'  |                                                                 |
+        | 'bl'  | 'bl'    | orignal value returned as can't tell between 'black' and 'blue' |
+        +-------+---------+-----------------------------------------------------------------+
+
+    :param choices: a list of to detect
+    """
+    def __init__(self, choices, **kwargs):
+        """
+        Return the choice starting with the value.
+
+        :param choices: the list of choices to identify
+        :param kwargs:
+        """
+
+        # create a dictionary as choices may not be strings
+        self._str_choices = {str(choice): choice for choice in choices}
+        super(ChoiceCleaner, self).__init__(**kwargs)
+
+    def __call__(self, value):
+        str_value = str(value)
+        matches = [v for k,v in self._str_choices.items() if k.startswith(str_value)]
+
+        if len(matches) == 1:
+            return matches[0]
+        else:
+            return value
+
+    def __repr__(self):
+        return 'ChoiceCleaner(choices={})' % ([v for v in self._str_choices.values()])
+
+
 class ReplaceCleaner(Cleaner):
     """
     Replaces all occurances of "old" string with "new" string white space from the input value
 
     :param old: string to replace
     :param new: string to put in the place of all occurances of old
+
+    options:
+
+    count: the maximum number of substitutions to perform to the value.
     """
     def __init__(self, old, new, **kwargs):
-        self._old = old
-        self._new = new
-        # TODO - add an option count keyword arg?
-        super(ReplaceCleaner, self).__init__(**kwargs)
+        count = None
+
+        for k, v in kwargs.items():
+            if k == 'count':
+                count = v
+            else:
+                logging.warning('Warning: ReplaceCleaner received unknown option (%s)' % k)
+
+        self._old = str(old)
+        self._new = str(new)
+        self._count = count
+
+        super_options_to_skip = {'count'}
+        super_kwargs = {k: v for k, v in kwargs.items() if k not in super_options_to_skip}
+
+        super(ReplaceCleaner, self).__init__(**super_kwargs)
 
     def __call__(self, value):
-        result = value.replace(self._old, self._new)
+        if self._count is None:
+            result = value.replace(self._old, self._new)
+        else:
+            result = value.replace(self._old, self._new, self._count)
+
         return result
 
     def __repr__(self):
-        return 'ReplaceCleaner()'
+        return 'ReplaceCleaner(old="{}", new="{}")'.format(self._old, self._new)
+
+
+class RegexCleaner(Cleaner):
+    """
+    Return the result of substituting the sub value for the pattern using a regular expression on the value. For more
+    information on regular expressions and the meaning of count and flags.See the Python re module
+    in the standard library at:
+
+        https://docs.python.org/2/library/re.html
+
+    :param pattern: regular expression to search for
+    :param sub: regular expression to substitute for the pattern
+    :param count: count
+    :param flags: flags
+    """
+    def __init__(self, pattern, sub, count=0, flags=0, **kwargs):
+        self._pattern = pattern
+        self._sub = sub
+        self._count = count
+        self._flags = flags
+        super(RegexCleaner, self).__init__(**kwargs)
+
+    def __call__(self, value):
+        result = re.sub(self._pattern, self._sub, value, self._count, self._flags)
+        return result
+
+    def __repr__(self):
+        return 'ReplaceCleaner(re={})'.format(self._re)
