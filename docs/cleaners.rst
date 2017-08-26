@@ -1,5 +1,5 @@
 Cleaners
-========
+********
 
 .. module::  cleaners
 
@@ -7,7 +7,7 @@ Cleaner classes for cleaning input before conversion and validation.
 
 
 Creating Cleaners
------------------
+=================
 
 Cleaner classes inherit from the Cleaner metaclass. They must be callable, with the __call__ dunder
 method taking one parameter, the value. An example of a cleaner to change the input value to lower
@@ -23,21 +23,44 @@ case looks like::
             return result
 
 Cleaners
---------
+========
+
+StripCleaner
+------------
 
 .. autoclass:: cooked_input.StripCleaner
 
+LowerCleaner
+------------
+
 .. autoclass:: cooked_input.LowerCleaner
+
+UpperCleaner
+------------
 
 .. autoclass:: cooked_input.UpperCleaner
 
+CapitalizeCleaner
+-----------------
+
 .. autoclass:: cooked_input.CapitalizeCleaner
+
+ReplaceCleaner
+--------------
 
 .. autoclass:: cooked_input.ReplaceCleaner
 
+RemoveCleaner
+-------------
+
 .. autoclass:: cooked_input.RemoveCleaner
+
+ChoiceCleaner
+-------------
 
 .. autoclass:: cooked_input.ChoiceCleaner
 
-.. autoclass:: cooked_input.RegexCleaner
+RegexCleaner
+------------
 
+.. autoclass:: cooked_input.RegexCleaner

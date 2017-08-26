@@ -1,10 +1,10 @@
 error_callbacks
-===============
+***************
 
 
 
 Creating Error functions:
--------------------------
+=========================
 
 Error functions are used by cooked_input to report errors from convertors and validators. Error functions take three
 parameters:
@@ -27,8 +27,8 @@ and similarly for validation::
     generic_validator_fmt = '{value} {error_content}'
 
 
-error_callbacks
----------------
+error_callbacks:
+================
 
 print_error
 -----------

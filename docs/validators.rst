@@ -1,5 +1,5 @@
 Validators
-==========
+**********
 
 .. module::  validators
 
@@ -7,9 +7,8 @@ The last step in cooked input is to validate that the entered input is valid. Wh
 the input passes the validation (i.e. is valid), and False otherwise.
 
 
-
 Creating Validators
--------------------
+===================
 
 Validator classes inherit from the Validator metaclass. They must be callable, with the __call__ dunder
 method taking three parameters: the value to validate, a function to call when an error occurs and the format string

@@ -1,5 +1,5 @@
 Convertors
-==========
+**********
 
 .. module::  convertors
 
@@ -8,7 +8,7 @@ validation.
 
 
 Creating Convertors
--------------------
+===================
 
 Convertor classes inherit from the Convertor metaclass. They must be callable, with the __call__ dunder
 method taking three parameters: the value to convert, a function to call when an error occurs and the format string

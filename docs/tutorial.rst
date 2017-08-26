@@ -1,6 +1,9 @@
 
 Cooked Input Tutorial
-=====================
+*********************
+
+Introduction:
+=============
 
 Command line tools and terminal input are very useful. I end up writing lots of programs that get some simple input
 from the user and process it. It may be a creating a report from a database or a simple text-based game. While it sounds
@@ -74,7 +77,7 @@ Oh, and in cooked_input the password example is::
 
 
 Breaking down get_input:
-------------------------
+========================
 
 The call to get_int uses the basic function of cooke_input, the get_input function. The simplest call to `get_input` is:
 
@@ -122,9 +125,12 @@ The general flow of `get_input` is:
     The order of the cleaners and validators is maintained. For example, if the list of cleaners is `cleaners=[StripCleaner(), LowerCleaner()]`, then the strip operation is performed before conversion to lower case.
 
 More examples:
---------------
+==============
 
-Let's look at a few more simple examples:
+Let's look at a few more simple examples...
+
+Getting yes or no
+-----------------
 
 To get 'yes' or 'no':
 
@@ -132,7 +138,10 @@ To get 'yes' or 'no':
 
     get_input(prompt="Yes or no?", cleaners=StripCleaner(), convertor=YesNoConvertor(), default='Y')
 
-Or to get from a list of choices:
+Restricting to a list of choices
+--------------------------------
+
+To get from a list of choices:
 
 .. code-block:: python
 
@@ -141,7 +150,10 @@ Or to get from a list of choices:
     prompt_str = 'What is your favorite color (%s)' % ', '.join(colors)
     result = get_input(prompt=prompt_str, cleaners=[StripCleaner(), LowerCleaner()] validators=color_validator default='green')
 
-Or not in a set of choices
+Excluding a list of choice
+--------------------------
+
+To exclude values from a set of choices
 
 .. code-block:: python
 
@@ -151,7 +163,10 @@ Or not in a set of choices
     prompt_str = "Which of these is your favorite flavor jelly bean (not in: %s)?" % ', '.join(bad_flavors)
     response = get_input(prompt=prompt_str, cleaners=[StripCleaner(), LowerCleaner()], validators=not_in_choices_validator)
 
-Or of course, composing lots of these together (get from a set of choice, but not in another set, with a default value...)
+Composing Multiple Validators
+-----------------------------
+
+Of course you can compose lots of these together (get from a set of choice, but not in another set, with a default value...)
 
 .. code-block:: python
 
@@ -165,6 +180,9 @@ Or of course, composing lots of these together (get from a set of choice, but no
 
     validators = [good_flavor_validator, not_in_choices_validator]
     response = get_input(prompt=prompt_str, cleaners=cleaners, validators=validators, default='cherry')
+
+Wait There's More!
+------------------
 
 Cooked_input has a lot more of functionality for getting input of different types (floats, Booelans, Dates, lists,
 passwords, etc.), as well as lots of validators and cleaners. It also has a number of features for getting input from

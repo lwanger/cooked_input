@@ -1,5 +1,5 @@
 get_input
-=========
+*********
 
 github archive: https://github.com/lwanger/cooked_input
 
@@ -8,6 +8,10 @@ github archive: https://github.com/lwanger/cooked_input
 
 cooked_input contains the top-level calls for the cooked_input library.
 
+Fundamental Functions:
+======================
+
+The basis of cooked_input is in a handful of functions:
 
 get_input
 ---------
@@ -34,8 +38,9 @@ convenience functions:
 ======================
 
 A number of convenience functions are available to simplify geting the basic types of input. These functions set default
-parameter values for the type desired (e.g. hard code the convertor and set a reasonable prompt and set of cleaners.) For
-instance, the following two function calls do the same thing, but the convenience function is simpler.::
+parameter values for the type desired (e.g. hard code the convertor and set a reasonable prompt and set of cleaners.)
+The convenience functions are just syntactic sugar for calls to get_input, but simpler to use. For
+instance, the following two function calls do the same thing::
 
     # get_input version:
     result = get_input(prompt='Enter a whole (integer) number', convertor=IntConvertor())
