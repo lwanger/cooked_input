@@ -82,7 +82,7 @@ class CheckPasswordValidator(Validator):
 
     def __call__(self, value, error_callback, validator_fmt_str):
         hashed_value = hash(value)
-        is_match = user_list[self.username] == hashed_value
+        is_match = user_list[self.username]['password'] == hashed_value
 
         if is_match:
             return True
@@ -92,15 +92,18 @@ class CheckPasswordValidator(Validator):
 
 
 if __name__ == '__main__':
-    # Fake list of users. passwords are encrypted with the Python hash function for simplicity. See warnings above!
+    # The BBC would like to appologize for this fake list of users. passwords are encrypted with the Python hash function for simplicity. See warnings above!
     user_list = {
-        'len': hash('12345'),
-        'bob': hash('bob'),
-        'jeff': hash('ffej'),
+        'gc': {'first_name': 'Graham', 'last_name': 'Chapman', 'email': 'king.arthur@camelot.com', 'password': hash('IWasBrian2!'), 'roles': ['arthur'] },
+        'jc': {'first_name': 'John', 'last_name': 'Cleese', 'email': 'basel@fawlty-towers.com', 'password': hash('&Now4SomethingCompletelyDifferent...'), 'roles': ['praline']},
+        'tg': {'first_name': 'Terry', 'last_name': 'Gilliam', 'email': 'director@movie.com.br', 'password': hash('Its-Spelled-Color'), 'roles': ['animator']},
+        'tj': {'first_name': 'Terry', 'last_name': 'Jones', 'email': 'erik@drag.com.np', 'password': hash('Hes_1_very_naughty_boy'), 'roles': ['mandy']},
+        'mp': {'first_name': 'Michael', 'last_name': 'Palin', 'email': 'south_pole@pbs.org', 'password': hash('Face*2*Face'), 'roles': ['anchovy', 'travel-guide']},
+        'ei': {'first_name': 'Eric', 'last_name': 'Idle', 'email': 'nudge@nudge.com', 'password': hash('1/2aB'), 'roles': ['timmy', 'stig']},
     }
 
     # Fake list of allowed roles
-    roles_list = ['admin', 'user', 'reviewer']
+    roles_list = ['admin', 'arthur', 'praline', 'mandy', 'animator', 'anchovy', 'stig', 'timmy', 'travel-guide']
 
     strip_cleaner = StripCleaner()
     default_cleaners = [StripCleaner(), LowerCleaner()]
@@ -120,6 +123,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Get updated profile information for the user:
+    old_data = user_list[user_name]
     password = get_input(prompt='Enter new Password', cleaners=None, validators=strong_password_validator, hidden=True)
 
     try:
@@ -129,10 +133,10 @@ if __name__ == '__main__':
         print('Maximum retries exceeded.... exiting')
         sys.exit(1)
 
-    first_name = get_input(prompt='First name', cleaners=name_cleaners)
-    last_name = get_input(prompt='Last name', cleaners=name_cleaners)
-    email = get_input(prompt='Email', cleaners=default_cleaners, validators=email_validator, blank_ok=False)
-    roles = get_input(prompt=role_prompt, cleaners=default_cleaners, convertor=ListConvertor(), validators=role_validtor, blank_ok=False)
+    first_name = get_input(prompt='First name', cleaners=name_cleaners, default=old_data['first_name'])
+    last_name = get_input(prompt='Last name', cleaners=name_cleaners, default=old_data['last_name'])
+    email = get_input(prompt='Email', cleaners=default_cleaners, validators=email_validator, default=old_data['email'])
+    roles = get_input(prompt=role_prompt, cleaners=default_cleaners, convertor=ListConvertor(), validators=role_validtor, default=old_data['roles'])
 
     print('\nUpdated user profile info: user_name: {}, password: {}, first_name: {}, last_name: {}, email: {}, roles: {}'.format(
         user_name, password, first_name, last_name, email, roles))
