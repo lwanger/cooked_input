@@ -8,6 +8,7 @@ Copyright: Len Wanger, 2017
 import re
 import logging
 from string import capwords
+from .input_utils import put_in_a_list
 
 
 ####
@@ -157,6 +158,28 @@ class ChoiceCleaner(Cleaner):
 
     def __repr__(self):
         return 'ChoiceCleaner(choices={})' % ([v for v in self._str_choices.values()])
+
+
+class RemoveCleaner(Cleaner):
+    """
+    Removes all occurances of any of the strings in the patterns list.
+
+    :param patterns: string to replace
+
+    """
+    def __init__(self, patterns, **kwargs):
+        self._patterns = put_in_a_list(patterns)
+        super(RemoveCleaner, self).__init__(**kwargs)
+
+    def __call__(self, value):
+        result = value
+        for pattern in self._patterns:
+            result = result.replace(pattern, '')
+
+        return result
+
+    def __repr__(self):
+        return 'ReplaceCleaner(patterns={})'.format(self._patterns)
 
 
 class ReplaceCleaner(Cleaner):

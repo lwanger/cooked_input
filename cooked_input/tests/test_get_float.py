@@ -39,7 +39,7 @@ class TestGetFloat(object):
     # not_0_or_5_validator = NotInValidator(validators=[exactly_0_validator, exactly_5_validator])
 
     def test_get_input_float(self):
-        input_str = """
+        input_str = u"""
             10
             5.1
             foo
@@ -58,7 +58,7 @@ class TestGetFloat(object):
 
 
     def test_get_float(self):
-        input_str = """
+        input_str = u"""
             foo
             3.14
             101
@@ -72,7 +72,7 @@ class TestGetFloat(object):
             assert (result == approx(101.0))
 
     def test_get_float_part2(self):
-        input_str = """
+        input_str = u"""
             foo
             0.0
             3.14
@@ -83,7 +83,7 @@ class TestGetFloat(object):
             result = get_float(validators=self.not_0_validator, prompt='Enter an float that is not 0')
             assert (result == approx(3.14))
 
-        input_str = """
+        input_str = u"""
             -12
             10.001
             0.0
@@ -107,7 +107,7 @@ class TestGetFloat(object):
             result = get_float(validators=None, minimum=0.05, maximum=10.0, prompt='Enter an float between 1 and 10')
             assert (result == approx(8.71))
 
-        input_str = """
+        input_str = u"""
             -12
             10.001
             0.0

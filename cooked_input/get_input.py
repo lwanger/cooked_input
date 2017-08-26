@@ -20,6 +20,7 @@ from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALID
 from .validators import InRangeValidator, InChoicesValidator, in_all
 from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor, YesNoConvertor, ListConvertor
 from .cleaners import StripCleaner
+from .input_utils import compose, make_pretty_table
 
 from .convertors import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
 
@@ -30,23 +31,23 @@ if sys.version_info[0] > 2: # For Python 3
         return input(prompt_msg)
 
 
-def compose(value, funcs):
-    # compose functions and return the result: compose(value, [f1,f2,f3]) = f3(f2(f1(value)))
-    first_func = True
-
-    if callable(funcs):
-        result = funcs(value)
-    elif isinstance(funcs, collections.Iterable):
-        for func in funcs:
-            if first_func:
-                result = func(value)
-                first_func = False
-            else:
-                result = func(result)
-    else:
-        raise RuntimeError('funcs cannot be called')
-
-    return result
+# def compose(value, funcs):
+#     # compose functions and return the result: compose(value, [f1,f2,f3]) = f3(f2(f1(value)))
+#     first_func = True
+#
+#     if callable(funcs):
+#         result = funcs(value)
+#     elif isinstance(funcs, collections.Iterable):
+#         for func in funcs:
+#             if first_func:
+#                 result = func(value)
+#                 first_func = False
+#             else:
+#                 result = func(result)
+#     else:
+#         raise RuntimeError('funcs cannot be called')
+#
+#     return result
 
 
 def process_value(value, cleaners, convertor, validators, error_callback=print_error,
@@ -88,23 +89,23 @@ def process_value(value, cleaners, convertor, validators, error_callback=print_e
         return (False, None)
 
 
-def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):
-    """
-    Take a list of tuples [(id, value), ...] and return a prettytable
-
-    :param rows: a list of tuples for the table rows. Each tuple is: (id, value).
-    :param second_col_name: the name to use for the header on the second column.
-    :param sort_by_second_col: sort by the second column if True, otherwise leave in order from rows.
-    :return: a prettytable for the table.
-    """
-    x = prettytable.PrettyTable(['id', second_col_name])
-
-    for row in rows:
-        x.add_row([row[0], row[1]])
-
-    x.align[second_col_name] = 'l'  # left align
-    x.sortby = second_col_name if sort_by_second_col else 'id'
-    return x
+# def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):
+#     """
+#     Take a list of tuples [(id, value), ...] and return a prettytable
+#
+#     :param rows: a list of tuples for the table rows. Each tuple is: (id, value).
+#     :param second_col_name: the name to use for the header on the second column.
+#     :param sort_by_second_col: sort by the second column if True, otherwise leave in order from rows.
+#     :return: a prettytable for the table.
+#     """
+#     x = prettytable.PrettyTable(['id', second_col_name])
+#
+#     for row in rows:
+#         x.add_row([row[0], row[1]])
+#
+#     x.align[second_col_name] = 'l'  # left align
+#     x.sortby = second_col_name if sort_by_second_col else 'id'
+#     return x
 
 
 def get_input(cleaners=None, convertor=None, validators=None, **options):

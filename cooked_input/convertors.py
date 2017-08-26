@@ -8,6 +8,7 @@ Copyright: Len Wanger, 2017
 import dateparser
 import csv
 from io import StringIO
+from future.utils import raise_from
 
 from .error_callbacks import ValidationError
 
@@ -50,7 +51,7 @@ class IntConvertor(Convertor):
             result = int(value, self._base)
         except (ValueError) as ve:
             error_callback(convertor_fmt_str, value, self.value_error_str)
-            raise ValidationError from ve  # re-raise the exception as a ValidationError
+            raise_from(ValidationError(str(ve)), ve)
 
         return result
 
@@ -73,7 +74,8 @@ class FloatConvertor(Convertor):
             result = float(value)
         except ValueError as ve:
             error_callback(convertor_fmt_str, value, self.value_error_str)
-            raise ValidationError from ve  # re-raise the exception as a ValidationError
+            raise_from(ValidationError(str(ve)), ve)
+
 
         return result
 
@@ -102,6 +104,7 @@ class BooleanConvertor(Convertor):
         else:
             error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ValidationError('value not true or false.')
+
 
     def __repr__(self):
         return 'BooleanConvertor(%s)' % self.value_error_str

@@ -38,19 +38,40 @@ An example of a convertor to change the input value to an integer looks like::
             return 'IntConvertor(base=%d, value_error_str=%s)' % (self._base, self.value_error_str)
 
 Convertors
-----------
+==========
+
+IntConvertor
+------------
 
 .. autoclass:: cooked_input.IntConvertor
 
+FloatConvertor
+--------------
+
 .. autoclass:: cooked_input.FloatConvertor
+
+BooleanConvertor
+----------------
 
 .. autoclass:: cooked_input.BooleanConvertor
 
+ListConvertor
+-------------
+
 .. autoclass:: cooked_input.ListConvertor
+
+DateConvertor
+-------------
 
 .. autoclass:: cooked_input.DateConvertor
 
+YesNoConvertor
+--------------
+
 .. autoclass:: cooked_input.YesNoConvertor
+
+TableConvertor
+--------------
 
 .. autoclass:: cooked_input.TableConvertor
 

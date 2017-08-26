@@ -10,6 +10,17 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* v0.2.4:
+
+ * Added input_utils.py and put compose, make_pretty_table, and put_in_a_list in it.
+
+ * Changed RegexValidator parameter from 'regex' to 'pattern' for consistency with RegexCleaner.
+
+ * Fixed 2.7 incompatibilities. Passing all tests in Python 2.7 and 3.6 now. Added future to requirements.txt.
+    Calling future.raisefrom in convertors.py broken.
+
+ * More documentation clean ups.
+
 * v0.2.3:
 
  * Added count option to ReplaceCleaner
@@ -23,13 +34,6 @@ see TODO.md for list of TODO items
  * Added cleaner example, for choice, replace and regex cleaners.
 
  * Added default values to get_user_info example and pythonized the user table.
-
- * Added input_utils.py and put compose, make_pretty_table, and put_in_a_list in it.
-
- * Changed RegexValidator parameter from 'regex' to 'pattern' for consistency with RegexCleaner.
-
- * Fixed 2.7 incompatibilities. Passing all tests in Python 2.7 and 3.6 now. Added future to requirements.txt.
-    Calling future.raisefrom in convertors.py broken.
 
 * v0.2.2:
 

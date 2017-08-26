@@ -35,6 +35,8 @@ Cleaners
 
 .. autoclass:: cooked_input.ReplaceCleaner
 
+.. autoclass:: cooked_input.RemoveCleaner
+
 .. autoclass:: cooked_input.ChoiceCleaner
 
 .. autoclass:: cooked_input.RegexCleaner

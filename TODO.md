@@ -37,9 +37,6 @@
     * example runner (install as an entry point script.) Use get_input for menus.
 
 * cleaners:
-    * AbbreviationCleaner to return full value if unique abbreviated version is inputted
-        e.g. if choice is []'abc', 'apple', 'def'], 'abc' returned for value 'ab', 'def' for 'd',
-        and value returned for 'a' (ambiguous)
     * make default cleaners = [Stripcleaner]
     * add EncodingCleaner to encode the value (see str.encode)
     * cleaner for Unicode normalization and character encodings

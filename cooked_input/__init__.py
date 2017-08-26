@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
-from .get_input import get_input, get_table_input, process_value, make_pretty_table
+from .get_input import get_input, get_table_input, process_value
 from .get_input import get_string, get_int, get_float, get_boolean, get_date, get_yes_no, get_list
+from .input_utils import make_pretty_table
 from .error_callbacks import MaxRetriesError
 from .error_callbacks import print_error, log_error, silent_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
 
@@ -15,6 +16,6 @@ from .validators import InAnyValidator, NotInValidator, InChoicesValidator, Rege
 from .validators import ListValidator, SimpleValidator
 from .validators import in_all, in_any, not_in, validate
 from .cleaners import Cleaner, UpperCleaner, LowerCleaner, CapitalizeCleaner
-from .cleaners import StripCleaner, ReplaceCleaner, ChoiceCleaner, RegexCleaner
+from .cleaners import StripCleaner, RemoveCleaner, ReplaceCleaner, ChoiceCleaner, RegexCleaner
 
-__all__ = ['get_input', 'convertors', 'validators', 'cleaners', 'error_callbacks']
+__all__ = ['get_input', 'convertors', 'validators', 'cleaners', 'error_callbacks', '.input_utils']

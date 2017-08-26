@@ -43,7 +43,7 @@ class TestGetInt(object):
 
 
     def test_get_input_int(self):
-        input_str = """
+        input_str = u"""
             10
             5
             -1
@@ -67,7 +67,7 @@ class TestGetInt(object):
 
 
     def test_ignore_bad_conversion(self):
-        input_str = """
+        input_str = u"""
             foo
             101
             """
@@ -78,7 +78,7 @@ class TestGetInt(object):
 
 
     def test_use_default_value(self):
-        input_str = """
+        input_str = u"""
 
             """
 
@@ -88,7 +88,7 @@ class TestGetInt(object):
 
 
     def test_get_pos_int(self):
-        input_str = """
+        input_str = u"""
             -1
             0
             10
@@ -100,7 +100,7 @@ class TestGetInt(object):
 
 
     def test_get_0_to_10(self):
-        input_str = """
+        input_str = u"""
             -1
             11
             0
@@ -114,7 +114,7 @@ class TestGetInt(object):
 
     def test_exactly_val(self):
         # get zero - silly but makes more sense with the in any or not in validators
-        input_str = """
+        input_str = u"""
             1
             0
             """
@@ -126,7 +126,7 @@ class TestGetInt(object):
 
     def test_in_any_val(self):
         # get zero or 5
-        input_str = """
+        input_str = u"""
             foo
             1
             5
@@ -139,7 +139,7 @@ class TestGetInt(object):
 
     def test_not_in(self):
         # get a non-zero integer
-        input_str = """
+        input_str = u"""
             0
             -101
             """
@@ -151,7 +151,7 @@ class TestGetInt(object):
 
     def test_in_range_and_not_in(self):
         # get a non-zero integer between 0 and 10
-        input_str = """
+        input_str = u"""
             0
             -1
             11
@@ -166,7 +166,7 @@ class TestGetInt(object):
 
     def test_mult_not_in(self):
         # enter an integer besides zero or 5
-        input_str = """
+        input_str = u"""
             0
             5
             -101
@@ -180,7 +180,7 @@ class TestGetInt(object):
 
     def test_error_callback(self):
         # test error callbacks and format strings
-        input_str = """
+        input_str = u"""
             foo
             -1
             12
@@ -197,7 +197,7 @@ class TestGetInt(object):
 
 
     def test_silent_error(self):
-        input_str = """
+        input_str = u"""
             foo
             -1
             12
@@ -215,7 +215,7 @@ class TestGetInt(object):
 
 
     def test_get_int(self):
-        input_str = """
+        input_str = u"""
             foo
             3.14
             101
@@ -244,7 +244,7 @@ class TestGetInt(object):
             assert (result == 5)
 
     def test_get_int_part2(self):
-        input_str = """
+        input_str = u"""
             foo
             3.14
             101
@@ -255,7 +255,7 @@ class TestGetInt(object):
             result = get_int(validators=self.not_0_validator, prompt='Enter an integer that is not 0')
             assert (result == 101)
 
-        input_str = """
+        input_str = u"""
             -11
             11
             5
@@ -272,7 +272,7 @@ class TestGetInt(object):
             result = get_int(validators=None, maximum=10, prompt='Enter an integer less than than 11')
             assert (result == -11)
 
-        input_str = """
+        input_str = u"""
             -11
             11
             0

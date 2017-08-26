@@ -8,13 +8,13 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
-import sys
 import string
 import re
 import collections
 import logging
 
 from .error_callbacks import print_error, silent_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
+from .input_utils import put_in_a_list
 
 
 def in_any(value, validators, error_callback, validator_fmt_str):
@@ -245,19 +245,7 @@ class InChoicesValidator(Validator):
     """
     def __init__(self, choices, **kwargs):
         # note: if choices is mutable, the choices can change after instantiation
-        if sys.version_info[0] < 3 and isinstance(choices, unicode):  # For Python 2 - unicode is different than strings
-            self._choices = []
-            self._choices.append(choices)
-        if sys.version_info[0] > 2 and isinstance(choices, bytes):  # For Python 3 - check for bytes
-            self._choices = []
-            self._choices.append(choices)
-        elif  isinstance(choices, str):
-            self._choices = []
-            self._choices.append(choices)
-        elif isinstance(choices, collections.Iterable):  # list or other iterable
-            self._choices = choices
-        else: # single non-iterable value
-            self._choices = tuple(choices)
+        self._choices = put_in_a_list(choices)
         super(InChoicesValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
@@ -320,7 +308,9 @@ class InAnyValidator(Validator):
 
 class SimpleValidator(Validator):
     """
-    check if a value matches any function that takes a single value value and returns a Boolean.
+    check if a value matches any function that takes a single value as input and returns a Boolean. Used to wrap
+    functions (e.g. validus validation functions see: [https://shopnilsazal.github.io/validus/].) Can also be used with func.partial [https://docs.python.org/3/library/functools.html]
+    to wrap validation functions that take more complex parameters.
 
     :param validators an iterable list of validators. When the validators is called, return True once any of the validators matches.
     :param kwargs: kwargs: no kwargs are currently supported.
@@ -363,17 +353,17 @@ class RegexValidator(Validator):
     """
     check if a value matches a regular expression.
 
-    :param regex: the regular expression to match.
+    :param pattern: the regular expression to match.
     :param kwargs: kwargs: no kwargs are currently supported.
     
     options:
     
     regex_desc: a human readable string to use for the regex (used for error messages)
     """
-    def __init__(self, regex, **options):
+    def __init__(self, pattern, **options):
         # note: if choices is mutable, the choices can change after instantiation
-        self._regex = regex
-        self._regex_desc = regex
+        self._regex = pattern
+        self._regex_desc = pattern
 
         for k, v in options.items():
             if k == 'regex_desc':
@@ -381,8 +371,10 @@ class RegexValidator(Validator):
             else:
                 logging.warning('Warning: get_input received unknown option (%s)' % k)
 
+        super_options_to_skip = {'regex_desc'}
+        super_kwargs = {k: v for k, v in options.items() if k not in super_options_to_skip}
 
-        super(RegexValidator, self).__init__(**kwargs)
+        super(RegexValidator, self).__init__(**super_kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
         result = re.search(self._regex, value)

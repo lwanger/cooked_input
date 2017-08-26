@@ -35,14 +35,13 @@ Documentation
 
 Read the full documentation at readthedocs.org:
 
-  - `cooked_input documentation <http://cooked-input.readthedocs.io/en/latest/>`_
-
+  - cooked_input documentation at: http://cooked-input.readthedocs.io/en/latest/
 
 Python 2/3 Support
 ------------------
 
   - Python 2.7
-  - Python 3.2/3.3/3.4/3.5
+  - Python 3.2/3.3/3.4/3.5/3.6
 
 Installation
 ------------
@@ -54,11 +53,21 @@ From pypi::
 Project Page
 ------------
 
-Source code and other project information available at the github archive: https://github.com/lwanger/cooked_input
+Source code and other project information available at: https://github.com/lwanger/cooked_input
 
 
 Tutorial
 --------
 
-The best way to get started is the tutorial at: <http://cooked-input.readthedocs.io/en/latest/tutorial.html>
+The best way to get started is the `tutorial`__ at: http://cooked-input.readthedocs.io/en/latest/tutorial.html
 
+__ tutorial.html
+
+Change log
+----------
+
+.. `CHANGELOG: CHANGELOG`_
+
+See the `CHANGELOG`__ for a list of changes.
+
+__ CHANGELOG.html

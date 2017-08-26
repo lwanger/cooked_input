@@ -42,26 +42,59 @@ for more information on validus see: https://github.com/shopnilsazal/validus
 
 
 Validators
-----------
+==========
+
+ExactLengthValidator
+--------------------
 
 .. autoclass:: cooked_input.ExactLengthValidator
 
+InLengthValidator
+-----------------
+
 .. autoclass:: cooked_input.InLengthValidator
+
+ExactValueValidator
+-------------------
 
 .. autoclass:: cooked_input.ExactValueValidator
 
+InRangeValidator
+----------------
+
 .. autoclass:: cooked_input.InRangeValidator
+
+InChoicesValidator
+------------------
 
 .. autoclass:: cooked_input.InChoicesValidator
 
+NotInValidator
+--------------
+
 .. autoclass:: cooked_input.NotInValidator
+
+InAnyValidator
+--------------
 
 .. autoclass:: cooked_input.InAnyValidator
 
+SimpleValidator
+---------------
+
 .. autoclass:: cooked_input.SimpleValidator
+
+RegexValidator
+--------------
 
 .. autoclass:: cooked_input.RegexValidator
 
+PasswordValidator
+-----------------
+
 .. autoclass:: cooked_input.PasswordValidator
+
+ListValidator
+-------------
 
 .. autoclass:: cooked_input.ListValidator
