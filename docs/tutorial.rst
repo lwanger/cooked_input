@@ -168,4 +168,4 @@ Or of course, composing lots of these together (get from a set of choice, but no
 
 Cooked_input has a lot more of functionality for getting input of different types (floats, Booelans, Dates, lists,
 passwords, etc.), as well as lots of validators and cleaners. It also has a number of features for getting input from
-tables (which is nice for working with values in database tables). There are a lot of examples in the test directory.
+tables (which is nice for working with values in database tables). There are a lot of examples in the examples directory.
