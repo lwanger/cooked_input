@@ -57,7 +57,7 @@ class UpperCleaner(Cleaner):
 
 class CapitalizeCleaner(Cleaner):
     """
-    Capitalize the value all upper case.
+    Capitalize the value
 
     :param all_words: capitalize all of the words of the value if True, only capitalize the first word if False (default).
     """
@@ -117,7 +117,7 @@ class ChoiceCleaner(Cleaner):
 
     For example::
 
-    ChoiceCleaner(choices=['blue', 'black', 'brown', 'green'])
+        ChoiceCleaner(choices=['blue', 'black', 'brown', 'green'])
 
     will with the following input values would return the following values:
 

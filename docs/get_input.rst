@@ -4,8 +4,6 @@ get_input
 github archive: https://github.com/lwanger/cooked_input
 
 
-.. module::  cooked_input.get_input
-
 cooked_input contains the top-level calls for the cooked_input library.
 
 Fundamental Functions:

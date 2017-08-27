@@ -10,6 +10,12 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* v0.2.7:
+
+  * Clean up of pypi setup, readme, and documentation.
+
+  * Ran code through linters and found several issues.
+
 * v0.2.3:
 
  * Added count option to ReplaceCleaner
@@ -58,3 +64,4 @@ see TODO.md for list of TODO items
   validation convertor strings. This changed most of the code base and some of the examples.
 
  * Added print_error, log_error, and ignore_error error callback routines.
+
