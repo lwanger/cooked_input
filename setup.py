@@ -33,7 +33,7 @@ setup(
 
     # The project's main homepage.
     url='https://github.com/lwanger/cooked_input',
-    download_url='https://github.com/lwanger/cooked_input/archive/V0.1.1.tar.gz',
+    #download_url='https://github.com/lwanger/cooked_input/archive/V0.1.1.tar.gz',
 
     # Author details
     author='Len Wanger',
@@ -89,6 +89,8 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     # install_requires=['dateparser', 'prettytable', 'validus'],
     install_requires=['setuptools-git'],
+
+    python_required='>=2.7, >=3.3',
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,

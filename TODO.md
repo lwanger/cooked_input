@@ -37,7 +37,6 @@
     * example runner (install as an entry point script.) Use get_input for menus.
 
 * cleaners:
-    * make default cleaners = [Stripcleaner]
     * add EncodingCleaner to encode the value (see str.encode)
     * cleaner for Unicode normalization and character encodings
     * cleaner for html quoting/unquoting

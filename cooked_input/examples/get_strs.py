@@ -41,7 +41,7 @@ if __name__ == '__main__':
     print(get_input(prompt='Enter any string (will be stripped of leading and trailing spaces and converted to lower)',
                     cleaners=strip_and_lower_cleaners))
     print(get_input(prompt='Enter any string (will be stripped of trailing spaces and converted to upper)',
-            cleaners=[rstrip_cleaner, upper_cleaner]))
+                    cleaners=[rstrip_cleaner, upper_cleaner]))
 
     # capitalization cleaning (CapitalizeCleaner)
     print(get_input(prompt='Enter your name (first word will be capitalized)', cleaners=capitalize_cleaner))

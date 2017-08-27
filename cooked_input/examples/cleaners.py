@@ -18,11 +18,10 @@ if __name__ == '__main__':
     float_choice_cleaner = ChoiceCleaner(choices=[1.0, 10.0, 1.11, 3.141569])
 
     print(get_input(prompt='Enter a color (choices: [bla]ck, [br]own, [blu]e, [r]ed, [g]reen)',
-                        cleaners=color_choice_cleaner, validators=color_choice_validator))
+                    cleaners=color_choice_cleaner, validators=color_choice_validator))
     print(get_input(prompt='Enter a color (choices: [bla]ck, [br]own, [blu]e, [r]ed, [g]reen) (case insensitive)',
                     cleaners=[LowerCleaner(), color_choice_cleaner], validators=color_choice_validator))
     print(get_input(prompt='Enter a number (choices: [1.0], [10].0, [1.1]1, [3].141569)', cleaners=float_choice_cleaner))
-
 
     # ReplaceCleaner examples:
     replace_color = ReplaceCleaner(old='color', new='colour')
@@ -44,6 +43,6 @@ if __name__ == '__main__':
 
     # compose them all together
     print(get_input(prompt='Enter any string (all five cleaners applied)', cleaners=[color_choice_cleaner, replace_color,
-                                                                    replace_pi, regex_and, regex_period]))
+                    replace_pi, regex_and, regex_period]))
 
 

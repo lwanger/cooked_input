@@ -18,13 +18,13 @@ TABLE_VALUE = 1
 TABLE_ID_OR_VALUE = -1
 
 
-####
-#### Convertors:
-####
+###
+### Convertors:
+###
 # class Convertor(metaclass=ABCMeta):
 class Convertor(object):
     # Abstract base class for conversion classes
-    def __init__(self, value_error_str):
+    def __init__(self, value_error_str, **kwargs):
         self.value_error_str = value_error_str
 
     # @abstractmethod
@@ -44,9 +44,10 @@ class IntConvertor(Convertor):
     def __init__(self, base=10, value_error_str='an integer number', **kwargs):
 
         self._base = base
-        super(IntConvertor, self).__init__(value_error_str)
+        super(IntConvertor, self).__init__(value_error_str, **kwargs)
 
     def __call__(self, value, error_callback, convertor_fmt_str):
+        result = None
         try:
             result = int(value, self._base)
         except (ValueError) as ve:
@@ -67,15 +68,16 @@ class FloatConvertor(Convertor):
     :param kwargs: no kwargs are currently supported.
     """
     def __init__(self, value_error_str='a float number', **kwargs):
-        super(FloatConvertor, self).__init__(value_error_str)
+        super(FloatConvertor, self).__init__(value_error_str, **kwargs)
 
     def __call__(self, value, error_callback, convertor_fmt_str):
+        result = None
+
         try:
             result = float(value)
         except ValueError as ve:
             error_callback(convertor_fmt_str, value, self.value_error_str)
             raise_from(ValidationError(str(ve)), ve)
-
 
         return result
 
@@ -91,7 +93,7 @@ class BooleanConvertor(Convertor):
     :param kwargs: no kwargs are currently supported.
     """
     def __init__(self, value_error_str='true or false', **kwargs):
-        super(BooleanConvertor, self).__init__(value_error_str)
+        super(BooleanConvertor, self).__init__(value_error_str, **kwargs)
 
     def __call__(self, value, error_callback, convertor_fmt_str):
         true_set = {'t', 'true', 'y', 'yes', '1'}
@@ -104,7 +106,6 @@ class BooleanConvertor(Convertor):
         else:
             error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ValidationError('value not true or false.')
-
 
     def __repr__(self):
         return 'BooleanConvertor(%s)' % self.value_error_str
@@ -124,7 +125,7 @@ class ListConvertor(Convertor):
     def __init__(self, value_error_str='list of values', delimiter=',', elem_convertor=None, **kwargs):
         self.delimeter = delimiter
         self.elem_convertor = elem_convertor
-        super(ListConvertor, self).__init__(value_error_str)
+        super(ListConvertor, self).__init__(value_error_str, **kwargs)
 
     def __call__(self, value, error_callback, convertor_fmt_str):
         buffer = StringIO(value)
@@ -149,7 +150,6 @@ class ListConvertor(Convertor):
 
         return converted_list
 
-
     def __repr__(self):
         return 'ListConvertor(%s)' % self.value_error_str
 
@@ -164,7 +164,7 @@ class DateConvertor(Convertor):
     :param kwargs: no kwargs are currently supported.
     """
     def __init__(self, value_error_str='a date', **kwargs):
-        super(DateConvertor, self).__init__(value_error_str)
+        super(DateConvertor, self).__init__(value_error_str, **kwargs)
 
     def __call__(self, value, error_callback, convertor_fmt_str):
         result = dateparser.parse(value)
@@ -186,10 +186,10 @@ class YesNoConvertor(Convertor):
     :param kwargs: no kwargs are currently supported.
     """
     def __init__(self, value_error_str='yes or no', **kwargs):
-        super(YesNoConvertor, self).__init__(value_error_str)
+        super(YesNoConvertor, self).__init__(value_error_str, **kwargs)
 
     def __call__(self, value, error_callback, convertor_fmt_str):
-        yes_set = {'y', 'yes', 'yeah', 'yup', 'aye', 'qui', 'si', 'ja', 'ken', 'hai', 'gee', 'da', 'tak', 'affirmative' }
+        yes_set = {'y', 'yes', 'yeah', 'yup', 'aye', 'qui', 'si', 'ja', 'ken', 'hai', 'gee', 'da', 'tak', 'affirmative'}
         no_set = {'n', 'no', 'nope', 'na', 'nae', 'non', 'negatory', 'nein', 'nie', 'nyet', 'lo'}
 
         if value.lower() in yes_set:
@@ -252,7 +252,9 @@ class TableConvertor(Convertor):
         else:
             self.value_error_str = self.value_error_str
 
-        super(TableConvertor, self).__init__(self.value_error_str)
+        super_options_to_skip = {'value_error', 'input_value'}
+        super_kwargs = {k: v for k, v in kwargs.items() if k not in super_options_to_skip}
+        super(TableConvertor, self).__init__(self.value_error_str, **super_kwargs)
 
     def __call__(self, value, error_callback, convertor_fmt_str):
         if self._convertor:
@@ -271,7 +273,7 @@ class TableConvertor(Convertor):
             if result is None or result not in (item[0] for item in self._table):
                 error_callback(convertor_fmt_str, value, 'a valid table id')
                 raise ValidationError('%s not a valid table id' % value)
-        else: # input_value == TABLE_ID_OR_VALUE
+        else:  # input_value == TABLE_ID_OR_VALUE
             if result in (item[1] for item in self._table):
                 result = value
             elif int(result) in (item[0] for item in self._table):

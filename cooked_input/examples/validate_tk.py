@@ -5,9 +5,16 @@ Example showing how to use cooked_input to validate form data from a GUI. In thi
 Len Wanger, 2017
 """
 
-import tkinter as tk
-import tkinter.ttk as ttk
-from tkinter import messagebox
+import sys
+
+if sys.version_info[0] > 2: # For Python 3
+    import tkinter as tk
+    import tkinter.ttk as ttk
+    from tkinter import messagebox
+else: # For Python 2
+    import Tkinter as tk
+    import Tkinter.ttk as ttk
+    from Tkinter import tkMessageBox as messagebox
 
 from cooked_input import process_value, IntConvertor, InRangeValidator, StripCleaner
 

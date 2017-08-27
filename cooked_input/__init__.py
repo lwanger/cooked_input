@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-__version__ = '0.2.4'
-
 from .get_input import get_input, get_table_input, process_value
 from .get_input import get_string, get_int, get_float, get_boolean, get_date, get_yes_no, get_list
 from .input_utils import make_pretty_table
@@ -19,3 +17,5 @@ from .cleaners import Cleaner, UpperCleaner, LowerCleaner, CapitalizeCleaner
 from .cleaners import StripCleaner, RemoveCleaner, ReplaceCleaner, ChoiceCleaner, RegexCleaner
 
 __all__ = ['get_input', 'convertors', 'validators', 'cleaners', 'error_callbacks', '.input_utils']
+
+__version__ = '0.2.5'

@@ -13,7 +13,7 @@ import re
 import collections
 import logging
 
-from .error_callbacks import print_error, silent_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
+from .error_callbacks import print_error, silent_error, DEFAULT_VALIDATOR_ERROR
 from .input_utils import put_in_a_list
 
 
@@ -23,6 +23,9 @@ def in_any(value, validators, error_callback, validator_fmt_str):
 
     :param value: the input value to validate
     :param validators: an iterable (list or tuple) containing the validators to use.
+    :param error_callback: the function to call when an error occurs in conversion or validation
+    :param validator_fmt_str: format string fro convertor errors (defaults to DEFAULT_CONVERTOR_ERROR)
+
     :return: True if any of the validators pass, False if they all fail.
     """
 
@@ -30,7 +33,7 @@ def in_any(value, validators, error_callback, validator_fmt_str):
         result = True
     elif isinstance(validators, collections.Iterable):  # list of validators (or other iterable)
         result = any(validator(value, error_callback, validator_fmt_str) for validator in validators)
-    elif callable(validators): # single validator function
+    elif callable(validators):  # single validator function
         result = validators(value, error_callback, validator_fmt_str)
     else:   # single value
         result = value == validators
@@ -44,6 +47,9 @@ def in_all(value, validators, error_callback, validator_fmt_str):
 
     :param value: the input value to validate
     :param validators: an iterable (list or tuple) containing the validators to use.
+    :param error_callback: function to call if an error occurs.
+    :param validator_fmt_str: format string to pass to the error callback routine for formatting the error.
+
     :return: True if all of the validators pass, False if they all fail.
     """
 
@@ -65,9 +71,12 @@ def not_in(value, validators, error_callback, validator_fmt_str):
 
     :param value: the input value to validate
     :param validators: an iterable (list or tuple) containing the validators to use.
+    :param error_callback: function to call if an error occurs.
+    :param validator_fmt_str: format string to pass to the error callback routine for formatting the error.
+
     :return: True if none of the validators pass, False if they any of them pass.
     """
-    # result = in_any(value, validators, error_callback, validator_fmt_str)
+    result = False
 
     if validators is None:
         result = True
@@ -76,7 +85,7 @@ def not_in(value, validators, error_callback, validator_fmt_str):
             result = validator(value, silent_error, validator_fmt_str)
             if result:
                 break
-    elif callable(validators): # single validator function
+    elif callable(validators):  # single validator function
         result = validators(value, error_callback, validator_fmt_str)
     else:   # single value
         result = value == validators
@@ -94,8 +103,12 @@ def validate(value, validators, error_callback=print_error, validator_fmt_str=DE
 
     :param value: the value to validate.
     :param validators: list of validators to run on the value.
+    :param error_callback: function to call if an error occurs.
+    :param validator_fmt_str: format string to pass to the error callback routine for formatting the error.
     :return: True if the input passed validation, else False
     """
+    result = None
+
     if callable(validators):
         result = validators(value, error_callback, validator_fmt_str)
     else:
@@ -113,7 +126,7 @@ def validate(value, validators, error_callback=print_error, validator_fmt_str=DE
 # class Validator(metaclass=ABCMeta): # introduced in Python 3
 class Validator(object):
     # Abstract base class for validation classes
-    def __init__(self):
+    def __init__(self, **kwargs):
         pass
 
     # @abstractmethod   # introduced in Python 3
@@ -145,7 +158,7 @@ class ExactLengthValidator(Validator):
             return False
 
     def __repr__(self):
-        return 'ExactLengthValidator(value=%s)' % (self._length)
+        return 'ExactLengthValidator(value=%s)' % self._length
 
 
 class InLengthValidator(Validator):
@@ -202,7 +215,7 @@ class ExactValueValidator(Validator):
             return False
 
     def __repr__(self):
-        return 'ExactValueValidator(value=%s)' % (self._value)
+        return 'ExactValueValidator(value=%s)' % self._value
 
 
 class InRangeValidator(Validator):
@@ -315,15 +328,15 @@ class SimpleValidator(Validator):
     :param validators an iterable list of validators. When the validators is called, return True once any of the validators matches.
     :param kwargs: kwargs: no kwargs are currently supported.
 
-    optinal kwargs:
+    optional kwargs:
 
         name: a string to use for the validator name in error messages
 
     """
-    def __init__(self, function, **kwargs):
+    def __init__(self, validator_func, **kwargs):
 
         # note: if choices is mutable, the choices can change after instantiation
-        self._validator = function
+        self._validator = validator_func
         self._name = None
 
         for k, v in kwargs.items():
@@ -346,7 +359,7 @@ class SimpleValidator(Validator):
         return result
 
     def __repr__(self):
-        return 'InAnyValidator(validators={})'.format(self._validators)
+        return 'InAnyValidator(validators={})'.format(self._validator)
 
 
 class RegexValidator(Validator):
@@ -389,7 +402,7 @@ class RegexValidator(Validator):
             return False
 
     def __repr__(self):
-        return 'RegexValidator(regegx={})'.format(self._regex)
+        return 'RegexValidator(regex={})'.format(self._regex)
 
 
 class PasswordValidator(Validator):
@@ -408,7 +421,7 @@ class PasswordValidator(Validator):
     :param kwargs: kwargs: no kwargs are currently supported.
     """
     def __init__(self, min_length=1, max_length=64, min_lower=0, min_upper=0, min_digits=0, min_puncts=0, allowed=None, disallowed=None, **kwargs):
-        self.valid_chars = set(string.ascii_letters + string.digits +  string.punctuation)
+        self.valid_chars = set(string.ascii_letters + string.digits + string.punctuation)
         # disallowed_chars = None
 
         self.min_length = min_length
@@ -454,7 +467,7 @@ class PasswordValidator(Validator):
 
         if self.min_puncts and len([c for c in value if c in string.punctuation]) < self.min_puncts:
             error_callback(validator_fmt_str, 'password', 'too few punctuation characters (minimum is {} from)'.format(self.min_puncts,
-                                                                            set(string.punctuation) - self.disallowed))
+                           set(string.punctuation) - self.disallowed))
             return False
 
         return True

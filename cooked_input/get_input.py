@@ -1,4 +1,3 @@
-
 """
 get_input module to get values from the command line.
 
@@ -11,47 +10,26 @@ Copyright: Len Wanger, 2017
 import sys
 import copy
 import logging
-import collections
 import getpass
-import prettytable
 
 from .error_callbacks import MaxRetriesError, ValidationError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
 from .validators import InRangeValidator, InChoicesValidator, in_all
-from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor, YesNoConvertor, ListConvertor
+from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor, YesNoConvertor, \
+    ListConvertor
 from .cleaners import StripCleaner
 from .input_utils import compose, make_pretty_table
 
 from .convertors import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
 
-
-if sys.version_info[0] > 2: # For Python 3
+if sys.version_info[0] > 2:  # For Python 3
     # from abc import ABCMeta, abstractmethod
     def raw_input(prompt_msg):
         return input(prompt_msg)
 
 
-# def compose(value, funcs):
-#     # compose functions and return the result: compose(value, [f1,f2,f3]) = f3(f2(f1(value)))
-#     first_func = True
-#
-#     if callable(funcs):
-#         result = funcs(value)
-#     elif isinstance(funcs, collections.Iterable):
-#         for func in funcs:
-#             if first_func:
-#                 result = func(value)
-#                 first_func = False
-#             else:
-#                 result = func(result)
-#     else:
-#         raise RuntimeError('funcs cannot be called')
-#
-#     return result
-
-
 def process_value(value, cleaners, convertor, validators, error_callback=print_error,
-                    convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
+                  convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
     """
     runs a value through cleaning, conversion, and validation. This allows the same processing used
     in get_input to be performed on a value. For instance, the same processing used for getting 
@@ -61,7 +39,7 @@ def process_value(value, cleaners, convertor, validators, error_callback=print_e
     :param cleaners: list of cleaners to apply to clean the value
     :param convertor: the convertor to apply to the cleaned value
     :param validators: list of validators to apply to validate the cleaned and converted value
-    :param error_callback: list of validators to apply to validate the cleaned and converted value
+    :param error_callback: the function to call when an error occurs in conversion or validation
     :param convertor_error_fmt: format string fro convertor errors (defaults to DEFAULT_CONVERTOR_ERROR)
     :param validator_error_fmt: format string fro validator errors (defaults to DEFAULT_VALIDATOR_ERROR)
 
@@ -87,25 +65,6 @@ def process_value(value, cleaners, convertor, validators, error_callback=print_e
         return (True, converted_response)
     else:
         return (False, None)
-
-
-# def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):
-#     """
-#     Take a list of tuples [(id, value), ...] and return a prettytable
-#
-#     :param rows: a list of tuples for the table rows. Each tuple is: (id, value).
-#     :param second_col_name: the name to use for the header on the second column.
-#     :param sort_by_second_col: sort by the second column if True, otherwise leave in order from rows.
-#     :return: a prettytable for the table.
-#     """
-#     x = prettytable.PrettyTable(['id', second_col_name])
-#
-#     for row in rows:
-#         x.add_row([row[0], row[1]])
-#
-#     x.align[second_col_name] = 'l'  # left align
-#     x.sortby = second_col_name if sort_by_second_col else 'id'
-#     return x
 
 
 def get_input(cleaners=None, convertor=None, validators=None, **options):
@@ -157,15 +116,17 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     error_callback = print_error
     convertor_error_fmt = DEFAULT_CONVERTOR_ERROR
     validator_error_fmt = DEFAULT_VALIDATOR_ERROR
+    converted_response = None
+    valid_response = None
 
     for k, v in options.items():
-        if k=='prompt':
+        if k == 'prompt':
             prompt_str = '%s' % v
-        elif k=='blank_ok':
+        elif k == 'blank_ok':
             blank_ok = True if v else False
         elif k == 'default':
             default_val = str(v) if v else None
-        elif k == 'default_str':    # for get_from_table may want to display value but return id.
+        elif k == 'default_str':  # for get_from_table may want to display value but return id.
             default_string = v
         elif k == 'hidden':
             hidden = v
@@ -209,14 +170,14 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
             return None
         elif default_val and not response:
             valid_response, converted_response = process_value(default_val, cleaners, convertor, validators,
-                                                                error_callback, convertor_error_fmt, validator_error_fmt)
+                                                               error_callback, convertor_error_fmt, validator_error_fmt)
             if valid_response:
                 return converted_response
             else:
                 raise ValidationError('default did not pass validation.')
         elif response:
-            valid_response, converted_response  = process_value(response, cleaners, convertor, validators,
-                                                                error_callback, convertor_error_fmt, validator_error_fmt)
+            valid_response, converted_response = process_value(response, cleaners, convertor, validators,
+                                                               error_callback, convertor_error_fmt, validator_error_fmt)
 
             if valid_response:
                 break
@@ -265,7 +226,7 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
     default_val = None
     sort_by_value = False
     valid_get_input_opts = ('value_error', 'prompt', 'blank_ok', 'default_str', 'hidden', 'retries', 'error_callback',
-                                'convertor_error_fmt','validator_error_fmt')
+                            'convertor_error_fmt', 'validator_error_fmt')
 
     for k, v in options.items():
         if k == 'input_value':
@@ -290,11 +251,11 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
     convertor_options = {k: v for k, v in options.items() if k in convertor_options_to_keep}
     get_input_options = {k: v for k, v in options.items() if k not in get_input_options_to_skip}
 
-    if default_val and input_value==TABLE_ID:
-        # Handle case where id inputed, but default value displayed
+    if default_val and input_value == TABLE_ID:
+        # Handle case where id inputted, but default value displayed
         get_input_options['default_str'] = str(default_val)
         for row in table:
-            if row[TABLE_VALUE] == default_val or  row[TABLE_ID] == default_val:
+            if row[TABLE_VALUE] == default_val or row[TABLE_ID] == default_val:
                 get_input_options['default'] = row[TABLE_ID]
                 break
         else:
@@ -330,7 +291,7 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
             elif input_value == TABLE_ID:
                 if t[TABLE_ID] == returned_value:
                     return t[TABLE_VALUE]
-            else: # input_value == TABLE_ID_OR_VALUE
+            else:  # input_value == TABLE_ID_OR_VALUE
                 if t[TABLE_VALUE] == returned_value or t[TABLE_ID] == returned_value:
                     if return_value == TABLE_VALUE:
                         return t[TABLE_VALUE]
@@ -342,7 +303,7 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
 ### Convenience Functions ###
 #############################
 
-def get_string(cleaners=[StripCleaner()], validators=None, **options):
+def get_string(cleaners=(StripCleaner()), validators=None, **options):
     """
     Convenience function to get a string value.
 
@@ -354,7 +315,7 @@ def get_string(cleaners=[StripCleaner()], validators=None, **options):
     """
     new_options = dict(options)
 
-    if not 'prompt' in options:
+    if 'prompt' not in options:
         new_options['prompt'] = 'Enter some text'
 
     result = get_input(cleaners=cleaners, convertor=None, validators=validators, **new_options)
@@ -375,7 +336,7 @@ def get_int(cleaners=None, validators=None, minimum=None, maximum=None, **option
     """
     new_options = dict(options)
 
-    if not 'prompt' in options:
+    if 'prompt' not in options:
         new_options['prompt'] = 'Enter a whole (integer) number'
 
     if minimum is None and maximum is None:
@@ -389,7 +350,7 @@ def get_int(cleaners=None, validators=None, minimum=None, maximum=None, **option
         else:
             val_list = validators + [irv]
 
-    result = get_input(cleaners=None, convertor=IntConvertor(), validators=val_list, **new_options)
+    result = get_input(cleaners, convertor=IntConvertor(), validators=val_list, **new_options)
     return result
 
 
@@ -407,7 +368,7 @@ def get_float(cleaners=None, validators=None, minimum=None, maximum=None, **opti
     """
     new_options = dict(options)
 
-    if not 'prompt' in options:
+    if 'prompt' not in options:
         new_options['prompt'] = 'Enter an real (floating point) number'
 
     if minimum is None and maximum is None:
@@ -421,7 +382,7 @@ def get_float(cleaners=None, validators=None, minimum=None, maximum=None, **opti
         else:
             val_list = validators + [irv]
 
-    result = get_input(cleaners=None, convertor=FloatConvertor(), validators=val_list, **new_options)
+    result = get_input(cleaners, convertor=FloatConvertor(), validators=val_list, **new_options)
     return result
 
 
@@ -437,10 +398,10 @@ def get_boolean(cleaners=None, validators=None, **options):
     """
     new_options = dict(options)
 
-    if not 'prompt' in options:
+    if 'prompt' not in options:
         new_options['prompt'] = 'Enter true or false'
 
-    result = get_input(cleaners=None, convertor=BooleanConvertor(), validators=validators, **new_options)
+    result = get_input(cleaners, convertor=BooleanConvertor(), validators=validators, **new_options)
     return result
 
 
@@ -456,10 +417,10 @@ def get_date(cleaners=None, validators=None, **options):
     """
     new_options = dict(options)
 
-    if not 'prompt' in options:
+    if 'prompt' not in options:
         new_options['prompt'] = 'Enter a date'
 
-    result = get_input(cleaners=None, convertor=DateConvertor(), validators=validators, **new_options)
+    result = get_input(cleaners, convertor=DateConvertor(), validators=validators, **new_options)
     return result
 
 
@@ -475,10 +436,10 @@ def get_yes_no(cleaners=None, validators=None, **options):
     """
     new_options = dict(options)
 
-    if not 'prompt' in options:
+    if 'prompt' not in options:
         new_options['prompt'] = 'Enter yes or no'
 
-    result = get_input(cleaners=None, convertor=YesNoConvertor(), validators=validators, **new_options)
+    result = get_input(cleaners, convertor=YesNoConvertor(), validators=validators, **new_options)
     return result
 
 
@@ -494,8 +455,8 @@ def get_list(cleaners=None, validators=None, **options):
     """
     new_options = dict(options)
 
-    if not 'prompt' in options:
+    if 'prompt' not in options:
         new_options['prompt'] = 'Enter a list of values (separated by commas)'
 
-    result = get_input(cleaners=None, convertor=ListConvertor(), validators=validators, **new_options)
+    result = get_input(cleaners, convertor=ListConvertor(), validators=validators, **new_options)
     return result

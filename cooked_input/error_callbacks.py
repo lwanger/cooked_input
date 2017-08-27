@@ -8,6 +8,7 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
+import sys
 import logging
 
 ### cooked input custom exceptions
@@ -36,12 +37,12 @@ def print_error(fmt_str, value, error_content):
 
     :return: None
     """
-    print(fmt_str.format(value=value, error_content=error_content))
+    print(fmt_str.format(value=value, error_content=error_content), file=sys.stderr)
 
 
 def silent_error(fmt_str, value, error_content):
     """
-        Ignores errors, causing them to be silen
+        Ignores errors, causing them to be silent
 
         :param fmt_str: a Python format string for the error. Can use variables {value} and {error_content}.
         :param value:  the value the caused the error.

@@ -11,9 +11,9 @@ from string import capwords
 from .input_utils import put_in_a_list
 
 
-####
-#### Cleaners:
-####
+###
+### Cleaners:
+###
 # class Cleaner(metaclass=ABCMeta):
 class Cleaner(object):
     # Abstract base class for cleaner classes
@@ -130,7 +130,7 @@ class ChoiceCleaner(Cleaner):
         +-------+---------+-----------------------------------------------------------------+
         | 'blu' | 'blue'  |                                                                 |
         +-------+---------+-----------------------------------------------------------------+
-        | 'bl'  | 'bl'    | orignal value returned as can't tell between 'black' and 'blue' |
+        | 'bl'  | 'bl'    | original value returned as can't tell between 'black' and 'blue' |
         +-------+---------+-----------------------------------------------------------------+
 
     :param choices: a list of to detect
@@ -149,7 +149,7 @@ class ChoiceCleaner(Cleaner):
 
     def __call__(self, value):
         str_value = str(value)
-        matches = [v for k,v in self._str_choices.items() if k.startswith(str_value)]
+        matches = [v for k, v in self._str_choices.items() if k.startswith(str_value)]
 
         if len(matches) == 1:
             return matches[0]
@@ -162,7 +162,7 @@ class ChoiceCleaner(Cleaner):
 
 class RemoveCleaner(Cleaner):
     """
-    Removes all occurances of any of the strings in the patterns list.
+    Removes all occurrences of any of the strings in the patterns list.
 
     :param patterns: string to replace
 
@@ -184,10 +184,10 @@ class RemoveCleaner(Cleaner):
 
 class ReplaceCleaner(Cleaner):
     """
-    Replaces all occurances of "old" string with "new" string white space from the input value
+    Replaces all occurrences of "old" string with "new" string white space from the input value
 
     :param old: string to replace
-    :param new: string to put in the place of all occurances of old
+    :param new: string to put in the place of all occurrences of old
 
     options:
 
@@ -248,4 +248,4 @@ class RegexCleaner(Cleaner):
         return result
 
     def __repr__(self):
-        return 'ReplaceCleaner(re={})'.format(self._re)
+        return 'RegexCleaner(pattern={}, sub={}, count={}, flags={})'.format(self._pattern, self._sub, self._count, self._flags)

@@ -12,14 +12,6 @@ import sys
 import collections
 import prettytable
 
-# from .error_callbacks import MaxRetriesError, ValidationError
-# from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
-# from .validators import InRangeValidator, InChoicesValidator, in_all
-# from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor, YesNoConvertor, ListConvertor
-# from .cleaners import StripCleaner
-#
-# from .convertors import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
-
 
 def compose(value, funcs):
     """
@@ -31,6 +23,7 @@ def compose(value, funcs):
     :return: the return value of the functions composed together.
     """
     first_func = True
+    result = None
 
     if callable(funcs):
         result = funcs(value)
