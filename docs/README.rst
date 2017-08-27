@@ -2,11 +2,6 @@
 Cooked Input Project
 ====================
 
-.. .. image:: https://badge.fury.io/py/cooked-input.svg
-    :alt: PyPi Version
-    :scale: 100%
-    :target: https://badge.fury.io/py/cooked-input
-
 .. image:: https://img.shields.io/pypi/v/cooked_input.svg
    :alt: PyPi Version
    :scale: 100%
@@ -31,10 +26,9 @@ Cooked Input Project
      :alt: PyPi pyversions
      :scale: 100%
      :target: https://pypi.org/project/cooked-input/
-..   :target: https://pypi.python.org/pypi/cooked_input/
 
 
-``cooked_input`` is a Python package for getting, cleaning, converting, and validating input. 
+cooked_input is a Python package for getting, cleaning, converting, and validating input. 
 If you think of input (raw_input in legacy Python) as raw input, then this is cooked input.
 
 
