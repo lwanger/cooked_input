@@ -130,7 +130,7 @@ class ChoiceCleaner(Cleaner):
         +-------+---------+-----------------------------------------------------------------+
         | 'blu' | 'blue'  |                                                                 |
         +-------+---------+-----------------------------------------------------------------+
-        | 'bl'  | 'bl'    | original value returned as can't tell between 'black' and 'blue' |
+        | 'bl'  | 'bl'    | original value returned as can't tell between 'black' and 'blue'|
         +-------+---------+-----------------------------------------------------------------+
 
     :param choices: a list of to detect
