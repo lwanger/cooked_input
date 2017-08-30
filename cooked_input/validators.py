@@ -8,6 +8,7 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
+import sys
 import string
 import re
 import collections
@@ -86,7 +87,7 @@ def not_in(value, validators, error_callback, validator_fmt_str):
             if result:
                 break
     elif callable(validators):  # single validator function
-        result = validators(value, error_callback, validator_fmt_str)
+        result = validators(value, silent_error, validator_fmt_str)
     else:   # single value
         result = value == validators
 
@@ -147,8 +148,12 @@ class ExactLengthValidator(Validator):
         super(ExactLengthValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
-        # TypeError thrown if value does not implement __len__
-        val_len = len(value)
+        try:
+            val_len = len(value)
+        except (TypeError):
+            print('ExactLengthValidator: value "{}" does not support __len__.'.format(value), file=sys.stderr)
+            return False
+
         condition1 = (self._length is None or val_len == self._length)
 
         if condition1:
@@ -175,8 +180,12 @@ class InLengthValidator(Validator):
         super(InLengthValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
-        # TypeError thrown if value does not implement __len__
-        val_len = len(value)
+        try:
+            val_len = len(value)
+        except (TypeError):
+            print('InLengthValidator: value "{}" does not support __len__.'.format(value), file=sys.stderr)
+            return False
+
         min_condition = (self._min_len is None or val_len >= self._min_len)
         max_condition = (self._max_len is None or val_len <= self._max_len)
 
@@ -233,8 +242,17 @@ class InRangeValidator(Validator):
         super(InRangeValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
-        min_condition = (self._min_val is None or value >= self._min_val)
-        max_condition = (self._max_val is None or value <= self._max_val)
+        try:
+            min_condition = (self._min_val is None or value >= self._min_val)
+        except (TypeError):
+            print('InRangeValidator: value "{}" does not support __ge__.'.format(value), file=sys.stderr)
+            return False
+
+        try:
+            max_condition = (self._max_val is None or value <= self._max_val)
+        except (TypeError):
+            print('InRangeValidator: value "{}" does not support __ge__.'.format(value), file=sys.stderr)
+            return False
 
         if min_condition and max_condition:
             return True
@@ -282,8 +300,6 @@ class NotInValidator(Validator):
     :param kwargs: no kwargs are currently supported.
     """
     def __init__(self, validators, **kwargs):
-
-        # note: if choices is mutable, the choices can change after instantiation
         self._validators = validators
         super(NotInValidator, self).__init__(**kwargs)
 
@@ -306,8 +322,6 @@ class InAnyValidator(Validator):
 
     """
     def __init__(self, validators, **kwargs):
-
-        # note: if choices is mutable, the choices can change after instantiation
         self._validators = validators
         super(InAnyValidator, self).__init__(**kwargs)
 
@@ -334,8 +348,6 @@ class SimpleValidator(Validator):
 
     """
     def __init__(self, validator_func, **kwargs):
-
-        # note: if choices is mutable, the choices can change after instantiation
         self._validator = validator_func
         self._name = None
 
@@ -374,7 +386,6 @@ class RegexValidator(Validator):
     regex_desc: a human readable string to use for the regex (used for error messages)
     """
     def __init__(self, pattern, **options):
-        # note: if choices is mutable, the choices can change after instantiation
         self._regex = pattern
         self._regex_desc = pattern
 
@@ -390,8 +401,12 @@ class RegexValidator(Validator):
         super(RegexValidator, self).__init__(**super_kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
-        result = re.search(self._regex, value)
-        # return True if result else False
+        try:
+            result = re.search(self._regex, value)
+        except (TypeError):
+            print('RegexValidator: expected string or bytes-like object. "{}" not compatible.'.format(value), file=sys.stderr)
+            return False
+
         if result:
             return True
         else:
@@ -420,7 +435,8 @@ class PasswordValidator(Validator):
     :param disallowed: a string containing characters not allowed in the password. Defaults to None
     :param kwargs: kwargs: no kwargs are currently supported.
     """
-    def __init__(self, min_length=1, max_length=64, min_lower=0, min_upper=0, min_digits=0, min_puncts=0, allowed=None, disallowed=None, **kwargs):
+    def __init__(self, min_length=None, max_length=None, min_lower=0, min_upper=0, min_digits=0, min_puncts=0,
+                 allowed=None, disallowed=None, **kwargs):
         self.valid_chars = set(string.ascii_letters + string.digits + string.punctuation)
         # disallowed_chars = None
 
@@ -435,39 +451,58 @@ class PasswordValidator(Validator):
         if allowed is not None:
             self.valid_chars = set(allowed)
         elif disallowed is not None:
-            # self.valid_chars -= set(disallowed)
             self.valid_chars -= self.disallowed
 
         super(PasswordValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
-        if len(set(value) - self.valid_chars):
-            error_callback(validator_fmt_str, 'password', 'cannot contain any of the following characters: {}'.format(set(value) - self.valid_chars))
+        try:
+            if len(set(value) - self.valid_chars):
+                error_callback(validator_fmt_str, 'password', 'cannot contain any of the following characters: {}'.format(
+                                   set(value) - self.valid_chars))
+                return False
+        except (TypeError):
+            print('PasswordValidator: value "{}" is not iterable.'.format(value), file=sys.stderr)
             return False
 
-        if self.min_length and len(value) < self.min_length:
-            error_callback(validator_fmt_str, 'password', 'too short (minimum length is {})'.format(self.min_length))
+        try:
+            if (self.min_length is not None and len(value)) < self.min_length:
+                error_callback(validator_fmt_str, 'password',
+                               'too short (minimum length is {})'.format(self.min_length))
+                return False
+        except (TypeError):
+            print('PasswordValidator: value "{}" does not support __len__.'.format(value), file=sys.stderr)
             return False
 
-        if self.max_length and len(value) > self.max_length:
-            error_callback(validator_fmt_str, 'password', 'too long (maximum length is {})'.format(self.max_length))
+        try:
+            if self.max_length and len(value) > self.max_length:
+                error_callback(validator_fmt_str, 'password', 'too long (maximum length is {})'.format(self.max_length))
+                return False
+        except (TypeError):
+            print('PasswordValidator: value "{}" does not support __len__.'.format(value), file=sys.stderr)
             return False
 
-        if self.min_lower and len([c for c in value if c in string.ascii_lowercase]) < self.min_lower:
-            error_callback(validator_fmt_str, 'password', 'too few lower case characters (minimum is {})'.format(self.min_lower))
-            return False
 
-        if self.min_upper and len([c for c in value if c in string.ascii_uppercase]) < self.min_upper:
-            error_callback(validator_fmt_str, 'password', 'too few upper case characters (minimum is {})'.format(self.min_upper))
-            return False
+        try:
+            if self.min_lower and len([c for c in value if c in string.ascii_lowercase]) < self.min_lower:
+                error_callback(validator_fmt_str, 'password',
+                               'too few lower case characters (minimum is {})'.format(self.min_lower))
+                return False
 
-        if self.min_digits and len([c for c in value if c in string.digits]) < self.min_digits:
-            error_callback(validator_fmt_str, 'password', 'too few digit characters (minimum is {})'.format(self.min_digits))
-            return False
+            if self.min_upper and len([c for c in value if c in string.ascii_uppercase]) < self.min_upper:
+                error_callback(validator_fmt_str, 'password', 'too few upper case characters (minimum is {})'.format(self.min_upper))
+                return False
 
-        if self.min_puncts and len([c for c in value if c in string.punctuation]) < self.min_puncts:
-            error_callback(validator_fmt_str, 'password', 'too few punctuation characters (minimum is {} from)'.format(self.min_puncts,
-                           set(string.punctuation) - self.disallowed))
+            if self.min_digits and len([c for c in value if c in string.digits]) < self.min_digits:
+                error_callback(validator_fmt_str, 'password', 'too few digit characters (minimum is {})'.format(self.min_digits))
+                return False
+
+            if self.min_puncts and len([c for c in value if c in string.punctuation]) < self.min_puncts:
+                error_callback(validator_fmt_str, 'password', 'too few punctuation characters (minimum is {} from)'.format(self.min_puncts,
+                               set(string.punctuation) - self.disallowed))
+                return False
+        except (TypeError):
+            print('PasswordValidator: value "{}" is not a string.'.format(value), file=sys.stderr)
             return False
 
         return True

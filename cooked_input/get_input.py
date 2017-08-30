@@ -174,7 +174,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
             if valid_response:
                 return converted_response
             else:
-                raise ValidationError('default did not pass validation.')
+                raise ValidationError('default value "{!r}" did not pass validation.'.format(default_val))
         elif response:
             valid_response, converted_response = process_value(response, cleaners, convertor, validators,
                                                                error_callback, convertor_error_fmt, validator_error_fmt)
