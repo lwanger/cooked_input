@@ -203,7 +203,7 @@ defaulting to `5`, and not allowing `0`:
 .. code-block:: python
 
     prompt_str = "Enter a number between -1 and 10, but not 0"
-    validators = [InRangeValidator(-10, 10), NotInValidator(ExactValueValidator(0))]
+    validators = [InRangeValidator(-10, 10), NotInValidator(0)]
     response = get_input(prompt=prompt_str, convertor=IntConvertor(), validators=validators, default=5)
 
 

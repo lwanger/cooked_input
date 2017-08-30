@@ -15,7 +15,4 @@ from .cleaners import Cleaner, UpperCleaner, LowerCleaner, CapitalizeCleaner
 from .cleaners import StripCleaner, RemoveCleaner, ReplaceCleaner, ChoiceCleaner, RegexCleaner
 from .input_utils import make_pretty_table
 
-
-# __all__ = ['get_input', 'convertors', 'validators', 'cleaners', 'error_callbacks', 'input_utils']
-
 __version__ = '0.2.7'
