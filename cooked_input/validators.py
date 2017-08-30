@@ -285,7 +285,8 @@ class InChoicesValidator(Validator):
         if result:
             return True
         else:
-            error_callback(validator_fmt_str, 'value', 'must be one of: {}'.format(', '.join(self._choices)))
+            choice_strs = [str(c) for c in self._choices]
+            error_callback(validator_fmt_str, 'value', 'must be one of: {}'.format(', '.join(choice_strs)))
             return False
 
     def __repr__(self):
