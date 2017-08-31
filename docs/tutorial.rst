@@ -132,6 +132,7 @@ The general flow of `get_input` is:
     The order of the cleaners and validators is maintained. For example, if the list of cleaners is
     `cleaners=[StripCleaner(), LowerCleaner()]`, then the strip operation is performed before conversion to lower case.
 
+
 More examples:
 ==============
 

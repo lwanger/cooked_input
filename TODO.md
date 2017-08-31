@@ -5,14 +5,9 @@
 
 * general:
     * Improve the README file
-    * Flesh out automated tests
+    * Improve coverage of automated tests
     * Add queue_errors error handler. Use for an example to send flash_messages for Flask support. Add option to 
         validators to force running all validators vs. quiting after first error found.
-    * Add tables (build-a-burger) to tutorial
-    * decorators to make cleaners, convertors, etc. decorator for strip and lower cleaners? 
-        get yes/no, get an int in a range, etc. Use decorators to reduce boilerplate code.
-    * add part 2 (and part 3?) to tutorial to show more examples: passwords (get_user_info), tables,
-        menus, and databases?
 
 * get_input:
     * send error messages to stderr?
@@ -29,7 +24,11 @@
     * allow value column to show longer description, but type in value
     * allow typing unique first characters of a choice input?
     * add render_table method to allow printing other than prettytable
-       
+
+* tutorial:
+    * Add tables (build-a-burger) to tutorial
+    * add part 2 (and part 3?) to tutorial to show more examples: passwords (get_user_info), tables,
+        menus, and databases?       
 * examples/tests:
     * add: date
     * example runner (install as an entry point script.) Use get_input for menus.

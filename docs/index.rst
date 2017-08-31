@@ -10,7 +10,7 @@ Cooked Input
 This is documentation for cooked_input |my_version|, generated |my_date|.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    README

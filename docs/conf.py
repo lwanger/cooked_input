@@ -26,14 +26,13 @@ sys.path.insert(0, os.path.abspath('..'))
 
 from cooked_input import __version__
 
-today = datetime.date.today()
-today_str = today.strftime('%b %d, %Y')
+today = datetime.date.today().strftime('%b %d, %Y')
 
 # Custom variable substitutions in the documents... (version, date, etc.)
 rst_epilog = """
 .. |my_version| replace:: v%s
 .. |my_date| replace:: %s
-""" % (__version__, today_str)
+""" % (__version__, today)
 
 # add_module_names = False
 
