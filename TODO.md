@@ -28,7 +28,9 @@
 * tutorial:
     * Add tables (build-a-burger) to tutorial
     * add part 2 (and part 3?) to tutorial to show more examples: passwords (get_user_info), tables,
-        menus, and databases?       
+        menus, and databases?
+    * move `more examples` to `how-to`?
+           
 * examples/tests:
     * add: date
     * example runner (install as an entry point script.) Use get_input for menus.

@@ -15,10 +15,6 @@ This is documentation for cooked_input |my_version|, generated |my_date|.
 
    README
    tutorial
-
-** API **
-
-.. toctree::
    get_input
    cleaners
    convertors

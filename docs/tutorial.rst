@@ -104,39 +104,54 @@ something like this:
         validators=InRangeValidator(min_val=1, max_val=None), retries=3)
 
 * *prompt*: the string to print to prompt the user.
+
 * *convertor*: the `Convertor` is called to convert the string entered into the type of value we want. `IntConvertor`
   converts the value to an `int` (integer).
+
 * *validators*: the `Validator` function (or list of `Validator` functions) used to check the entered string meets the
-  criteria we want. `InRangeValidator(min_val=1, max_val=10)` makes sure the value is between `1` and `10`.
-  (i.e.  `1<=value<=10`). If the input doesn't pass the validation, an error message is produced, and the user is
+  criteria we want. `InRangeValidator(min_val=1, max_val=10)` makes sure the value is between `1` and `10`. (i.e.
+  `1<=value<=10`). If the input doesn't pass the validation, an error message is produced, and the user is
   prompted to re-enter the value.
+
 * *retries*: there are a number of optional parameters that get_input can take (see `get_input` for more information).
   When `retries` is specified, the user will be asked a maximum of `retries` times for the input. If no valid input is
   entered within the maximum number of times, a MaxRetriesError is raised.
+
 * *result*: the cleaned, converted, validated value is returned. It's safe to use as we know it meets the criteria we requested.
 
 The general flow of `get_input` is:
 
-* Prompt the user and get the input from the keyboard (sys.stdin)
-* Apply the entered string through the list of cleaners.  For example if the entered values is: `"  Yes "`, and
-  `cleaners=[StripCleaner(), LowerCleaner()]` (strip, then convert to lower case), would be equivalent to the
-  Python statement: `"  Yes ".strip().lower()`, which would produce `"yes"`
-* Apply the convertor to the cleaned string.
-* Apply the list of validators to the converted value. The converted value needs to pass all of the validators (i.e.
-  they are AND'd together). Other combinations of validators can be achieved by using the `InAnyValidator` (OR)
-  and `NotInValidator` (NOT) validators.
-* Return the cleaned, converted, validated value.
+1) Prompt the user and get the input from the keyboard (sys.stdin)
+
+2) Apply the entered string through the list of cleaners.  For example if the entered values is: `"  Yes "`, and
+   `cleaners=[StripCleaner(), LowerCleaner()]` (strip, then convert to lower case), would be equivalent to the
+   Python statement: `"  Yes ".strip().lower()`, which would produce `"yes"`
+
+3) Apply the convertor to the cleaned string.
+
+4) Apply the list of validators to the converted value. The converted value needs to pass all of the validators (i.e.
+   they are AND'd together). Other combinations of validators can be achieved by using the `InAnyValidator` (OR)
+   and `NotInValidator` (NOT) validators.
+
+5) Return the cleaned, converted, validated value.
 
 .. note::
 
     The order of the cleaners and validators is maintained. For example, if the list of cleaners is
     `cleaners=[StripCleaner(), LowerCleaner()]`, then the strip operation is performed before conversion to lower case.
 
+.. note::
 
-More examples:
-==============
+    The `process_value` function take an input value as a parameter and runs all of the `get_input` processing steps on
+    the value (i.e. runs steps 2--5 above.) This is useful for applying the same cooked_input cleaning, conversion and
+    validation to value from GUI forms, web forms or for data cleaning. The `validate_tk` example shows how
+    `process_value` can be used to validate an input in a GUI.
 
-Let's look at a few more simple examples...
+
+How to:
+=======
+
+Some examples of how to....
 
 Getting yes or no
 -----------------
@@ -208,9 +223,9 @@ defaulting to `5`, and not allowing `0`:
     response = get_input(prompt=prompt_str, convertor=IntConvertor(), validators=validators, default=5)
 
 
-Wait There's More!
-------------------
+More Examples
+-------------
 
-Cooked_input has a lot more of functionality for getting input of different types (floats, Booelans, Dates, lists,
+Cooked_input has a lot more of functionality for getting input of different types (floats, Booleans, Dates, lists,
 passwords, etc.), as well as lots of validators and cleaners. It also has a number of features for getting input from
 tables (which is nice for working with values in database tables). There are a lot of examples in the examples directory.
