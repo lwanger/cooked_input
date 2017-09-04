@@ -8,7 +8,7 @@ Len Wanger, 2017
 import sys
 from io import StringIO
 
-from cooked_input import get_input, IntConvertor, InRangeValidator
+from cooked_input import get_input, IntConvertor, RangeValidator
 
 
 class redirect_stdin():

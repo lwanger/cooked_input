@@ -6,21 +6,21 @@ Len Wanger, 2017
 
 import re
 from cooked_input import get_input
-from cooked_input.cleaners import ChoiceCleaner, LowerCleaner, ReplaceCleaner, RegexCleaner
-from cooked_input.validators import InChoicesValidator
+from cooked_input.cleaners import ChoiceCleaner, CapitalizationCleaner, ReplaceCleaner, RegexCleaner
+from cooked_input.validators import ChoicesValidator
 
 
 if __name__ == '__main__':
     # ChoiceCleaner examples:
     color_choices = ['black', 'brown', 'blue', 'red', 'green']
     color_choice_cleaner = ChoiceCleaner(color_choices)
-    color_choice_validator = InChoicesValidator(color_choices)
+    color_choice_validator = ChoicesValidator(color_choices)
     float_choice_cleaner = ChoiceCleaner(choices=[1.0, 10.0, 1.11, 3.141569])
 
     print(get_input(prompt='Enter a color (choices: [bla]ck, [br]own, [blu]e, [r]ed, [g]reen)',
                     cleaners=color_choice_cleaner, validators=color_choice_validator))
     print(get_input(prompt='Enter a color (choices: [bla]ck, [br]own, [blu]e, [r]ed, [g]reen) (case insensitive)',
-                    cleaners=[LowerCleaner(), color_choice_cleaner], validators=color_choice_validator))
+                    cleaners=[CapitalizationCleaner(), color_choice_cleaner], validators=color_choice_validator))
     print(get_input(prompt='Enter a number (choices: [1.0], [10].0, [1.1]1, [3].141569)', cleaners=float_choice_cleaner))
 
     # ReplaceCleaner examples:

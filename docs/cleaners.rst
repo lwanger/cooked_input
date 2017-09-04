@@ -30,20 +30,10 @@ StripCleaner
 
 .. autoclass:: cooked_input.StripCleaner
 
-LowerCleaner
-------------
+CapitalizationCleaner
+---------------------
 
-.. autoclass:: cooked_input.LowerCleaner
-
-UpperCleaner
-------------
-
-.. autoclass:: cooked_input.UpperCleaner
-
-CapitalizeCleaner
------------------
-
-.. autoclass:: cooked_input.CapitalizeCleaner
+.. autoclass:: cooked_input.CapitalizationCleaner
 
 ReplaceCleaner
 --------------

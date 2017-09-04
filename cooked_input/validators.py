@@ -135,40 +135,10 @@ class Validator(object):
         pass
 
 
-class ExactLengthValidator(Validator):
+class LengthValidator(Validator):
     """
-    check a value is exactly a specified length
-
-    :param length: the required length for the input
-    :param kwargs: no kwargs are currently supported.
-    """
-    def __init__(self, length=None, **kwargs):
-
-        self._length = length
-        super(ExactLengthValidator, self).__init__(**kwargs)
-
-    def __call__(self, value, error_callback, validator_fmt_str):
-        try:
-            val_len = len(value)
-        except (TypeError):
-            print('ExactLengthValidator: value "{}" does not support __len__.'.format(value), file=sys.stderr)
-            return False
-
-        condition1 = (self._length is None or val_len == self._length)
-
-        if condition1:
-            return True
-        else:
-            error_callback(validator_fmt_str, value, 'not length {}'.format(self._length))
-            return False
-
-    def __repr__(self):
-        return 'ExactLengthValidator(value=%s)' % self._length
-
-
-class InLengthValidator(Validator):
-    """
-    check a value is in between a length range (open interval).
+    check a value is in between a length range (open interval). For exact length match set min and max lengths
+    to the same value.
 
     :param min_len: the minimum required length for the input. If None (the default), no minimum length is checked.
     :param max_len: the maximum required length for the input. If None (the default), no maximum length is checked.
@@ -177,13 +147,13 @@ class InLengthValidator(Validator):
     def __init__(self, min_len=None, max_len=None, **kwargs):
         self._min_len = min_len
         self._max_len = max_len
-        super(InLengthValidator, self).__init__(**kwargs)
+        super(LengthValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
         try:
             val_len = len(value)
         except (TypeError):
-            print('InLengthValidator: value "{}" does not support __len__.'.format(value), file=sys.stderr)
+            print('LengthValidator: value "{}" does not support __len__.'.format(value), file=sys.stderr)
             return False
 
         min_condition = (self._min_len is None or val_len >= self._min_len)
@@ -199,10 +169,10 @@ class InLengthValidator(Validator):
             return False
 
     def __repr__(self):
-        return 'InLengthValidator(min_len=%s, max_len=%s)' % (self._min_len, self._max_len)
+        return 'LengthValidator(min_len=%s, max_len=%s)' % (self._min_len, self._max_len)
 
 
-class ExactValueValidator(Validator):
+class EqualToValidator(Validator):
     """
     check if a value is an exact value
 
@@ -212,7 +182,7 @@ class ExactValueValidator(Validator):
     def __init__(self, value, **kwargs):
 
         self._value = value
-        super(ExactValueValidator, self).__init__(**kwargs)
+        super(EqualToValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
         condition1 = (self._value is None or value == self._value)
@@ -224,10 +194,10 @@ class ExactValueValidator(Validator):
             return False
 
     def __repr__(self):
-        return 'ExactValueValidator(value=%s)' % self._value
+        return 'EqualToValidator(value=%s)' % self._value
 
 
-class InRangeValidator(Validator):
+class RangeValidator(Validator):
     """
     check if a value is in between a minimum and maximum value (open interval). The value can be of any type as long
     as the __ge__ and __le__ comparison functions are defined.
@@ -239,19 +209,19 @@ class InRangeValidator(Validator):
     def __init__(self, min_val=None, max_val=None, **kwargs):
         self._min_val = min_val
         self._max_val = max_val
-        super(InRangeValidator, self).__init__(**kwargs)
+        super(RangeValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
         try:
             min_condition = (self._min_val is None or value >= self._min_val)
         except (TypeError):
-            print('InRangeValidator: value "{}" does not support __ge__.'.format(value), file=sys.stderr)
+            print('RangeValidator: value "{}" does not support __ge__.'.format(value), file=sys.stderr)
             return False
 
         try:
             max_condition = (self._max_val is None or value <= self._max_val)
         except (TypeError):
-            print('InRangeValidator: value "{}" does not support __ge__.'.format(value), file=sys.stderr)
+            print('RangeValidator: value "{}" does not support __ge__.'.format(value), file=sys.stderr)
             return False
 
         if min_condition and max_condition:
@@ -264,10 +234,10 @@ class InRangeValidator(Validator):
             return False
 
     def __repr__(self):
-        return 'InRangeValidator(min_val=%s, max_val=%s)' % (self._min_val, self._max_val)
+        return 'RangeValidator(min_val=%s, max_val=%s)' % (self._min_val, self._max_val)
 
 
-class InChoicesValidator(Validator):
+class ChoicesValidator(Validator):
     """
     check if a value is in a list of choices. Note: if choices is mutable, it can be changed after the instance is created.
 
@@ -277,7 +247,7 @@ class InChoicesValidator(Validator):
     def __init__(self, choices, **kwargs):
         # note: if choices is mutable, the choices can change after instantiation
         self._choices = put_in_a_list(choices)
-        super(InChoicesValidator, self).__init__(**kwargs)
+        super(ChoicesValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
         result = value in self._choices
@@ -290,10 +260,10 @@ class InChoicesValidator(Validator):
             return False
 
     def __repr__(self):
-        return 'InChoicesValidator(choices={})'.format(self._choices)
+        return 'ChoicesValidator(choices={})'.format(self._choices)
 
 
-class NotInValidator(Validator):
+class NoneOfValidator(Validator):
     """
     check if a value is not in a set of validators. Note: if choices is mutable, it can be changed after the instance is created.
 
@@ -302,7 +272,7 @@ class NotInValidator(Validator):
     """
     def __init__(self, validators, **kwargs):
         self._validators = validators
-        super(NotInValidator, self).__init__(**kwargs)
+        super(NoneOfValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
         result = not_in(value, self._validators, error_callback, validator_fmt_str)
@@ -311,10 +281,10 @@ class NotInValidator(Validator):
         return result
 
     def __repr__(self):
-        return 'NotInValidator(validators={})'.format(self._validators)
+        return 'NoneOfValidator(validators={})'.format(self._validators)
 
 
-class InAnyValidator(Validator):
+class AnyOfValidator(Validator):
     """
     check if a value matches any of a set of validators (OR operation). Note: if choices is mutable, it can be changed after the instance is created.
 
@@ -324,14 +294,14 @@ class InAnyValidator(Validator):
     """
     def __init__(self, validators, **kwargs):
         self._validators = validators
-        super(InAnyValidator, self).__init__(**kwargs)
+        super(AnyOfValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
         result = in_any(value, self._validators, error_callback, validator_fmt_str)
         return result
 
     def __repr__(self):
-        return 'InAnyValidator(validators={})'.format(self._validators)
+        return 'AnyOfValidator(validators={})'.format(self._validators)
 
 
 class SimpleValidator(Validator):
@@ -372,7 +342,7 @@ class SimpleValidator(Validator):
         return result
 
     def __repr__(self):
-        return 'InAnyValidator(validators={})'.format(self._validator)
+        return 'AnyOfValidator(validators={})'.format(self._validator)
 
 
 class RegexValidator(Validator):
@@ -439,21 +409,22 @@ class PasswordValidator(Validator):
     def __init__(self, min_length=None, max_length=None, min_lower=0, min_upper=0, min_digits=0, min_puncts=0,
                  allowed=None, disallowed=None, **kwargs):
         self.valid_chars = set(string.ascii_letters + string.digits + string.punctuation)
-        # disallowed_chars = None
-
         self.min_length = min_length
         self.max_length = max_length
         self.min_lower = min_lower
         self.min_upper = min_upper
         self.min_digits = min_digits
         self.min_puncts = min_puncts
-        self.disallowed = set(disallowed)
+
+        if disallowed is not None:
+            self.disallowed = set(disallowed)
+        else:
+            self.disallowed = set()
 
         if allowed is not None:
             self.valid_chars = set(allowed)
-        elif disallowed is not None:
-            self.valid_chars -= self.disallowed
 
+        self.valid_chars -= self.disallowed
         super(PasswordValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
@@ -467,7 +438,7 @@ class PasswordValidator(Validator):
             return False
 
         try:
-            if (self.min_length is not None and len(value)) < self.min_length:
+            if self.min_length is not None and (len(value)) < self.min_length:
                 error_callback(validator_fmt_str, 'password',
                                'too short (minimum length is {})'.format(self.min_length))
                 return False

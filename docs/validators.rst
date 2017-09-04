@@ -16,18 +16,33 @@ for the error function. See the [error_callbacks] for more information on error 
 
 An example of a validator to verify that the input is exactly a specified length looks like::
 
-    class ExactLengthValidator(Validator):
-        def __init__(self, length=None, **kwargs):
-            self._length = length
-            super(ExactLengthValidator, self).__init__(**kwargs)
+    class LengthValidator(Validator):
+        def __init__(self, min_len=None, max_len=None, **kwargs):
+            self._min_len = min_len
+            self._max_len = max_len
+            super(LengthValidator, self).__init__(**kwargs)
 
         def __call__(self, value, error_callback, validator_fmt_str):
-            val_len = len(value)
-            condition1 = (self._length is None or val_len == self._length)
-            return True if condition1 else False
+            try:
+                val_len = len(value)
+            except (TypeError):
+                print('LengthValidator: value "{}" does not support __len__.'.format(value), file=sys.stderr)
+                return False
+
+            min_condition = (self._min_len is None or val_len >= self._min_len)
+            max_condition = (self._max_len is None or val_len <= self._max_len)
+
+            if min_condition and max_condition:
+                return True
+            elif not min_condition:
+                error_callback(validator_fmt_str, value, 'too short (min_len={})'.format(self._min_len))
+                return False
+            else:
+                error_callback(validator_fmt_str, value, 'too long (max_len={})'.format(self._max_len))
+                return False
 
         def __repr__(self):
-            return 'ExactLengthValidator(value=%s)' % (self._length)
+            return 'LengthValidator(min_len=%s, max_len=%s)' % (self.min_len, self.max_len)
 
 Note: There are a large number of Boolean validation functions available from the validus project. These can be used as
 cooked_input validation functions by wrapping them in a SimpleValidator. For instance, to use validus to validate an email address::
@@ -43,40 +58,35 @@ for more information on validus see: https://github.com/shopnilsazal/validus
 Validators
 ==========
 
-ExactLengthValidator
---------------------
+LengthValidator
+---------------
 
-.. autoclass:: cooked_input.ExactLengthValidator
+.. autoclass:: cooked_input.LengthValidator
 
-InLengthValidator
------------------
-
-.. autoclass:: cooked_input.InLengthValidator
-
-ExactValueValidator
+EqualToValidator
 -------------------
 
-.. autoclass:: cooked_input.ExactValueValidator
+.. autoclass:: cooked_input.EqualToValidator
 
-InRangeValidator
+RangeValidator
 ----------------
 
-.. autoclass:: cooked_input.InRangeValidator
+.. autoclass:: cooked_input.RangeValidator
 
-InChoicesValidator
+ChoicesValidator
 ------------------
 
-.. autoclass:: cooked_input.InChoicesValidator
+.. autoclass:: cooked_input.ChoicesValidator
 
-NotInValidator
+NoneOfValidator
 --------------
 
-.. autoclass:: cooked_input.NotInValidator
+.. autoclass:: cooked_input.NoneOfValidator
 
-InAnyValidator
+AnyOfValidator
 --------------
 
-.. autoclass:: cooked_input.InAnyValidator
+.. autoclass:: cooked_input.AnyOfValidator
 
 SimpleValidator
 ---------------

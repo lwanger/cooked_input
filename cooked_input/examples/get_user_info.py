@@ -44,9 +44,9 @@ import sys
 from validus import isemail
 
 from cooked_input import get_input
-from cooked_input.cleaners import StripCleaner, LowerCleaner, CapitalizeCleaner
+from cooked_input.cleaners import StripCleaner, CapitalizationCleaner, ChoiceCleaner
 from cooked_input.convertors import ListConvertor
-from cooked_input.validators import Validator, PasswordValidator, ListValidator, InChoicesValidator, ExactValueValidator
+from cooked_input.validators import Validator, PasswordValidator, ListValidator, ChoicesValidator, EqualToValidator
 from cooked_input.validators import SimpleValidator
 
 
@@ -107,11 +107,11 @@ if __name__ == '__main__':
     roles_list = ['admin', 'arthur', 'praline', 'mandy', 'animator', 'anchovy', 'stig', 'timmy', 'travel-guide']
 
     strip_cleaner = StripCleaner()
-    default_cleaners = [StripCleaner(), LowerCleaner()]
-    name_cleaners = [StripCleaner(), CapitalizeCleaner()]
+    default_cleaners = [StripCleaner(), CapitalizationCleaner(style='lower')]
+    name_cleaners = [StripCleaner(), CapitalizationCleaner(style='all_words')]
     strong_password_validator = PasswordValidator(disallowed='[]', min_length=5, max_length=15, min_lower=2, min_puncts=2)
     email_validator = SimpleValidator(isemail, name='email')    # validator from validus function
-    role_validtor = ListValidator(elem_validators=InChoicesValidator(roles_list))
+    role_validtor = ListValidator(elem_validators=ChoicesValidator(roles_list))
     role_prompt = 'Roles ({}, separated by commas)'.format(sorted(roles_list))
     password_confirm_fmt_str = 'password does not match'
 
@@ -128,7 +128,7 @@ if __name__ == '__main__':
     password = get_input(prompt='Enter new Password', cleaners=None, validators=strong_password_validator, hidden=True)
 
     try:
-        password = get_input(prompt='Confirm new Password', cleaners=None, validators=ExactValueValidator(password),
+        password = get_input(prompt='Confirm new Password', cleaners=None, validators=EqualToValidator(password),
                              hidden=True, retries=3, validator_error_fmt=password_confirm_fmt_str)
     except RuntimeError:
         print('Maximum retries exceeded.... exiting')

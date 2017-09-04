@@ -6,7 +6,7 @@ Len Wanger, 2017
 
 from cooked_input import get_input, silent_error, get_int
 from cooked_input.convertors import IntConvertor
-from cooked_input.validators import InRangeValidator, ExactValueValidator, NotInValidator, InAnyValidator
+from cooked_input.validators import RangeValidator, EqualToValidator, NoneOfValidator, AnyOfValidator
 
 
 def my_print_error(fmt_str, value, error_content):
@@ -15,14 +15,14 @@ def my_print_error(fmt_str, value, error_content):
 
 if __name__ == '__main__':
     int_convertor = IntConvertor()
-    pos_int_validator = InRangeValidator(min_val=1, max_val=None)
-    zero_to_ten_validator = InRangeValidator(min_val=0, max_val=10)
-    exactly_0_validator = ExactValueValidator(value=0)
-    exactly_5_validator = ExactValueValidator(value=5)
-    not_0_validator = NotInValidator(validators=[exactly_0_validator])
-    not_5_validator = NotInValidator(validators=[exactly_5_validator])
-    in_0_or_5_validator = InAnyValidator(validators=[exactly_0_validator, exactly_5_validator])
-    not_0_or_5_validator = NotInValidator(validators=[exactly_0_validator, exactly_5_validator])
+    pos_int_validator = RangeValidator(min_val=1, max_val=None)
+    zero_to_ten_validator = RangeValidator(min_val=0, max_val=10)
+    exactly_0_validator = EqualToValidator(value=0)
+    exactly_5_validator = EqualToValidator(value=5)
+    not_0_validator = NoneOfValidator(validators=[exactly_0_validator])
+    not_5_validator = NoneOfValidator(validators=[exactly_5_validator])
+    in_0_or_5_validator = AnyOfValidator(validators=[exactly_0_validator, exactly_5_validator])
+    not_0_or_5_validator = NoneOfValidator(validators=[exactly_0_validator, exactly_5_validator])
     convertor_fmt = '# {value} cannot be converted to {error_content} #'
     validator_fmt = '@ {value} {error_content} @'
 

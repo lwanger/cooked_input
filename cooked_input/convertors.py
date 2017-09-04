@@ -269,16 +269,26 @@ class TableConvertor(Convertor):
                 error_callback(convertor_fmt_str, value, 'a valid table value')
                 raise ValidationError('%s not a valid table value' % value)
         elif self._input_value == TABLE_ID:
-            result = int(value)
+            try:
+                result = int(value)
+            except ValueError:
+                result = None
+
             if result is None or result not in (item[0] for item in self._table):
                 error_callback(convertor_fmt_str, value, 'a valid table id')
                 raise ValidationError('%s not a valid table id' % value)
         else:  # input_value == TABLE_ID_OR_VALUE
-            if result in (item[1] for item in self._table):
-                result = value
-            elif int(result) in (item[0] for item in self._table):
-                return int(result)
-            else:
+            try:
+                if result in (item[1] for item in self._table):
+                    result = value
+                elif int(result) in (item[0] for item in self._table):
+                    result = int(result)
+                else:
+                    result = None
+            except ValueError:
+                result = None
+
+            if result is None:
                 error_callback(convertor_fmt_str, value, 'a valid table id')
                 raise ValidationError('%s not a valid table id' % value)
 

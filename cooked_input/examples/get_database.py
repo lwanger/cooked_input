@@ -73,7 +73,7 @@ if __name__ == '__main__':
         extra = get_table_input(table=table, cleaners=None, convertor=None, validators=None,
                                 input_value=cooked_input.TABLE_ID_OR_VALUE, return_value=cooked_input.TABLE_ID,
                                 prompt='Which kind of extra do you want (hit return when done choosing extras)',
-                                value_error='a valid extra id or type', blank_ok=True)
+                                value_error='a valid extra id or type', required=True)
         if extra is None:
             break
         else:

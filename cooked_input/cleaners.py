@@ -10,6 +10,22 @@ import logging
 from string import capwords
 from .input_utils import put_in_a_list
 
+LOWER_CAP_STYLE = 1
+UPPER_CAP_STYLE = 2
+FIRST_WORD_CAP_STYLE = 3
+ALL_WORDS_CAP_STYLE = 4
+
+CAP_STYLES = { LOWER_CAP_STYLE, UPPER_CAP_STYLE, FIRST_WORD_CAP_STYLE, ALL_WORDS_CAP_STYLE }
+
+CAP_STYLE_STRS = {
+    'lower': LOWER_CAP_STYLE,
+    'upper': UPPER_CAP_STYLE,
+    'first_word': FIRST_WORD_CAP_STYLE,
+    'capitalize': FIRST_WORD_CAP_STYLE,
+    'all_words': ALL_WORDS_CAP_STYLE,
+    'capwords': ALL_WORDS_CAP_STYLE
+}
+
 
 ###
 ### Cleaners:
@@ -25,54 +41,47 @@ class Cleaner(object):
         pass
 
 
-class LowerCleaner(Cleaner):
+class CapitalizationCleaner(Cleaner):
     """
-    Make the value all lower case.
+    Capitalize the value using the specified style
+
+    :param style: capitalization style to use: 'lower', 'upper', 'first_word', 'all_words'.
+
+    The styles are equivalent to the following:
+
+    +--------------+-----------------+-----------------------------------------------------------------+
+    | style        | string function |                              Note                               |
+    +--------------+-----------------+-----------------------------------------------------------------+
+    | 'lower'      | lower           |  can also use LOWER_CAP_STYLE                                   |
+    +--------------+-----------------+-----------------------------------------------------------------+
+    | 'upper'      | upper           |  can also use UPPER_CAP_STYLE                                   |
+    +--------------+-----------------+-----------------------------------------------------------------+
+    | 'first_word' | capitalize      |  can also use 'capitalize' or FIRST_WORD_CAP_STYLE              |
+    +--------------+-----------------+-----------------------------------------------------------------+
+    | 'all_words'  | capwords        |  can also use 'capwords' or ALL_WORDS_CAP_STYLE                 |
+    +--------------+-----------------+-----------------------------------------------------------------+
     """
-    def __init__(self, **kwargs):
-        super(LowerCleaner, self).__init__(**kwargs)
+    # def __init__(self, all_words=False, **kwargs):
+    def __init__(self, style='lower', **kwargs):
+        if isinstance(style, int):
+            if style in CAP_STYLES:
+                self.style = style
+            else:
+                raise ValueError('CapitalizationCleaner: {} is not a valid capitalization style'.format(style))
+        else:   # a string type
+            if style in CAP_STYLE_STRS:
+                self.style = CAP_STYLE_STRS[style]
+            else:
+                raise ValueError('CapitalizationCleaner: {} is not a valid capitalization style'.format(style))
+
+        super(CapitalizationCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
-        result = value.lower()
-        return result
-
-    def __repr__(self):
-        return 'LowerCleaner()'
-
-
-class UpperCleaner(Cleaner):
-    """
-    Make the value all upper case.
-    """
-    def __init__(self, **kwargs):
-        super(UpperCleaner, self).__init__(**kwargs)
-
-    def __call__(self, value):
-        result = value.upper()
-        return result
-
-    def __repr__(self):
-        return 'UpperCleaner()'
-
-
-class CapitalizeCleaner(Cleaner):
-    """
-    Capitalize the value
-
-    :param all_words: capitalize all of the words of the value if True, only capitalize the first word if False (default).
-    """
-    def __init__(self, all_words=False, **kwargs):
-        """
-        Capitalize the value
-
-        :param all_words: capitalize all of the words of the value if True, if False, only capitalize the first word.
-        :param kwargs:
-        """
-        self.all_words = all_words
-        super(CapitalizeCleaner, self).__init__(**kwargs)
-
-    def __call__(self, value):
-        if self.all_words:
+        if self.style == LOWER_CAP_STYLE:
+            result = value.lower()
+        elif self.style == UPPER_CAP_STYLE:
+            result = value.upper()
+        elif self.style == ALL_WORDS_CAP_STYLE:
             result = capwords(value)
         else:
             result = value.capitalize()
@@ -80,7 +89,7 @@ class CapitalizeCleaner(Cleaner):
         return result
 
     def __repr__(self):
-        return 'CapitalizeCleaner(all_words={})'.format(self.all_words)
+        return 'CapitalizationCleaner(style={})'.format(self.style)
 
 
 class StripCleaner(Cleaner):

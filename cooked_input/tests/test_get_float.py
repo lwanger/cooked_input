@@ -21,7 +21,7 @@ from io import StringIO
 from pytest import approx
 
 from cooked_input import get_input, get_float, FloatConvertor
-from cooked_input import InRangeValidator, ExactValueValidator, NotInValidator, InAnyValidator
+from cooked_input import RangeValidator, EqualToValidator, NoneOfValidator, AnyOfValidator
 from .utils import redirect_stdin
 # from cooked_input.tests.utils import redirect_stdin   # needed this to run under main here
 
@@ -29,14 +29,14 @@ from .utils import redirect_stdin
 class TestGetFloat(object):
     float_convertor = FloatConvertor()
 
-    # pos_float_validator = InRangeValidator(min_val=0.0, max_val=None)
-    # zero_to_ten_validator = InRangeValidator(min_val=0.0, max_val=10.0)
-    exactly_0_validator = ExactValueValidator(value=0.0)
-    exactly_512_validator = ExactValueValidator(value=5.12)
-    not_0_validator = NotInValidator(validators=[exactly_0_validator])
-    not_512_validator = NotInValidator(validators=[exactly_512_validator])
-    # in_0_or_5_validator = InAnyValidator(validators=[exactly_0_validator, exactly_5_validator])
-    # not_0_or_5_validator = NotInValidator(validators=[exactly_0_validator, exactly_5_validator])
+    # pos_float_validator = RangeValidator(min_val=0.0, max_val=None)
+    # zero_to_ten_validator = RangeValidator(min_val=0.0, max_val=10.0)
+    exactly_0_validator = EqualToValidator(value=0.0)
+    exactly_512_validator = EqualToValidator(value=5.12)
+    not_0_validator = NoneOfValidator(validators=[exactly_0_validator])
+    not_512_validator = NoneOfValidator(validators=[exactly_512_validator])
+    # in_0_or_5_validator = AnyOfValidator(validators=[exactly_0_validator, exactly_5_validator])
+    # not_0_or_5_validator = NoneOfValidator(validators=[exactly_0_validator, exactly_5_validator])
 
     def test_get_input_float(self):
         input_str = u"""

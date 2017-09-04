@@ -72,7 +72,7 @@ For a complete listing of the guessing game code using cooked_input, see simple_
 In case your curious, the password example above can be written in cooked_input as::
 
     good_password = PasswordValidator(min_length=8, min_upper=2, min_digits=1, min_puncts=2, disallowed='[]&')
-    not_last_password = NotInValidator(ExactValueValidator(old_password))
+    not_last_password = NoneOfValidator(EqualToValidator(old_password))
     password = get_input(prompt='Enter a new password', validators=[good_password, not_last_password], hidden=True, retries=3)
 
 
@@ -101,7 +101,7 @@ something like this:
 
     result = get_input(prompt='Guess what number I am thinking of',
         convertor=IntConvertor(),
-        validators=InRangeValidator(min_val=1, max_val=None), retries=3)
+        validators=RangeValidator(min_val=1, max_val=None), retries=3)
 
 * *prompt*: the string to print to prompt the user.
 
@@ -109,7 +109,7 @@ something like this:
   converts the value to an `int` (integer).
 
 * *validators*: the `Validator` function (or list of `Validator` functions) used to check the entered string meets the
-  criteria we want. `InRangeValidator(min_val=1, max_val=10)` makes sure the value is between `1` and `10`. (i.e.
+  criteria we want. `RangeValidator(min_val=1, max_val=10)` makes sure the value is between `1` and `10`. (i.e.
   `1<=value<=10`). If the input doesn't pass the validation, an error message is produced, and the user is
   prompted to re-enter the value.
 
@@ -124,28 +124,28 @@ The general flow of `get_input` is:
 1) Prompt the user and get the input from the keyboard (sys.stdin)
 
 2) Apply the entered string through the list of cleaners.  For example if the entered values is: `"  Yes "`, and
-   `cleaners=[StripCleaner(), LowerCleaner()]` (strip, then convert to lower case), would be equivalent to the
-   Python statement: `"  Yes ".strip().lower()`, which would produce `"yes"`
+   `cleaners=[StripCleaner(), CapitalizationCleaner(style='lower')]` (strip, then convert to lower case), would be
+   equivalent to the Python statement: `"  Yes ".strip().lower()`, which would produce `"yes"`
 
 3) Apply the convertor to the cleaned string.
 
 4) Apply the list of validators to the converted value. The converted value needs to pass all of the validators (i.e.
-   they are AND'd together). Other combinations of validators can be achieved by using the `InAnyValidator` (OR)
-   and `NotInValidator` (NOT) validators.
+   they are AND'd together). Other combinations of validators can be achieved by using the `AnyOfValidator` (OR)
+   and `NoneOfValidator` (NOT) validators.
 
 5) Return the cleaned, converted, validated value.
 
 .. note::
 
     The order of the cleaners and validators is maintained. For example, if the list of cleaners is
-    `cleaners=[StripCleaner(), LowerCleaner()]`, then the strip operation is performed before conversion to lower case.
+    `cleaners=[StripCleaner(), CapitalizationCleaner()]`, then the strip operation is performed before conversion to lower case.
 
 .. note::
 
-    The `process_value` function take an input value as a parameter and runs all of the `get_input` processing steps on
+    The `process` function take an input value as a parameter and runs all of the `get_input` processing steps on
     the value (i.e. runs steps 2--5 above.) This is useful for applying the same cooked_input cleaning, conversion and
     validation to value from GUI forms, web forms or for data cleaning. The `validate_tk` example shows how
-    `process_value` can be used to validate an input in a GUI.
+    `process` can be used to validate an input in a GUI.
 
 
 How to:
@@ -182,9 +182,9 @@ To get that is restricted to a value from a list of choices:
 .. code-block:: python
 
     colors = ['red', 'green', 'blue']
-    color_validator = InChoicesValidator(choices=colors)
+    color_validator = ChoicesValidator(choices=colors)
     prompt_str = 'What is your favorite color (%s)' % ', '.join(colors)
-    result = get_input(prompt=prompt_str, cleaners=[StripCleaner(), LowerCleaner()], validators=color_validator)
+    result = get_input(prompt=prompt_str, cleaners=[StripCleaner(), CapitalizationCleaner(style='lower')], validators=color_validator)
 
 Adding a `ChoiceCleaner`, allows the user to just input the first few letters of the choice (enough to differentiate
 to a single choice.):
@@ -193,9 +193,9 @@ to a single choice.):
 
     colors = ['red', 'green', 'blue']
     color_cleaner = ChoiceCleaner(choices=colors)
-    color_validator = InChoicesValidator(choices=colors)
+    color_validator = ChoicesValidator(choices=colors)
     prompt_str = 'What is your favorite color (%s)' % ', '.join(colors)
-    result = get_input(prompt=prompt_str, cleaners=[StripCleaner(), LowerCleaner(), color_cleaner], validators=color_validator)
+    result = get_input(prompt=prompt_str, cleaners=[StripCleaner(), CapitalizationCleaner(style='lower'), color_cleaner], validators=color_validator)
 
 Excluding a list of choices
 ---------------------------
@@ -205,10 +205,10 @@ To exclude values from a set of choices:
 .. code-block:: python
 
     bad_flavors = ['licorice', 'booger']
-    not_in_choices_validator = NotInValidator(validators=InChoicesValidator(choices=bad_flavors))
+    not_in_choices_validator = NoneOfValidator(validators=ChoicesValidator(choices=bad_flavors))
 
     prompt_str = "What is your favorite flavor of jelly bean (don't say: %s)?" % ' or '.join(bad_flavors)
-    response = get_input(prompt=prompt_str, cleaners=[StripCleaner(), LowerCleaner()], validators=not_in_choices_validator)
+    response = get_input(prompt=prompt_str, cleaners=[StripCleaner(), CapitalizationCleaner(style='lower')], validators=not_in_choices_validator)
 
 Composing Multiple Validators
 -----------------------------
@@ -219,7 +219,7 @@ defaulting to `5`, and not allowing `0`:
 .. code-block:: python
 
     prompt_str = "Enter a number between -1 and 10, but not 0"
-    validators = [InRangeValidator(-10, 10), NotInValidator(0)]
+    validators = [RangeValidator(-10, 10), NoneOfValidator(0)]
     response = get_input(prompt=prompt_str, convertor=IntConvertor(), validators=validators, default=5)
 
 

@@ -14,7 +14,7 @@ import getpass
 
 from .error_callbacks import MaxRetriesError, ValidationError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
-from .validators import InRangeValidator, InChoicesValidator, in_all
+from .validators import RangeValidator, ChoicesValidator, in_all
 from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor, YesNoConvertor, \
     ListConvertor
 from .cleaners import StripCleaner
@@ -28,8 +28,8 @@ if sys.version_info[0] > 2:  # For Python 3
         return input(prompt_msg)
 
 
-def process_value(value, cleaners, convertor, validators, error_callback=print_error,
-                  convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
+def process(value, cleaners, convertor, validators, error_callback=print_error,
+            convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
     """
     runs a value through cleaning, conversion, and validation. This allows the same processing used
     in get_input to be performed on a value. For instance, the same processing used for getting 
@@ -78,10 +78,10 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
 
         prompt: the string to use for the prompt. For example prompt="Enter your name"
 
-        blank_ok: True if a blank response is OK.
+        required: True if a blank response is OK.
 
         default: the default value to use if a blank string is entered. This takes precedence over 
-            blank_ok (i.e.  a blank response will return the default value.)
+            required (i.e.  a blank response will return the default value.)
 
         default_str: the string to use for the default value. In general just set the default option. 
             This is used by get_from_table to display a value but return a table id.
@@ -108,7 +108,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     """
 
     prompt_str = ''
-    blank_ok = False
+    required = False
     default_val = None
     default_string = None
     hidden = False
@@ -122,8 +122,8 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     for k, v in options.items():
         if k == 'prompt':
             prompt_str = '%s' % v
-        elif k == 'blank_ok':
-            blank_ok = True if v else False
+        elif k == 'required':
+            required = True if v else False
         elif k == 'default':
             default_val = str(v) if v else None
         elif k == 'default_str':  # for get_from_table may want to display value but return id.
@@ -144,12 +144,12 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     if default_val is not None and not default_string:
         default_string = str(default_val)
 
-    if blank_ok and default_val is not None:
+    if required and default_val is not None:
         # TODO - have a way to set blank if there is a default_val... a command like 'blank' or 'erase'?
-        # logging.warning('Warning: both blank_ok and a default value specified. Blank inputs will use default value.')
-        blank_ok = False
+        # logging.warning('Warning: both required and a default value specified. Blank inputs will use default value.')
+        required = False
 
-    if blank_ok and not default_val:
+    if required and not default_val:
         default_str = ' (enter to leave blank)'
     elif default_val:
         default_str = ' (enter for: %s)' % default_string
@@ -166,18 +166,18 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
         else:
             response = raw_input(input_str)
 
-        if blank_ok and not response:
+        if required and not response:
             return None
         elif default_val and not response:
-            valid_response, converted_response = process_value(default_val, cleaners, convertor, validators,
-                                                               error_callback, convertor_error_fmt, validator_error_fmt)
+            valid_response, converted_response = process(default_val, cleaners, convertor, validators,
+                                                         error_callback, convertor_error_fmt, validator_error_fmt)
             if valid_response:
                 return converted_response
             else:
                 raise ValidationError('default value "{!r}" did not pass validation.'.format(default_val))
         elif response:
-            valid_response, converted_response = process_value(response, cleaners, convertor, validators,
-                                                               error_callback, convertor_error_fmt, validator_error_fmt)
+            valid_response, converted_response = process(response, cleaners, convertor, validators,
+                                                         error_callback, convertor_error_fmt, validator_error_fmt)
 
             if valid_response:
                 break
@@ -225,7 +225,7 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
     show_table = True
     default_val = None
     sort_by_value = False
-    valid_get_input_opts = ('value_error', 'prompt', 'blank_ok', 'default_str', 'hidden', 'retries', 'error_callback',
+    valid_get_input_opts = ('value_error', 'prompt', 'required', 'default_str', 'hidden', 'retries', 'error_callback',
                             'convertor_error_fmt', 'validator_error_fmt')
 
     for k, v in options.items():
@@ -269,9 +269,9 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
         choices = tuple(item[TABLE_ID] for item in table)
 
     if validators and not callable(validators):
-        table_validators = list(copy.deepcopy(validators)) + InChoicesValidator(choices=choices)
+        table_validators = list(copy.deepcopy(validators)) + ChoicesValidator(choices=choices)
     else:
-        table_validators = [InChoicesValidator(choices=choices)]
+        table_validators = [ChoicesValidator(choices=choices)]
 
     if show_table:
         table_prompt = make_pretty_table(table, 'name', sort_by_value)
@@ -342,7 +342,7 @@ def get_int(cleaners=None, validators=None, minimum=None, maximum=None, **option
     if minimum is None and maximum is None:
         val_list = validators
     else:
-        irv = InRangeValidator(min_val=minimum, max_val=maximum)
+        irv = RangeValidator(min_val=minimum, max_val=maximum)
         if validators is None:
             val_list = irv
         elif callable(validators):
@@ -374,7 +374,7 @@ def get_float(cleaners=None, validators=None, minimum=None, maximum=None, **opti
     if minimum is None and maximum is None:
         val_list = validators
     else:
-        irv = InRangeValidator(min_val=minimum, max_val=maximum)
+        irv = RangeValidator(min_val=minimum, max_val=maximum)
         if validators is None:
             val_list = irv
         elif callable(validators):

@@ -7,7 +7,7 @@ Len Wanger, 2017
 
 from cooked_input import get_table_input
 from cooked_input.convertors import IntConvertor
-from cooked_input.validators import InRangeValidator
+from cooked_input.validators import RangeValidator
 from collections import namedtuple
 
 if __name__ == '__main__':
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     menu_choices = [item for item in menu_items if
                     ('admin' in user_roles) or ('all' in item.roles) or (item.roles.intersection(user_roles))]
     menu_table = [(i + 1, menu_item.item_str) for i, menu_item in enumerate(menu_choices)]
-    menu_validator = InRangeValidator(min_val=1, max_val=len(menu_table))
+    menu_validator = RangeValidator(min_val=1, max_val=len(menu_table))
 
     while True:
         print('\n')

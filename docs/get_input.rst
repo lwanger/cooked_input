@@ -27,10 +27,10 @@ validate
 
 .. autofunction:: cooked_input.validate
 
-process_value
--------------
+process
+-------
 
-.. autofunction:: cooked_input.process_value
+.. autofunction:: cooked_input.process
 
 convenience functions:
 ======================
