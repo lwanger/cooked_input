@@ -49,7 +49,7 @@ Python 2/3 Support
 ------------------
 
   - Python 2.7
-  - Python 3.2/3.3/3.4/3.5/3.6
+  - Python 3.3/3.4/3.5/3.6
 
 Installation
 ------------

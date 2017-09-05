@@ -19,9 +19,9 @@ Len Wanger, 2017
 from io import StringIO
 from .utils import redirect_stdin
 
-from cooked_input import get_input, get_string
+from cooked_input import get_input
 from cooked_input.validators import LengthValidator, ChoicesValidator, NoneOfValidator
-from cooked_input.cleaners import StripCleaner, CapitalizationCleaner, LOWER_CAP_STYLE, UPPER_CAP_STYLE, FIRST_WORD_CAP_STYLE, ALL_WORDS_CAP_STYLE
+from cooked_input.cleaners import StripCleaner, CapitalizationCleaner, UPPER_CAP_STYLE, ALL_WORDS_CAP_STYLE
 from cooked_input.convertors import YesNoConvertor
 
 

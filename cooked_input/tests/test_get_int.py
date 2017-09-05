@@ -17,7 +17,7 @@ Len Wanger, 2017
 """
 
 from io import StringIO
-from cooked_input import get_input, get_int, silent_error
+from cooked_input import get_input, get_int, silent_error, log_error
 from cooked_input import IntConvertor, RangeValidator, EqualToValidator
 from cooked_input import NoneOfValidator, AnyOfValidator
 from .utils import redirect_stdin
@@ -212,6 +212,24 @@ class TestGetInt(object):
                         error_callback=silent_error,
                         convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
             assert (result == 4)
+
+
+    def test_log_error(self):
+        input_str = u"""
+            foo
+            -1
+            12
+            5
+            5
+            4
+            """
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(convertor=IntConvertor(), validators=[self.zero_to_ten_validator, self.not_5_validator],
+                        prompt='Enter a non-zero integer between 0 and 10, but not 5 (errors not printed)',
+                        error_callback=log_error)
+            assert (result == 4)
+
 
 
     def test_get_int(self):

@@ -63,4 +63,4 @@ def log_error(fmt_str, value, error_content):
 
         :return: None
     """
-    logging.error(fmt_str.format(value=value, err_content=error_content))
+    logging.error(fmt_str.format(value=value, error_content=error_content))
