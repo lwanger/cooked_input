@@ -109,7 +109,7 @@ if __name__ == '__main__':
     strip_cleaner = StripCleaner()
     default_cleaners = [StripCleaner(), CapitalizationCleaner(style='lower')]
     name_cleaners = [StripCleaner(), CapitalizationCleaner(style='all_words')]
-    strong_password_validator = PasswordValidator(disallowed='[]', min_length=5, max_length=15, min_lower=2, min_puncts=2)
+    strong_password_validator = PasswordValidator(disallowed='[]', min_len=5, max_len=15, min_lower=2, min_puncts=2)
     email_validator = SimpleValidator(isemail, name='email')    # validator from validus function
     role_validtor = ListValidator(elem_validators=ChoicesValidator(roles_list))
     role_prompt = 'Roles ({}, separated by commas)'.format(sorted(roles_list))

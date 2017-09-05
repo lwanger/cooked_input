@@ -77,11 +77,10 @@ class TestGetStr(object):
  
             """
 
-        input_str = """
-                    licorice
-                    booger
-                    lemon 
-                    """
+        input_str = """licorice
+            booger
+            lemon 
+            """
 
         colors = ['red', 'green', 'blue']
         good_flavors = ['cherry', 'lime', 'lemon', 'orange']
@@ -95,19 +94,19 @@ class TestGetStr(object):
         strip_and_lower_cleaners = [strip_cleaner, lower_cleaner]
 
         with redirect_stdin(StringIO(input_str_blank)):
-            result = get_input(validators=not_in_choices_validator, default='cherry')
+            result = get_input(cleaners=strip_and_lower_cleaners, validators=not_in_choices_validator, default='cherry')
             assert (result == 'cherry')
 
         with redirect_stdin(StringIO(input_str)):
-            result = get_input(validators=not_in_choices_validator, default='cherry')
-            assert (result == 'cherry')
+            result = get_input(cleaners=strip_and_lower_cleaners, validators=not_in_choices_validator, default='cherry')
+            assert (result == 'booger')
 
         with redirect_stdin(StringIO(input_str)):
             validators = [good_flavor_validator, not_in_choices_validator]
             result = get_input(cleaners=strip_and_lower_cleaners, validators=validators,default='cherry')
             assert (result == 'lemon')
 
-    def test_choices(self):
+    def test_choices_2(self):
         input_str_blank = """
 
             """
@@ -119,23 +118,24 @@ class TestGetStr(object):
                     lem 
                     """
 
-        length_3_validator = LengthValidator(min_length=3, max_length=3)
+        length_3_validator = LengthValidator(min_len=3, max_len=3)
         length_5_plus_validator = LengthValidator(min_len=5)
         length_2_to_4_validator = LengthValidator(min_len=2, max_len=4)
+        strip_and_lower_cleaners = [StripCleaner(), CapitalizationCleaner('lower')]
 
         with redirect_stdin(StringIO(input_str)):
-            result = get_input(prompt='Enter a three letter string', validators=[length_3_validator])
+            result = get_input(prompt='Enter a three letter string', cleaners=strip_and_lower_cleaners, validators=[length_3_validator])
             assert (result == 'lem')
 
         with redirect_stdin(StringIO(input_str)):
-            result = get_input(prompt='Enter a string at least 5 letters long', validators=[length_5_plus_validator])
+            result = get_input(prompt='Enter a string at least 5 letters long', cleaners=strip_and_lower_cleaners, validators=[length_5_plus_validator])
             assert (result == 'licorice')
 
         with redirect_stdin(StringIO(input_str)):
-            result = get_input(prompt='Enter a 2 to 4 letter string', validators=[length_2_to_4_validator])
+            result = get_input(prompt='Enter a 2 to 4 letter string', cleaners=strip_and_lower_cleaners, validators=[length_2_to_4_validator])
             assert (result == 'bo')
 
-    def test_choices(self):
+    def test_choices_3(self):
         input_str_blank = "\n\n"
 
         input_str_y = " a\ny"

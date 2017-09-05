@@ -395,8 +395,8 @@ class PasswordValidator(Validator):
     """
     validate a password string.
 
-    :param min_length: the minimum allowed password length. Defaults to 1
-    :param max_length: the maximum password length. Defaults to 64
+    :param min_len: the minimum allowed password length. Defaults to 1
+    :param max_len: the maximum password length. Defaults to 64
     :param min_lower: the minimum number of lower case letters. Defaults to None
     :param min_upper: the minimum number of upper case letters. Defaults to None
     :param min_digits: the minimum number of digits. Defaults to None
@@ -406,11 +406,11 @@ class PasswordValidator(Validator):
     :param disallowed: a string containing characters not allowed in the password. Defaults to None
     :param kwargs: kwargs: no kwargs are currently supported.
     """
-    def __init__(self, min_length=None, max_length=None, min_lower=0, min_upper=0, min_digits=0, min_puncts=0,
+    def __init__(self, min_len=None, max_len=None, min_lower=0, min_upper=0, min_digits=0, min_puncts=0,
                  allowed=None, disallowed=None, **kwargs):
         self.valid_chars = set(string.ascii_letters + string.digits + string.punctuation)
-        self.min_length = min_length
-        self.max_length = max_length
+        self.min_len = min_len
+        self.max_len = max_len
         self.min_lower = min_lower
         self.min_upper = min_upper
         self.min_digits = min_digits
@@ -438,17 +438,17 @@ class PasswordValidator(Validator):
             return False
 
         try:
-            if self.min_length is not None and (len(value)) < self.min_length:
+            if self.min_len is not None and (len(value)) < self.min_len:
                 error_callback(validator_fmt_str, 'password',
-                               'too short (minimum length is {})'.format(self.min_length))
+                               'too short (minimum length is {})'.format(self.min_len))
                 return False
         except (TypeError):
             print('PasswordValidator: value "{}" does not support __len__.'.format(value), file=sys.stderr)
             return False
 
         try:
-            if self.max_length and len(value) > self.max_length:
-                error_callback(validator_fmt_str, 'password', 'too long (maximum length is {})'.format(self.max_length))
+            if self.max_len and len(value) > self.max_len:
+                error_callback(validator_fmt_str, 'password', 'too long (maximum length is {})'.format(self.max_len))
                 return False
         except (TypeError):
             print('PasswordValidator: value "{}" does not support __len__.'.format(value), file=sys.stderr)
@@ -480,8 +480,8 @@ class PasswordValidator(Validator):
         return True
 
     def __repr__(self):
-        return 'PasswordValidator(allowed=%r, min_length=%r, max_length=%r, min_lowercase=%r, min_uppercase=%r, min_digits=%r, min_puncts=%r)' %\
-               (self.valid_chars, self.min_length, self.max_length, self.min_lower, self.min_upper, self.min_digits, self.min_puncts)
+        return 'PasswordValidator(allowed=%r, min_len=%r, max_len=%r, min_lowercase=%r, min_uppercase=%r, min_digits=%r, min_puncts=%r)' %\
+               (self.valid_chars, self.min_len, self.max_len, self.min_lower, self.min_upper, self.min_digits, self.min_puncts)
 
 
 class ListValidator(Validator):

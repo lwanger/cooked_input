@@ -322,7 +322,7 @@ def get_string(cleaners=(StripCleaner()), validators=None, **options):
     return result
 
 
-def get_int(cleaners=None, validators=None, minimum=None, maximum=None, **options):
+def get_int(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=None, **options):
     """
     Convenience function to get an integer value.
 
@@ -354,7 +354,7 @@ def get_int(cleaners=None, validators=None, minimum=None, maximum=None, **option
     return result
 
 
-def get_float(cleaners=None, validators=None, minimum=None, maximum=None, **options):
+def get_float(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=None, **options):
     """
     Convenience function to get an float value.
 
@@ -386,7 +386,7 @@ def get_float(cleaners=None, validators=None, minimum=None, maximum=None, **opti
     return result
 
 
-def get_boolean(cleaners=None, validators=None, **options):
+def get_boolean(cleaners=(StripCleaner()), validators=None, **options):
     """
     Convenience function to get an Boolean value.
 
@@ -405,7 +405,7 @@ def get_boolean(cleaners=None, validators=None, **options):
     return result
 
 
-def get_date(cleaners=None, validators=None, **options):
+def get_date(cleaners=(StripCleaner()), validators=None, **options):
     """
     Convenience function to get an date value.
 
@@ -424,7 +424,7 @@ def get_date(cleaners=None, validators=None, **options):
     return result
 
 
-def get_yes_no(cleaners=None, validators=None, **options):
+def get_yes_no(cleaners=(StripCleaner()), validators=None, **options):
     """
     Convenience function to get an yes/no value.
 
@@ -443,7 +443,7 @@ def get_yes_no(cleaners=None, validators=None, **options):
     return result
 
 
-def get_list(cleaners=None, validators=None, **options):
+def get_list(cleaners=(StripCleaner()), validators=None, **options):
     """
     Convenience function to get a list of values.
 

@@ -71,7 +71,7 @@ For a complete listing of the guessing game code using cooked_input, see simple_
 
 In case your curious, the password example above can be written in cooked_input as::
 
-    good_password = PasswordValidator(min_length=8, min_upper=2, min_digits=1, min_puncts=2, disallowed='[]&')
+    good_password = PasswordValidator(min_len=8, min_upper=2, min_digits=1, min_puncts=2, disallowed='[]&')
     not_last_password = NoneOfValidator(EqualToValidator(old_password))
     password = get_input(prompt='Enter a new password', validators=[good_password, not_last_password], hidden=True, retries=3)
 

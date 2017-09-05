@@ -10,7 +10,7 @@ from cooked_input.validators import PasswordValidator
 
 if __name__ == '__main__':
     any_password_val = PasswordValidator()
-    stronger_password_val = PasswordValidator(disallowed='[]', min_length=5, max_length=15, min_lower=2, min_upper=2, min_digits=1, min_puncts=2)
+    stronger_password_val = PasswordValidator(disallowed='[]', min_len=5, max_len=15, min_lower=2, min_upper=2, min_digits=1, min_puncts=2)
     disallowed_chars = 'aeiou!*&%2468'
     disallowed_chars_password_val = PasswordValidator(disallowed=disallowed_chars)
 

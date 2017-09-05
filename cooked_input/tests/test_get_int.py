@@ -65,6 +65,8 @@ class TestGetInt(object):
             print(result)
             assert(result==1)
 
+        print(self.int_convertor)   # for code coverage
+
 
     def test_ignore_bad_conversion(self):
         input_str = u"""
