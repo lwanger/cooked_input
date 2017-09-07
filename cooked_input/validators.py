@@ -342,7 +342,7 @@ class SimpleValidator(Validator):
         return result
 
     def __repr__(self):
-        return 'AnyOfValidator(validators={})'.format(self._validator)
+        return 'SimpleValidator(validators={})'.format(self._validator)
 
 
 class RegexValidator(Validator):

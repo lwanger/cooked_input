@@ -78,7 +78,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
 
         prompt: the string to use for the prompt. For example prompt="Enter your name"
 
-        required: True if a blank response is OK.
+        required: True if a non-blank value is required, False if a blank response is OK.
 
         default: the default value to use if a blank string is entered. This takes precedence over 
             required (i.e.  a blank response will return the default value.)
@@ -108,7 +108,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     """
 
     prompt_str = ''
-    required = False
+    required = True
     default_val = None
     default_string = None
     hidden = False
@@ -144,12 +144,13 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     if default_val is not None and not default_string:
         default_string = str(default_val)
 
-    if required and default_val is not None:
+    # if not required and default_val is not None:
+    if default_val is not None:
         # TODO - have a way to set blank if there is a default_val... a command like 'blank' or 'erase'?
         # logging.warning('Warning: both required and a default value specified. Blank inputs will use default value.')
-        required = False
+        required = True
 
-    if required and not default_val:
+    if not required and not default_val:
         default_str = ' (enter to leave blank)'
     elif default_val:
         default_str = ' (enter for: %s)' % default_string
@@ -166,7 +167,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
         else:
             response = raw_input(input_str)
 
-        if required and not response:
+        if not required and not response:
             return None
         elif default_val and not response:
             valid_response, converted_response = process(default_val, cleaners, convertor, validators,

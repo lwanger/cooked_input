@@ -10,6 +10,12 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* v0.2.10:
+
+  * required option was backwards... fixed
+
+  * more coverage tests
+
 * v0.2.7:
 
   * Clean up of pypi setup, readme, and documentation.

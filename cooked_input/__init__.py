@@ -15,4 +15,4 @@ from .cleaners import Cleaner, CapitalizationCleaner, LOWER_CAP_STYLE, UPPER_CAP
 from .cleaners import StripCleaner, RemoveCleaner, ReplaceCleaner, ChoiceCleaner, RegexCleaner
 from .input_utils import make_pretty_table
 
-__version__ = '0.2.9'
+__version__ = '0.2.10'

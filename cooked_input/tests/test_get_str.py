@@ -38,7 +38,7 @@ class TestGetStr(object):
             result = get_input(prompt='Enter any string', required=True)
             assert (result == 'foo')
 
-            result = get_input(prompt='Enter any string', required=True)
+            result = get_input(prompt='Enter any string', required=False)
             assert (result is None)
 
     def test_capitalize(self):

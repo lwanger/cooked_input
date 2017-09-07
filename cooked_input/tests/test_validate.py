@@ -5,11 +5,12 @@ pytest tests for cooked_input: test the validate method
 Len Wanger, 2017
 """
 
+import pytest
 from io import StringIO
 
-from cooked_input import validate, RangeValidator, NoneOfValidator
+from cooked_input import validate, Validator, RangeValidator, NoneOfValidator
 from cooked_input import get_input, StripCleaner, IntConvertor, ListConvertor, AnyOfValidator, NoneOfValidator, LengthValidator
-from cooked_input import EqualToValidator, ListValidator
+from cooked_input import EqualToValidator, ListValidator, PasswordValidator, ChoicesValidator, SimpleValidator, RegexValidator
 
 from .utils import redirect_stdin
 
@@ -25,6 +26,10 @@ class TestValidate(object):
         for v in [(-1, False), (1, True), (5, False), (6, True), (11, False)]:
             result = validate(v[0], validators)
             assert(result==v[1])
+
+    def test_call_abstract(self):
+        v = Validator()
+        v(10, None, None)
 
 
     def test_any_of(self):
@@ -155,3 +160,83 @@ class TestValidate(object):
             result = get_input(cleaners=StripCleaner(), convertor=lc, validators=lv)
             print(result)
             assert (result == [2,3,4])
+
+    def test_password(self):
+        input_str = "\nfoo\nffffffffoooooobbbb\nFOOBAR!\nfoobar!\nFooBar!\nFooBar1!\nFooBar1!!\nfbr^"
+        any_password_val = PasswordValidator()
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(validators=any_password_val)
+            print(result)
+            assert (result == 'foo')
+
+        print(any_password_val)  # for code coverage
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(validators=[any_password_val], prompt='type in any password', required=False, hidden=True)
+            print(result)
+            assert (result == None)
+
+        stronger_password_val = PasswordValidator(allowed='fobarFOB1!^', disallowed='[]', min_len=5, max_len=15, min_lower=2, min_upper=2, min_digits=1, min_puncts=2)
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(validators=[stronger_password_val],
+                               prompt='type in a password (length=5-15, with at least 2 lower, 2 upper, 1 digit, and 2 puncts)', hidden=True)
+            print(result)
+            assert (result == 'FooBar1!!')
+
+        disallowed_chars = 'aeiou!*&%2468'
+        disallowed_chars_password_val = PasswordValidator(disallowed=disallowed_chars)
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(validators=[disallowed_chars_password_val], prompt='type in a password (type in a password(no vowels, even digits or !, *, \ %)')
+            print(result)
+            assert (result == 'fbr^')
+
+    def test_choices(self):
+        input_str = "\nfoo\nffffffffoooooobbbb\nFOOBAR!\nfoobar!\nFooBar!\nfoobar\nFooBar1!\nFooBar1!!\nfbr^"
+        cv = ChoicesValidator(choices=['foobar', 'bar', 'blat'])
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(validators=cv)
+            print(result)
+            assert (result == 'foobar')
+
+        print(cv)  # for code coverage
+
+    def test_simple(self):
+        def simple_func(value):
+            return True if value == 'foobar' else False
+
+        input_str = "\nfoo\nffffffffoooooobbbb\nFOOBAR!\nfoobar!\nFooBar!\nfoobar\nFooBar1!\nFooBar1!!\nfbr^"
+        sv = SimpleValidator(validator_func=simple_func)
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(validators=sv)
+            print(result)
+            assert (result == 'foobar')
+
+        print(sv)  # for code coverage
+
+    def test_regex(self):
+        input_str = "\n1234\n2345678901"
+        rev = RegexValidator(pattern=r'^[2-9]\d{9}$', regex_desc='a 10 digit phone number')
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(validators=rev)
+            print(result)
+            assert (result == '2345678901')
+
+        print(rev)  # for code coverage
+
+        rev = RegexValidator(pattern=r'^[2-9]\d{9}$')
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(validators=rev)
+            print(result)
+            assert (result == '2345678901')
+
+        with pytest.raises(EOFError):
+            with redirect_stdin(StringIO(input_str)):
+                result = get_input(convertor=IntConvertor(), validators=rev)
+
