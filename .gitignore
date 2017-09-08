@@ -1,6 +1,7 @@
 *.pyc
 .idea
 .pypirc
+.coverage
 docs/_build
 build/*
 dist/*
