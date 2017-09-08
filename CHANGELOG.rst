@@ -17,6 +17,8 @@ see TODO.md for list of TODO items
   * added isstring function to input_utils for detecting strings (and string-like things). This should
     handle strings (str, unicode, raw, bytes, etc.) more robustly, including sub-classes.
 
+  * added print_function futures import so error_callback works in Python 2.x
+
   * more coverage tests
 
 * v0.2.7:

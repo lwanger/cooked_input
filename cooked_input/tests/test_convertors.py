@@ -6,7 +6,13 @@ pytest tests for cooked_input -- test convertor functions
 Len Wanger, 2017
 """
 
-from io import StringIO
+import sys
+
+if sys.version_info[0] > 2:  # For Python 3
+    from io import StringIO
+else:
+    from StringIO import StringIO
+
 from cooked_input import get_input, get_boolean, get_list, get_date, get_yes_no
 from cooked_input import Convertor, IntConvertor, BooleanConvertor, ListConvertor, DateConvertor, YesNoConvertor
 from cooked_input import StripCleaner

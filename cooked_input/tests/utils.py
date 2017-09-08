@@ -6,7 +6,12 @@ Len Wanger, 2017
 """
 
 import sys
-from io import StringIO
+
+if sys.version_info[0] > 2:  # For Python 3
+    from io import StringIO
+else:
+    from StringIO import StringIO
+
 
 from cooked_input import get_input, IntConvertor, RangeValidator
 

@@ -5,9 +5,14 @@ pytest tests for cooked_input cleaning functions
 Len Wanger, 2017
 """
 
+import sys
 import pytest
-from io import StringIO
 import re
+
+if sys.version_info[0] > 2:  # For Python 3
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 from pytest import approx
 
@@ -77,7 +82,7 @@ class TestGetFloat(object):
 
         print(rc)
 
-        rc = RemoveCleaner(patterns=['is', b'bar'])
+        rc = RemoveCleaner(patterns=['is', 10])
         with pytest.raises(TypeError):
             with redirect_stdin(StringIO(input_str)):
                 result = get_input(cleaners=rc)

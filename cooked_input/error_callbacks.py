@@ -8,6 +8,8 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
+from __future__ import print_function
+
 import sys
 import logging
 

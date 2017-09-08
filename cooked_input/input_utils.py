@@ -74,7 +74,7 @@ def isstring(s):
     if (sys.version_info[0] >= 3):
         return isinstance(s, (str, bytes))
     # we use Legacy Python (2.x)
-    return isinstance(s, basestring)
+    return isinstance(s, (basestring, bytes))
 
 
 def put_in_a_list(values):

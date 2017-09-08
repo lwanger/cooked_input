@@ -16,7 +16,12 @@ pytest stuff
 Len Wanger, 2017
 """
 
-from io import StringIO
+import sys
+
+if sys.version_info[0] > 2:  # For Python 3
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 from pytest import approx
 

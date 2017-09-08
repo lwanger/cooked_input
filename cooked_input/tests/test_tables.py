@@ -6,7 +6,13 @@ pytest tests for cooked_input -- get_input_table tests
 Len Wanger, 2017
 """
 
-from io import StringIO
+import sys
+
+if sys.version_info[0] > 2:  # For Python 3
+    from io import StringIO
+else:
+    from StringIO import StringIO
+
 from cooked_input import get_table_input, TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
 from cooked_input import TableConvertor, BooleanConvertor
 from cooked_input import StripCleaner
