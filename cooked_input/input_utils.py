@@ -59,6 +59,24 @@ def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):
     return x
 
 
+def isstring(s):
+    """
+    An annoyance in Pythons is you can't easily tell something is a string-like thing (string, unicode, bytes, etc.)
+    For instance, both 'abc' and ['a', 'b', 'c'] are iterators, but the latter is not a valid password! Further, in
+    some cases strings can be of type bytes, which is not caught as a str (Python 3) or basestring (legacy Python) This
+    function checks if the value can be treated like a string.
+
+    :param value: the value to check
+    :return: True if value is a string-like thing (string, unicode, bytes, etc.), otherwise False
+    """
+
+    # if we use Python 3
+    if (sys.version_info[0] >= 3):
+        return isinstance(s, (str, bytes))
+    # we use Legacy Python (2.x)
+    return isinstance(s, basestring)
+
+
 def put_in_a_list(values):
     """
     An annoyance in Pythons is you can't easily tell between an iterable (e.g. a list) and a string (i.e. both are
@@ -72,12 +90,14 @@ def put_in_a_list(values):
 
     if values is None:
         result = []
-    elif sys.version_info[0] < 3 and isinstance(values, unicode):  # For Python 2 - unicode is different than strings
+    elif isstring(values):
         result = [values]
-    elif sys.version_info[0] > 2 and isinstance(values, bytes):  # For Python 3 - check for bytes
-        result = [values]
-    elif isinstance(values, str):
-        result = [values]
+    # elif sys.version_info[0] < 3 and isinstance(values, unicode):  # For Python 2 - unicode is different than strings
+    #     result = [values]
+    # elif sys.version_info[0] > 2 and isinstance(values, bytes):  # For Python 3 - check for bytes
+    #     result = [values]
+    # elif isinstance(values, str):
+    #     result = [values]
     elif isinstance(values, collections.Iterable):  # list or other iterable
         result = list(values)
     else:  # single non-iterable value

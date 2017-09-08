@@ -9,7 +9,8 @@ import pytest
 from io import StringIO
 
 from cooked_input import validate, Validator, RangeValidator, NoneOfValidator
-from cooked_input import get_input, StripCleaner, IntConvertor, ListConvertor, AnyOfValidator, NoneOfValidator, LengthValidator
+from cooked_input import get_input, print_error, StripCleaner, IntConvertor, ListConvertor, AnyOfValidator
+from cooked_input import NoneOfValidator, LengthValidator
 from cooked_input import EqualToValidator, ListValidator, PasswordValidator, ChoicesValidator, SimpleValidator, RegexValidator
 
 from .utils import redirect_stdin
@@ -162,7 +163,7 @@ class TestValidate(object):
             assert (result == [2,3,4])
 
     def test_password(self):
-        input_str = "\nfoo\nffffffffoooooobbbb\nFOOBAR!\nfoobar!\nFooBar!\nFooBar1!\nFooBar1!!\nfbr^"
+        input_str = "\nfoo\nfooFFFF\nffffffffoooooobbbb\nFOOBAR!\nfoobar!\nFooBar!\nFooBar1!\nFooBar1!!\nfbr^"
         any_password_val = PasswordValidator()
 
         with redirect_stdin(StringIO(input_str)):
@@ -177,7 +178,7 @@ class TestValidate(object):
             print(result)
             assert (result == None)
 
-        stronger_password_val = PasswordValidator(allowed='fobarFOB1!^', disallowed='[]', min_len=5, max_len=15, min_lower=2, min_upper=2, min_digits=1, min_puncts=2)
+        stronger_password_val = PasswordValidator(allowed='fobarFOB1!^', disallowed='[]', min_len=5, max_len=15, min_lower=4, min_upper=2, min_digits=1, min_puncts=2)
 
         with redirect_stdin(StringIO(input_str)):
             result = get_input(validators=[stronger_password_val],
@@ -192,6 +193,11 @@ class TestValidate(object):
             result = get_input(validators=[disallowed_chars_password_val], prompt='type in a password (type in a password(no vowels, even digits or !, *, \ %)')
             print(result)
             assert (result == 'fbr^')
+
+    def test_password_coverage(self):
+        # Call PasswordValidator directly with the wrong value type to get to error conditions in coverage testing
+        pv = PasswordValidator()
+        pv(10, print_error, "{value}")
 
     def test_choices(self):
         input_str = "\nfoo\nffffffffoooooobbbb\nFOOBAR!\nfoobar!\nFooBar!\nfoobar\nFooBar1!\nFooBar1!!\nfbr^"
@@ -209,7 +215,7 @@ class TestValidate(object):
             return True if value == 'foobar' else False
 
         input_str = "\nfoo\nffffffffoooooobbbb\nFOOBAR!\nfoobar!\nFooBar!\nfoobar\nFooBar1!\nFooBar1!!\nfbr^"
-        sv = SimpleValidator(validator_func=simple_func)
+        sv = SimpleValidator(validator_func=simple_func, name='simple validator')
 
         with redirect_stdin(StringIO(input_str)):
             result = get_input(validators=sv)
@@ -217,6 +223,9 @@ class TestValidate(object):
             assert (result == 'foobar')
 
         print(sv)  # for code coverage
+
+        sv = SimpleValidator(validator_func=simple_func, bad_option='bad option')
+
 
     def test_regex(self):
         input_str = "\n1234\n2345678901"
@@ -239,4 +248,6 @@ class TestValidate(object):
         with pytest.raises(EOFError):
             with redirect_stdin(StringIO(input_str)):
                 result = get_input(convertor=IntConvertor(), validators=rev)
+
+        rev = RegexValidator(pattern=r'^[2-9]\d{9}$', bad_option='bad option')
 

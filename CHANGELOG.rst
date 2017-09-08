@@ -14,6 +14,9 @@ see TODO.md for list of TODO items
 
   * required option was backwards... fixed
 
+  * added isstring function to input_utils for detecting strings (and string-like things). This should
+    handle strings (str, unicode, raw, bytes, etc.) more robustly, including sub-classes.
+
   * more coverage tests
 
 * v0.2.7:

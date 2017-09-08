@@ -15,7 +15,7 @@ import collections
 import logging
 
 from .error_callbacks import print_error, silent_error, DEFAULT_VALIDATOR_ERROR
-from .input_utils import put_in_a_list
+from .input_utils import put_in_a_list, isstring
 
 
 def in_any(value, validators, error_callback, validator_fmt_str):
@@ -428,53 +428,40 @@ class PasswordValidator(Validator):
         super(PasswordValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
-        try:
-            if len(set(value) - self.valid_chars):
-                error_callback(validator_fmt_str, 'password', 'cannot contain any of the following characters: {}'.format(
-                                   set(value) - self.valid_chars))
-                return False
-        except (TypeError):
-            print('PasswordValidator: value "{}" is not iterable.'.format(value), file=sys.stderr)
-            return False
-
-        try:
-            if self.min_len is not None and (len(value)) < self.min_len:
-                error_callback(validator_fmt_str, 'password',
-                               'too short (minimum length is {})'.format(self.min_len))
-                return False
-        except (TypeError):
-            print('PasswordValidator: value "{}" does not support __len__.'.format(value), file=sys.stderr)
-            return False
-
-        try:
-            if self.max_len and len(value) > self.max_len:
-                error_callback(validator_fmt_str, 'password', 'too long (maximum length is {})'.format(self.max_len))
-                return False
-        except (TypeError):
-            print('PasswordValidator: value "{}" does not support __len__.'.format(value), file=sys.stderr)
-            return False
-
-
-        try:
-            if self.min_lower and len([c for c in value if c in string.ascii_lowercase]) < self.min_lower:
-                error_callback(validator_fmt_str, 'password',
-                               'too few lower case characters (minimum is {})'.format(self.min_lower))
-                return False
-
-            if self.min_upper and len([c for c in value if c in string.ascii_uppercase]) < self.min_upper:
-                error_callback(validator_fmt_str, 'password', 'too few upper case characters (minimum is {})'.format(self.min_upper))
-                return False
-
-            if self.min_digits and len([c for c in value if c in string.digits]) < self.min_digits:
-                error_callback(validator_fmt_str, 'password', 'too few digit characters (minimum is {})'.format(self.min_digits))
-                return False
-
-            if self.min_puncts and len([c for c in value if c in string.punctuation]) < self.min_puncts:
-                error_callback(validator_fmt_str, 'password', 'too few punctuation characters (minimum is {} from)'.format(self.min_puncts,
-                               set(string.punctuation) - self.disallowed))
-                return False
-        except (TypeError):
+        if isstring(value) is False:
             print('PasswordValidator: value "{}" is not a string.'.format(value), file=sys.stderr)
+            return False
+
+        if len(set(value) - self.valid_chars):
+            error_callback(validator_fmt_str, 'password', 'cannot contain any of the following characters: {}'.format(
+                               set(value) - self.valid_chars))
+            return False
+
+        if self.min_len is not None and (len(value)) < self.min_len:
+            error_callback(validator_fmt_str, 'password',
+                           'too short (minimum length is {})'.format(self.min_len))
+            return False
+
+        if self.max_len and len(value) > self.max_len:
+            error_callback(validator_fmt_str, 'password', 'too long (maximum length is {})'.format(self.max_len))
+            return False
+
+        if self.min_lower and len([c for c in value if c in string.ascii_lowercase]) < self.min_lower:
+            error_callback(validator_fmt_str, 'password',
+                           'too few lower case characters (minimum is {})'.format(self.min_lower))
+            return False
+
+        if self.min_upper and len([c for c in value if c in string.ascii_uppercase]) < self.min_upper:
+            error_callback(validator_fmt_str, 'password', 'too few upper case characters (minimum is {})'.format(self.min_upper))
+            return False
+
+        if self.min_digits and len([c for c in value if c in string.digits]) < self.min_digits:
+            error_callback(validator_fmt_str, 'password', 'too few digit characters (minimum is {})'.format(self.min_digits))
+            return False
+
+        if self.min_puncts and len([c for c in value if c in string.punctuation]) < self.min_puncts:
+            error_callback(validator_fmt_str, 'password', 'too few punctuation characters (minimum is {} from)'.format(self.min_puncts,
+                           set(string.punctuation) - self.disallowed))
             return False
 
         return True
