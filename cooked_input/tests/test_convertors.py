@@ -8,13 +8,17 @@ Len Wanger, 2017
 
 from io import StringIO
 from cooked_input import get_input, get_boolean, get_list, get_date, get_yes_no
-from cooked_input import IntConvertor, BooleanConvertor, ListConvertor, DateConvertor, YesNoConvertor
+from cooked_input import Convertor, IntConvertor, BooleanConvertor, ListConvertor, DateConvertor, YesNoConvertor
 from cooked_input import StripCleaner
 from .utils import redirect_stdin
 
 
 class TestConvertors(object):
     bool_convertor = BooleanConvertor()
+
+    def test_base_class(self):
+        c = Convertor('')
+        c('foo', None, None) # for coverage testing only!
 
     def test_get_boolean_true(self):
         input_str = u"""
