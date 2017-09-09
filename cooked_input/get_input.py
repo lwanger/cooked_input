@@ -28,7 +28,7 @@ if sys.version_info[0] > 2:  # For Python 3
         return input(prompt_msg)
 
 
-def process(value, cleaners, convertor, validators, error_callback=print_error,
+def process(value, cleaners=None, convertor=None, validators=None, error_callback=print_error,
             convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
     """
     runs a value through cleaning, conversion, and validation. This allows the same processing used

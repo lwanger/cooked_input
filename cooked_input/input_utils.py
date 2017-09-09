@@ -92,15 +92,83 @@ def put_in_a_list(values):
         result = []
     elif isstring(values):
         result = [values]
-    # elif sys.version_info[0] < 3 and isinstance(values, unicode):  # For Python 2 - unicode is different than strings
-    #     result = [values]
-    # elif sys.version_info[0] > 2 and isinstance(values, bytes):  # For Python 3 - check for bytes
-    #     result = [values]
-    # elif isinstance(values, str):
-    #     result = [values]
     elif isinstance(values, collections.Iterable):  # list or other iterable
         result = list(values)
     else:  # single non-iterable value
         result = [values]
 
     return result
+
+
+def renumerate(sequence):
+    """
+    Reverse emumerate - starts at the highest index (last item in the iterator) and counts down. This generator yields
+    a tuple containing the index and item, starting with the last item in the iterator.
+
+    Don't use reversed(list(enumerate(sequence))) as it's not efficient (it has to iterate through the whole sequence first.)
+
+    :param sequence:
+    :return:
+    """
+    for i in range(len(sequence)-1, -1, -1):
+        yield (i, sequence[i])
+
+
+def swap_element(sequence, idx, replacement):
+    """
+    Returns a copy of the sequence with the ith value swapped with the replacement value. Useful for immutable values
+    such as strings.
+
+    :param sequence: the original immutable sequence.
+    :param idx: the index of the sequence element to swap (use negative index to count from last element of the sequence.)
+    :param replacement: the replacement value the ith element of the sequence
+
+    :return: a copy of the original sequence with the ith element replaced by the replacement value
+    """
+    seq_length = len(sequence)
+
+    if seq_length == 0: # return a copy of the empty sequence
+        raise ValueError('cannot swap value in an empty sequence')
+
+    if idx < 0:
+        use_idx = seq_length + idx
+    else:
+        use_idx = idx
+
+    if use_idx < 0 or use_idx >= seq_length:
+        raise IndexError('index out of range')
+
+    if seq_length == 1: # swap element in a single element sequence
+        return replacement
+    elif use_idx == 0:  # swap first element
+        return replacement + sequence[1:]
+    elif use_idx == seq_length-1:   # swap last element
+        return sequence[:use_idx] + replacement
+    else:   # swap an element in the middle of a sequence
+        return sequence[:use_idx] + replacement + sequence[use_idx + 1:]
+
+
+def cap_last_word(value):
+    """
+    Capitalize the last word of a string.
+
+    :param value: string to capitalize
+
+    :return: a copy of the string with the last word capitalized.
+    """
+    last_non_white_char = None
+
+    for i,c in renumerate(value):
+        if not c.isspace(): # last_non_white_space = i
+            last_non_white_char = c
+            continue
+        elif last_non_white_char is not None and c.isspace():
+            result = value.lower()
+            result = swap_element(result, i+1, last_non_white_char.upper())
+            return result
+
+    if last_non_white_char is None: # value is all white space, return the original value
+        return  value
+
+    # String does not have any white space, so first word is the last word
+    return value.capitalize()

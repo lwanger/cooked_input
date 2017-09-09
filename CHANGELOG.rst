@@ -10,9 +10,12 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
-* v0.2.10:
+* v0.2.11:
 
   * required option was backwards... fixed
+
+  * added last_word style for CapitalizeCleaner
+
 
   * added isstring function to input_utils for detecting strings (and string-like things). This should
     handle strings (str, unicode, raw, bytes, etc.) more robustly, including sub-classes.

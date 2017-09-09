@@ -35,6 +35,7 @@
     * add coverage to tests
 
 * cleaners:
+    * add swapcase and casefold styles to Capitalization
     * add EncodingCleaner to encode the value (see str.encode)
     * cleaner for Unicode normalization and character encodings
     * cleaner for html quoting/unquoting
@@ -42,6 +43,9 @@
     * For consistency with wtform, should 'cleaners' be changed to 'filters'?
 
 * convertors:
+    * NameTuple convertor - pass in a NamedTuple type (from typing.NamedTuple if want default values)
+      and a list of values. Returns an instance of the NamedTuple. l = [1,2,3]; def(cls, values):
+      return cls(*l). Can check len of values list by len(_fields), or catch an exception (TypeError on __new__)
     * List convertor, how to do choice cleaning? i.e. enter a list with the first letters of the
     list item. Have cleaners for list elements?
     * Dollar convertor that has minimum of 0.00 and strips off $ sign and commas. Returns float

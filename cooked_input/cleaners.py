@@ -8,20 +8,23 @@ Copyright: Len Wanger, 2017
 import re
 import logging
 from string import capwords
-from .input_utils import put_in_a_list
+from .input_utils import put_in_a_list, cap_last_word
 
 LOWER_CAP_STYLE = 1
 UPPER_CAP_STYLE = 2
 FIRST_WORD_CAP_STYLE = 3
-ALL_WORDS_CAP_STYLE = 4
+LAST_WORD_CAP_STYLE = 4
+ALL_WORDS_CAP_STYLE = 5
 
-CAP_STYLES = { LOWER_CAP_STYLE, UPPER_CAP_STYLE, FIRST_WORD_CAP_STYLE, ALL_WORDS_CAP_STYLE }
+# CAP_STYLES = { LOWER_CAP_STYLE, UPPER_CAP_STYLE, FIRST_WORD_CAP_STYLE, ALL_WORDS_CAP_STYLE }
+CAP_STYLES = { LOWER_CAP_STYLE, UPPER_CAP_STYLE, FIRST_WORD_CAP_STYLE, LAST_WORD_CAP_STYLE, ALL_WORDS_CAP_STYLE }
 
 CAP_STYLE_STRS = {
     'lower': LOWER_CAP_STYLE,
     'upper': UPPER_CAP_STYLE,
     'first_word': FIRST_WORD_CAP_STYLE,
     'capitalize': FIRST_WORD_CAP_STYLE,
+    'last_word': LAST_WORD_CAP_STYLE,
     'all_words': ALL_WORDS_CAP_STYLE,
     'capwords': ALL_WORDS_CAP_STYLE
 }
@@ -45,51 +48,56 @@ class CapitalizationCleaner(Cleaner):
     """
     Capitalize the value using the specified style
 
-    :param style: capitalization style to use: 'lower', 'upper', 'first_word', 'all_words'.
+    :param style: capitalization style to use: 'lower', 'upper', 'first_word', 'last_word', 'all_words'.
 
     The styles are equivalent to the following:
 
-    +--------------+-----------------+-----------------------------------------------------------------+
-    | style        | string function |                              Note                               |
-    +--------------+-----------------+-----------------------------------------------------------------+
-    | 'lower'      | lower           |  can also use LOWER_CAP_STYLE                                   |
-    +--------------+-----------------+-----------------------------------------------------------------+
-    | 'upper'      | upper           |  can also use UPPER_CAP_STYLE                                   |
-    +--------------+-----------------+-----------------------------------------------------------------+
-    | 'first_word' | capitalize      |  can also use 'capitalize' or FIRST_WORD_CAP_STYLE              |
-    +--------------+-----------------+-----------------------------------------------------------------+
-    | 'all_words'  | capwords        |  can also use 'capwords' or ALL_WORDS_CAP_STYLE                 |
-    +--------------+-----------------+-----------------------------------------------------------------+
+    +---------------------+-----------------+-----------------------------------------------------------------+
+    | style               | string function |                              Note                               |
+    +---------------------+-----------------+-----------------------------------------------------------------+
+    | 'lower'             | lower           |  can also use LOWER_CAP_STYLE                                   |
+    +---------------------+-----------------+-----------------------------------------------------------------+
+    | 'upper'             | upper           |  can also use UPPER_CAP_STYLE                                   |
+    +---------------------+-----------------+-----------------------------------------------------------------+
+    | 'first_word'        | capitalize      |  can also use 'capitalize' or FIRST_WORD_CAP_STYLE              |
+    +---------------------+-----------------+-----------------------------------------------------------------+
+    | 'last_word' [#f1]_  | --              |  can also use  LAST_WORD_CAP_STYLE                              |
+    +---------------------+-----------------+-----------------------------------------------------------------+
+    | 'all_words'         | capwords        |  can also use 'capwords' or ALL_WORDS_CAP_STYLE                 |
+    +---------------------+-----------------+-----------------------------------------------------------------+
+
+.. rubric:: Footnotes
+
+.. [#f1] This parameter is dedicated to Colleen, who will be happy to finally get the last word.
     """
-    # def __init__(self, all_words=False, **kwargs):
     def __init__(self, style='lower', **kwargs):
         if isinstance(style, int):
             if style in CAP_STYLES:
-                self.style = style
+                self._style = style
             else:
                 raise ValueError('CapitalizationCleaner: {} is not a valid capitalization style'.format(style))
         else:   # a string type
             if style in CAP_STYLE_STRS:
-                self.style = CAP_STYLE_STRS[style]
+                self._style = CAP_STYLE_STRS[style]
             else:
                 raise ValueError('CapitalizationCleaner: {} is not a valid capitalization style'.format(style))
 
         super(CapitalizationCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
-        if self.style == LOWER_CAP_STYLE:
-            result = value.lower()
-        elif self.style == UPPER_CAP_STYLE:
-            result = value.upper()
-        elif self.style == ALL_WORDS_CAP_STYLE:
-            result = capwords(value)
-        else:
-            result = value.capitalize()
-
-        return result
+        if self._style == LOWER_CAP_STYLE:
+            return value.lower()
+        elif self._style == UPPER_CAP_STYLE:
+            return value.upper()
+        elif self._style == FIRST_WORD_CAP_STYLE:
+            return value.capitalize()
+        elif self._style == LAST_WORD_CAP_STYLE:
+            return cap_last_word(value)
+        else:    # ALL_WORDS_CAP_STYLE:
+            return capwords(value)
 
     def __repr__(self):
-        return 'CapitalizationCleaner(style={})'.format(self.style)
+        return 'CapitalizationCleaner(style={})'.format(self._style)
 
 
 class StripCleaner(Cleaner):

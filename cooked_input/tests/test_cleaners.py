@@ -66,6 +66,11 @@ class TestGetFloat(object):
             result = get_input(cleaners=sc)
             assert (result == 'Foo Bar Blat')
 
+        sc = CapitalizationCleaner(style='last_word')
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(cleaners=sc)
+            assert (result == 'foo bar Blat')
+
         with pytest.raises(ValueError):
             sc = CapitalizationCleaner(style=6)
 
