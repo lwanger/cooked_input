@@ -48,27 +48,26 @@ class CapitalizationCleaner(Cleaner):
     """
     Capitalize the value using the specified style
 
-    :param style: capitalization style to use: 'lower', 'upper', 'first_word', 'last_word', 'all_words'.
-
-    The styles are equivalent to the following:
-
-    +---------------------+-----------------+-----------------------------------------------------------------+
-    | style               | string function |                              Note                               |
-    +---------------------+-----------------+-----------------------------------------------------------------+
-    | 'lower'             | lower           |  can also use LOWER_CAP_STYLE                                   |
-    +---------------------+-----------------+-----------------------------------------------------------------+
-    | 'upper'             | upper           |  can also use UPPER_CAP_STYLE                                   |
-    +---------------------+-----------------+-----------------------------------------------------------------+
-    | 'first_word'        | capitalize      |  can also use 'capitalize' or FIRST_WORD_CAP_STYLE              |
-    +---------------------+-----------------+-----------------------------------------------------------------+
-    | 'last_word' [#f1]_  | --              |  can also use  LAST_WORD_CAP_STYLE                              |
-    +---------------------+-----------------+-----------------------------------------------------------------+
-    | 'all_words'         | capwords        |  can also use 'capwords' or ALL_WORDS_CAP_STYLE                 |
-    +---------------------+-----------------+-----------------------------------------------------------------+
-
-.. rubric:: Footnotes
+    :param style: capitalization style to use: 'lower', 'upper', 'first_word', 'last_word'[#f1]_, 'all_words'.
 
 .. [#f1] This parameter is dedicated to Colleen, who will be happy to finally get the last word.
+
+The styles are equivalent to the following:
+
+    +--------------+-----------------+----------------------------------------------------+
+    | style        | string function |                       Note                         |
+    +--------------+-----------------+----------------------------------------------------+
+    | 'lower'      | lower           |  can also use LOWER_CAP_STYLE                      |
+    +--------------+-----------------+----------------------------------------------------+
+    | 'upper'      | upper           |  can also use UPPER_CAP_STYLE                      |
+    +--------------+-----------------+----------------------------------------------------+
+    | 'first_word' | capitalize      |  can also use 'capitalize' or FIRST_WORD_CAP_STYLE |
+    +--------------+-----------------+----------------------------------------------------+
+    | 'last_word'  | --              |  can also use  LAST_WORD_CAP_STYLE                 |
+    +--------------+-----------------+----------------------------------------------------+
+    | 'all_words'  | capwords        |  can also use 'capwords' or ALL_WORDS_CAP_STYLE    |
+    +--------------+-----------------+----------------------------------------------------+
+
     """
     def __init__(self, style='lower', **kwargs):
         if isinstance(style, int):
