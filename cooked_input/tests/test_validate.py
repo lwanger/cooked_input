@@ -16,7 +16,7 @@ else:
 from cooked_input import validate, Validator, RangeValidator, NoneOfValidator
 from cooked_input import get_input, print_error, StripCleaner, IntConvertor, ListConvertor, AnyOfValidator
 from cooked_input import NoneOfValidator, LengthValidator
-from cooked_input import EqualToValidator, ListValidator, PasswordValidator, ChoicesValidator, SimpleValidator, RegexValidator
+from cooked_input import EqualToValidator, ListValidator, PasswordValidator, ChoiceValidator, SimpleValidator, RegexValidator
 
 from .utils import redirect_stdin
 
@@ -32,6 +32,14 @@ class TestValidate(object):
         for v in [(-1, False), (1, True), (5, False), (6, True), (11, False)]:
             result = validate(v[0], validators)
             assert(result==v[1])
+
+    def test_bad_type(self):
+        # For specific test coverage cases to catch no __ge__ specified on type
+        class A(object):
+            a=1
+
+        result = validate(A(), RangeValidator(min_val=1, max_val=None))
+        result = validate(A(), RangeValidator(min_val=None, max_val=10))
 
     def test_call_abstract(self):
         v = Validator()
@@ -69,12 +77,23 @@ class TestValidate(object):
             print(result)
             assert (result == 16)
 
+        av = AnyOfValidator(validators=EqualToValidator(16))
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
+            print(result)
+            assert (result == 16)
 
         av = AnyOfValidator(validators=16)
         with redirect_stdin(StringIO(input_str)):
             result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
             print(result)
             assert (result == 16)
+
+        av = AnyOfValidator(validators=None)
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
+            print(result)
+            assert (result == -1)
 
 
     def test_none_of(self):
@@ -92,6 +111,13 @@ class TestValidate(object):
             assert (result == -1)
 
         print(nov)   # for code coverage
+
+        nov = NoneOfValidator(validators=RangeValidator(-2,5))
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=nov)
+            print(result)
+            assert (result == 6)
+
 
 
     def test_length(self):
@@ -206,7 +232,7 @@ class TestValidate(object):
 
     def test_choices(self):
         input_str = "\nfoo\nffffffffoooooobbbb\nFOOBAR!\nfoobar!\nFooBar!\nfoobar\nFooBar1!\nFooBar1!!\nfbr^"
-        cv = ChoicesValidator(choices=['foobar', 'bar', 'blat'])
+        cv = ChoiceValidator(choices=['foobar', 'bar', 'blat'])
 
         with redirect_stdin(StringIO(input_str)):
             result = get_input(validators=cv)

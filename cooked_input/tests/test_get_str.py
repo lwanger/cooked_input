@@ -26,7 +26,7 @@ else:
 from .utils import redirect_stdin
 
 from cooked_input import get_input
-from cooked_input.validators import LengthValidator, ChoicesValidator, NoneOfValidator
+from cooked_input.validators import LengthValidator, ChoiceValidator, NoneOfValidator
 from cooked_input.cleaners import StripCleaner, CapitalizationCleaner, UPPER_CAP_STYLE, ALL_WORDS_CAP_STYLE
 from cooked_input.convertors import YesNoConvertor
 
@@ -91,9 +91,9 @@ class TestGetStr(object):
         colors = ['red', 'green', 'blue']
         good_flavors = ['cherry', 'lime', 'lemon', 'orange']
         bad_flavors = 'licorice'
-        choices_validator = ChoicesValidator(choices=colors)
-        good_flavor_validator = ChoicesValidator(choices=good_flavors)
-        bad_flavor_validator = ChoicesValidator(choices=bad_flavors)
+        choices_validator = ChoiceValidator(choices=colors)
+        good_flavor_validator = ChoiceValidator(choices=good_flavors)
+        bad_flavor_validator = ChoiceValidator(choices=bad_flavors)
         not_in_choices_validator = NoneOfValidator(validators=[bad_flavor_validator])
         strip_cleaner = StripCleaner()
         lower_cleaner = CapitalizationCleaner()

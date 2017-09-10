@@ -46,7 +46,7 @@ from validus import isemail
 from cooked_input import get_input
 from cooked_input.cleaners import StripCleaner, CapitalizationCleaner, ChoiceCleaner
 from cooked_input.convertors import ListConvertor
-from cooked_input.validators import Validator, PasswordValidator, ListValidator, ChoicesValidator, EqualToValidator
+from cooked_input.validators import Validator, PasswordValidator, ListValidator, ChoiceValidator, EqualToValidator
 from cooked_input.validators import SimpleValidator
 
 
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     name_cleaners = [StripCleaner(), CapitalizationCleaner(style='all_words')]
     strong_password_validator = PasswordValidator(disallowed='[]', min_len=5, max_len=15, min_lower=2, min_puncts=2)
     email_validator = SimpleValidator(isemail, name='email')    # validator from validus function
-    role_validtor = ListValidator(elem_validators=ChoicesValidator(roles_list))
+    role_validtor = ListValidator(elem_validators=ChoiceValidator(roles_list))
     role_prompt = 'Roles ({}, separated by commas)'.format(sorted(roles_list))
     password_confirm_fmt_str = 'password does not match'
 

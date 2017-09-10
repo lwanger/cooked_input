@@ -14,7 +14,7 @@ import getpass
 
 from .error_callbacks import MaxRetriesError, ValidationError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
-from .validators import RangeValidator, ChoicesValidator, in_all
+from .validators import RangeValidator, ChoiceValidator, in_all
 from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor, YesNoConvertor, \
     ListConvertor
 from .cleaners import StripCleaner
@@ -270,9 +270,9 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
         choices = tuple(item[TABLE_ID] for item in table)
 
     if validators and not callable(validators):
-        table_validators = list(copy.deepcopy(validators)) + ChoicesValidator(choices=choices)
+        table_validators = list(copy.deepcopy(validators)) + ChoiceValidator(choices=choices)
     else:
-        table_validators = [ChoicesValidator(choices=choices)]
+        table_validators = [ChoiceValidator(choices=choices)]
 
     if show_table:
         table_prompt = make_pretty_table(table, 'name', sort_by_value)

@@ -7,14 +7,14 @@ Len Wanger, 2017
 import re
 from cooked_input import get_input
 from cooked_input.cleaners import ChoiceCleaner, CapitalizationCleaner, ReplaceCleaner, RegexCleaner
-from cooked_input.validators import ChoicesValidator
+from cooked_input.validators import ChoiceValidator
 
 
 if __name__ == '__main__':
     # ChoiceCleaner examples:
     color_choices = ['black', 'brown', 'blue', 'red', 'green']
     color_choice_cleaner = ChoiceCleaner(color_choices)
-    color_choice_validator = ChoicesValidator(color_choices)
+    color_choice_validator = ChoiceValidator(color_choices)
     float_choice_cleaner = ChoiceCleaner(choices=[1.0, 10.0, 1.11, 3.141569])
 
     print(get_input(prompt='Enter a color (choices: [bla]ck, [br]own, [blu]e, [r]ed, [g]reen)',

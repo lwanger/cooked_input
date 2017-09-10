@@ -35,7 +35,13 @@ def in_any(value, validators, error_callback, validator_fmt_str):
     if validators is None:
         result = True
     elif isinstance(validators, collections.Iterable):  # list of validators (or other iterable)
-        result = any(validator(value, error_callback, validator_fmt_str) for validator in validators)
+        for validator in validators:
+            if callable(validator):
+                result = validator(value, error_callback, validator_fmt_str)
+            else:  # validator is a value, not a function
+                result = value == validator
+            if result:
+                break
     elif callable(validators):  # single validator function
         result = validators(value, error_callback, validator_fmt_str)
     else:   # single value
@@ -85,7 +91,10 @@ def not_in(value, validators, error_callback, validator_fmt_str):
         result = True
     elif isinstance(validators, collections.Iterable):  # list of validators (or other iterable)
         for validator in validators:
-            result = validator(value, silent_error, validator_fmt_str)
+            if callable(validator):
+                result = validator(value, silent_error, validator_fmt_str)
+            else:   # validator is a value, not a function
+                result = value == validator
             if result:
                 break
     elif callable(validators):  # single validator function
@@ -239,7 +248,7 @@ class RangeValidator(Validator):
         return 'RangeValidator(min_val=%s, max_val=%s)' % (self._min_val, self._max_val)
 
 
-class ChoicesValidator(Validator):
+class ChoiceValidator(Validator):
     """
     check if a value is in a list of choices. Note: if choices is mutable, it can be changed after the instance is created.
 
@@ -249,7 +258,7 @@ class ChoicesValidator(Validator):
     def __init__(self, choices, **kwargs):
         # note: if choices is mutable, the choices can change after instantiation
         self._choices = put_in_a_list(choices)
-        super(ChoicesValidator, self).__init__(**kwargs)
+        super(ChoiceValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
         result = value in self._choices
@@ -262,7 +271,7 @@ class ChoicesValidator(Validator):
             return False
 
     def __repr__(self):
-        return 'ChoicesValidator(choices={})'.format(self._choices)
+        return 'ChoiceValidator(choices={})'.format(self._choices)
 
 
 class NoneOfValidator(Validator):

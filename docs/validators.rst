@@ -73,13 +73,13 @@ RangeValidator
 
 .. autoclass:: cooked_input.RangeValidator
 
-ChoicesValidator
-------------------
+ChoiceValidator
+---------------
 
-.. autoclass:: cooked_input.ChoicesValidator
+.. autoclass:: cooked_input.ChoiceValidator
 
 NoneOfValidator
---------------
+---------------
 
 .. autoclass:: cooked_input.NoneOfValidator
 

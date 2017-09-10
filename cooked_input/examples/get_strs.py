@@ -5,7 +5,7 @@ Len Wanger, 2017
 """
 
 from cooked_input import get_input, get_string
-from cooked_input.validators import LengthValidator, ChoicesValidator, NoneOfValidator
+from cooked_input.validators import LengthValidator, ChoiceValidator, NoneOfValidator
 from cooked_input.cleaners import StripCleaner, CapitalizationCleaner
 from cooked_input.convertors import YesNoConvertor
 
@@ -17,9 +17,9 @@ if __name__ == '__main__':
     length_3_validator = LengthValidator(min_len=3, max_len=3)
     length_5_plus_validator = LengthValidator(min_len=5)
     length_2_to_4_validator = LengthValidator(min_len=2, max_len=4)
-    choices_validator = ChoicesValidator(choices=colors)
-    good_flavor_validator = ChoicesValidator(choices=good_flavors)
-    bad_flavor_validator = ChoicesValidator(choices=bad_flavors)
+    choices_validator = ChoiceValidator(choices=colors)
+    good_flavor_validator = ChoiceValidator(choices=good_flavors)
+    bad_flavor_validator = ChoiceValidator(choices=bad_flavors)
     not_in_choices_validator = NoneOfValidator(validators=[bad_flavor_validator])
 
     strip_cleaner = StripCleaner()

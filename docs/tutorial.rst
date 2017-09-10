@@ -7,12 +7,10 @@ Introduction:
 
 Command line tools and terminal input are very useful. I end up writing lots of programs that get some simple input
 from the user and process it. It may be a creating a report from a database or a simple text-based game. While it sounds
-trivial, handling all of the exceptions and corner cases of command line input is not easy, and the the Python standard
+trivial, handling all of the exceptions and corner cases of command line input is not easy, and the Python standard
 library doesn't have anything to make it easier. Let's start with a simple example.
 
-The first program in an introduction to Python usually looks something like this:
-
-::
+The first program in an introduction to Python usually looks something like this::
 
     import random
     number = random.randint(1, 10)
@@ -57,11 +55,11 @@ within the correct range, works with legacy Python (ie. version 2) and 3, etc. b
 
 That's a lot of code to handle the simplest of inputs. This boiler plate code is replicated and expanded for each input from the
 command line. Just think of how much code you would need to get and validate a new password from a user --
-making sure the input is hidden, doesn't match the previous password, and the password is at least 8 characters long,
-with at least 2 upper case letter, 2 punctuation marks, 1 number, doesn't use the characters '[', ']', or '&', and
+making sure the input is hidden, doesn't match the previous password, is at least 8 characters long,
+has at least 2 upper case letters, has at least 2 punctuation marks, has at least 1 number, doesn't use the characters '[', ']', or '&', and
 exits after 3 failed attempts.
 
-The purpose of the cooked_input library is to make it easier to get command line input from the user. It
+The purpose of the cooked_input module is to make it easier to get command line input from the user. It
 takes care of cleaning, converting, and validating the input. It also helps put together the prompt message and error
 messages. In cooked_input, safely getting the value from the user in the guessing game becomes::
 
@@ -91,7 +89,7 @@ The simplest call to `get_input` is:
     result = get_input('What is your name')
 
 This will prompt the user for their name and return a non-blank string. If the user types in a blank value (a zero
-length string) they will receive an erorr message and be prompted to re-enter the value until a non-zero length string
+length string) they will receive an error message and be prompted to re-enter the value until a non-zero length string
 is entered (note: white space/spaces is not a zero length string!)
 
 Let's look at a more complicated example. The get_int call in the guessing game makes a call to get_input that looks
@@ -106,30 +104,33 @@ something like this:
 * *prompt*: the string to print to prompt the user.
 
 * *convertor*: the `Convertor` is called to convert the string entered into the type of value we want. `IntConvertor`
-  converts the value to an `int` (integer).
+  converts the value to an integer (`int`).
 
 * *validators*: the `Validator` function (or list of `Validator` functions) used to check the entered string meets the
-  criteria we want. `RangeValidator(min_val=1, max_val=10)` makes sure the value is between `1` and `10`. (i.e.
-  `1<=value<=10`). If the input doesn't pass the validation, an error message is produced, and the user is
-  prompted to re-enter the value.
+  criteria we want. If the input doesn't pass the validation, an error message is produced, and the user is prompted to
+  re-enter a value.
 
-* *retries*: there are a number of optional parameters that get_input can take (see `get_input` for more information).
-  When `retries` is specified, the user will be asked a maximum of `retries` times for the input. If no valid input is
-  entered within the maximum number of times, a MaxRetriesError is raised.
+  `RangeValidator` takes a minimum and maximum value and checks that the input value is in the
+  interval between the two. For example,  `RangeValidator(min_val=1, max_val=10)` would make sure the value is between
+  `1` and `10`. (i.e. `1<=value<=10`). In the case above, `max_val` is set to `None`, so no maximum value is applied
+  (i.e. checks `1<=value`)
 
-* *result*: the cleaned, converted, validated value is returned. It's safe to use as we know it meets the criteria we requested.
+* *options*: there are a number of optional parameters that get_input can take (see `get_input` for more information).
+  By default, get_input will keep asking for values until a valid value is entered. The `retries` option specifies the
+  maximum number of times to ask. If no valid input is entered within the maximum number of tries a MaxRetriesError is raised.
+
+* *return value*: the cleaned, converted, validated value is returned. The returned value is safe to use as we know it
+  meets all the criteria we requested.
 
 The general flow of `get_input` is:
 
 1) Prompt the user and get the input from the keyboard (sys.stdin)
 
-2) Apply the entered string through the list of cleaners.  For example if the entered values is: `"  Yes "`, and
-   `cleaners=[StripCleaner(), CapitalizationCleaner(style='lower')]` (strip, then convert to lower case), would be
-   equivalent to the Python statement: `"  Yes ".strip().lower()`, which would produce `"yes"`
+2) Apply the entered string through the specified cleaners.
 
 3) Apply the convertor to the cleaned string.
 
-4) Apply the list of validators to the converted value. The converted value needs to pass all of the validators (i.e.
+4) Apply the specified validators to the converted value. The converted value needs to pass all of the validators (i.e.
    they are AND'd together). Other combinations of validators can be achieved by using the `AnyOfValidator` (OR)
    and `NoneOfValidator` (NOT) validators.
 
@@ -138,7 +139,9 @@ The general flow of `get_input` is:
 .. note::
 
     The order of the cleaners and validators is maintained. For example, if the list of cleaners is
-    `cleaners=[StripCleaner(), CapitalizationCleaner()]`, then the strip operation is performed before conversion to lower case.
+    `cleaners=[StripCleaner(), CapitalizationCleaner(style='lower')]`, then the strip operation is performed before
+    conversion to lower case. Applying these cleaners to the value `"  Yes "` is equivalent to the Python
+    statement: `"  Yes ".strip().lower()` (strip, then convert to lower case), which would produce the cleaned value: `"yes"`
 
 .. note::
 
@@ -182,33 +185,47 @@ To get that is restricted to a value from a list of choices:
 .. code-block:: python
 
     colors = ['red', 'green', 'blue']
-    color_validator = ChoicesValidator(choices=colors)
+    color_validator = ChoiceValidator(colors)
     prompt_str = 'What is your favorite color (%s)' % ', '.join(colors)
     result = get_input(prompt=prompt_str, cleaners=[StripCleaner(), CapitalizationCleaner(style='lower')], validators=color_validator)
+
+.. note::
+
+    Validator functions compare the exact value sent from the cleaned input. Without the specified cleaners in the example
+    above any leading or trailing white space characters or capital letters would prevent matches on the ChoiceValidator.
 
 Adding a `ChoiceCleaner`, allows the user to just input the first few letters of the choice (enough to differentiate
 to a single choice.):
 
 .. code-block:: python
 
-    colors = ['red', 'green', 'blue']
-    color_cleaner = ChoiceCleaner(choices=colors)
-    color_validator = ChoicesValidator(choices=colors)
+    colors = ['red', 'green', 'blue', 'black']
+    color_cleaner = ChoiceCleaner(colors)
+    color_validator = ChoiceValidator(colors)
     prompt_str = 'What is your favorite color (%s)' % ', '.join(colors)
-    result = get_input(prompt=prompt_str, cleaners=[StripCleaner(), CapitalizationCleaner(style='lower'), color_cleaner], validators=color_validator)
+    result = get_input(prompt=prompt_str, cleaners=[StripCleaner(), CapitalizationCleaner('lower'), color_cleaner], validators=color_validator)
+
+Typing `"r"` or `"g"` would be enough to match `red` or `green` respectively, but three letters (e.g. `"blu"`) would be
+required to differentiate between `black` and `blue`.
 
 Excluding a list of choices
 ---------------------------
 
-To exclude values from a set of choices:
+The following example will except any string value, except `"licorice"` or `"booger"`:
 
 .. code-block:: python
 
     bad_flavors = ['licorice', 'booger']
-    not_in_choices_validator = NoneOfValidator(validators=ChoicesValidator(choices=bad_flavors))
+    not_in_choices_validator = NoneOfValidator(bad_flavors)
 
     prompt_str = "What is your favorite flavor of jelly bean (don't say: %s)?" % ' or '.join(bad_flavors)
     response = get_input(prompt=prompt_str, cleaners=[StripCleaner(), CapitalizationCleaner(style='lower')], validators=not_in_choices_validator)
+
+.. note::
+
+    The `AnyOf` and `NoneOf` validators can take either values or validator functions as validators. For instance, in the
+    example above you could also use: not_in_choices_validator = NoneOfValidator(ChoiceValidator(bad_flavors))
+
 
 Composing Multiple Validators
 -----------------------------

@@ -8,11 +8,11 @@ from .convertors import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
 from .convertors import Convertor, IntConvertor, FloatConvertor, BooleanConvertor
 from .convertors import ListConvertor, DateConvertor, YesNoConvertor, TableConvertor
 from .validators import Validator, LengthValidator, EqualToValidator, RangeValidator
-from .validators import AnyOfValidator, NoneOfValidator, ChoicesValidator, RegexValidator, PasswordValidator
+from .validators import AnyOfValidator, NoneOfValidator, ChoiceValidator, RegexValidator, PasswordValidator
 from .validators import ListValidator, SimpleValidator
 from .validators import in_all, in_any, not_in, validate
 from .cleaners import Cleaner, CapitalizationCleaner, LOWER_CAP_STYLE, UPPER_CAP_STYLE, FIRST_WORD_CAP_STYLE, ALL_WORDS_CAP_STYLE
 from .cleaners import StripCleaner, RemoveCleaner, ReplaceCleaner, ChoiceCleaner, RegexCleaner
 from .input_utils import make_pretty_table
 
-__version__ = '0.2.11'
+__version__ = '0.3.0'
