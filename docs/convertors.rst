@@ -40,35 +40,35 @@ An example of a convertor to change the input value to an integer looks like::
 Convertors
 ==========
 
-IntConvertor
-------------
-
-.. autoclass:: cooked_input.IntConvertor
-
-FloatConvertor
---------------
-
-.. autoclass:: cooked_input.FloatConvertor
-
 BooleanConvertor
 ----------------
 
 .. autoclass:: cooked_input.BooleanConvertor
 
-ListConvertor
--------------
-
-.. autoclass:: cooked_input.ListConvertor
 
 DateConvertor
 -------------
 
 .. autoclass:: cooked_input.DateConvertor
 
-YesNoConvertor
+
+FloatConvertor
 --------------
 
-.. autoclass:: cooked_input.YesNoConvertor
+.. autoclass:: cooked_input.FloatConvertor
+
+
+IntConvertor
+------------
+
+.. autoclass:: cooked_input.IntConvertor
+
+
+ListConvertor
+-------------
+
+.. autoclass:: cooked_input.ListConvertor
+
 
 TableConvertor
 --------------
@@ -76,3 +76,7 @@ TableConvertor
 .. autoclass:: cooked_input.TableConvertor
 
 
+YesNoConvertor
+--------------
+
+.. autoclass:: cooked_input.YesNoConvertor

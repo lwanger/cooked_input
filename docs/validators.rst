@@ -58,52 +58,61 @@ for more information on validus see: https://github.com/shopnilsazal/validus
 Validators
 ==========
 
-LengthValidator
----------------
+AnyOfValidator
+--------------
 
-.. autoclass:: cooked_input.LengthValidator
+.. autoclass:: cooked_input.AnyOfValidator
 
-EqualToValidator
--------------------
-
-.. autoclass:: cooked_input.EqualToValidator
-
-RangeValidator
-----------------
-
-.. autoclass:: cooked_input.RangeValidator
 
 ChoiceValidator
 ---------------
 
 .. autoclass:: cooked_input.ChoiceValidator
 
+
+EqualToValidator
+-------------------
+
+.. autoclass:: cooked_input.EqualToValidator
+
+
+LengthValidator
+---------------
+
+.. autoclass:: cooked_input.LengthValidator
+
+
+ListValidator
+-------------
+
+.. autoclass:: cooked_input.ListValidator
+
+
 NoneOfValidator
 ---------------
 
 .. autoclass:: cooked_input.NoneOfValidator
 
-AnyOfValidator
---------------
-
-.. autoclass:: cooked_input.AnyOfValidator
-
-SimpleValidator
----------------
-
-.. autoclass:: cooked_input.SimpleValidator
-
-RegexValidator
---------------
-
-.. autoclass:: cooked_input.RegexValidator
 
 PasswordValidator
 -----------------
 
 .. autoclass:: cooked_input.PasswordValidator
 
-ListValidator
--------------
 
-.. autoclass:: cooked_input.ListValidator
+RangeValidator
+----------------
+
+.. autoclass:: cooked_input.RangeValidator
+
+
+RegexValidator
+--------------
+
+.. autoclass:: cooked_input.RegexValidator
+
+
+SimpleValidator
+---------------
+
+.. autoclass:: cooked_input.SimpleValidator

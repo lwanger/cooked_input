@@ -25,32 +25,38 @@ case looks like::
 Cleaners
 ========
 
-StripCleaner
-------------
-
-.. autoclass:: cooked_input.StripCleaner
 
 CapitalizationCleaner
 ---------------------
 
 .. autoclass:: cooked_input.CapitalizationCleaner
 
-ReplaceCleaner
---------------
-
-.. autoclass:: cooked_input.ReplaceCleaner
-
-RemoveCleaner
--------------
-
-.. autoclass:: cooked_input.RemoveCleaner
 
 ChoiceCleaner
 -------------
 
 .. autoclass:: cooked_input.ChoiceCleaner
 
+
 RegexCleaner
 ------------
 
 .. autoclass:: cooked_input.RegexCleaner
+
+
+RemoveCleaner
+-------------
+
+.. autoclass:: cooked_input.RemoveCleaner
+
+
+ReplaceCleaner
+--------------
+
+.. autoclass:: cooked_input.ReplaceCleaner
+
+
+StripCleaner
+------------
+
+.. autoclass:: cooked_input.StripCleaner

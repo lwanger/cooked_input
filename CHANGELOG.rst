@@ -10,6 +10,15 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* v0.3.0:
+
+  * renamed ChoicesValidator to ChoiceValidator
+
+  * check AnyOf and NoneOf for list of values, not just list of validation functions. Allows
+    saying: NoneOfValidator(['foo', 'bar'])
+
+  * put cleaners, convertors and validators in alphabetic order in the documentation
+
 * v0.2.11:
 
   * required option was backwards... fixed

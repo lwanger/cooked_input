@@ -30,15 +30,17 @@ and similarly for validation::
 error_callbacks:
 ================
 
+log_error
+---------
+
+.. autofunction:: cooked_input.log_error
+
+
 print_error
 -----------
 
 .. autofunction:: cooked_input.print_error
 
-log_error
----------
-
-.. autofunction:: cooked_input.log_error
 
 silent_error
 ------------
