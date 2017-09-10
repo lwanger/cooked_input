@@ -1,60 +1,49 @@
 """
-cooked input examples of getting entry from menus
+cooked input example of using table input to pick from a menu.
 
 Len Wanger, 2017
 """
 
-
-from cooked_input import get_table_input
-from cooked_input.convertors import IntConvertor
-from cooked_input.validators import RangeValidator
 from collections import namedtuple
+from cooked_input import get_int
+
+
+# Define actions for menu items
+def do_action_1():
+    print('\nCalled do_action 1')
+
+def do_action_2():
+    print('\nCalled do_action 2')
+
+def do_action_3():
+    print('\nCalled do_action 3')
+
+
+def show_menu(menu_table):
+    print('\nMenu:')
+    for i,item in enumerate(menu_table):
+        print('\t{}.\t{}'.format(i+1, item[1]))
+
 
 if __name__ == '__main__':
-    # changing the user roles changes the menu choices available.
-    user_roles = {'editor', 'user'}
-    # user_roles = {'admin'}
-
-    MenuItem = namedtuple('MenuItem', 'item_id item_str roles')
+    MenuItem = namedtuple('MenuItem', 'tag desc action')
     menu_items = [
-        MenuItem('DO_ACTION_1', 'Do action number 1', {'all'}),
-        MenuItem('DO_ACTION_2', 'Do action number 2', {'all'}),
-        MenuItem('DO_ACTION_3', 'Do action number 3', {'admin'}),
-        MenuItem('DO_ACTION_4', 'Do action number 4', {'user'}),
-        MenuItem('DO_ACTION_5', 'Do action number 5', {'editor'}),
-        MenuItem('QUIT', 'Quit', {'all'})
+        MenuItem('ACTION_1', 'Do action number 1', do_action_1),
+        MenuItem('ACTION_2', 'Do action number 2', do_action_2),
+        MenuItem('ACTION_3', 'Do action number 3', do_action_3),
+        MenuItem('QUIT', 'Quit', None)
     ]
 
-    menu_choices = [item for item in menu_items if
-                    ('admin' in user_roles) or ('all' in item.roles) or (item.roles.intersection(user_roles))]
-    menu_table = [(i + 1, menu_item.item_str) for i, menu_item in enumerate(menu_choices)]
-    menu_validator = RangeValidator(min_val=1, max_val=len(menu_table))
+    menu_table = [(i + 1, menu_item.desc) for i, menu_item in enumerate(menu_items)]
+    prompt_str = 'What would you like to do?'
+    error_fmt = 'Not a valid menu choice'
 
     while True:
-        print('\n')
-        print('Menu:')
+        show_menu(menu_table)
+        menu_choice = get_int(minimum=1, maximum=len(menu_table), prompt=prompt_str, validator_error_fmt=error_fmt)
+        item = menu_items[menu_choice - 1]
 
-        try:
-            print('')
-            num = get_table_input(menu_table, cleaners=None, convertor=IntConvertor(),
-                                   validators=menu_validator, prompt='What would you like to do?',
-                                   input_value=False, return_value=False, show_table=True)
-            item_id = menu_choices[num-1].item_id
-
-            if item_id == 'DO_ACTION_1':
-                print('Doing action 1...')
-            elif item_id == 'DO_ACTION_2':
-                print('Doing action 2...')
-            elif item_id == 'DO_ACTION_3':
-                print('Doing action 3...')
-            elif item_id == 'DO_ACTION_4':
-                print('Doing action 4...')
-            elif item_id == 'DO_ACTION_5':
-                print('Doing action 5...')
-            elif item_id == 'QUIT':
-                break
-            else:
-                print('Error: Not a valid menu choice. Please retry.')
-        except ValueError:
-            print('Error: please type in a number for the menu choice.')
-
+        if item.tag == 'QUIT':
+            break
+        else:
+            item.action()

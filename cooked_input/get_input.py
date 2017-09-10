@@ -96,7 +96,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
             Format string receives two variables - {value} the value that failed conversion, and {error_content}
             set by the convertor.
 
-        validator_error_fmt: format string ti use fir validator errors. Defaults to DEFAULT_VALIDATOR_ERROR.
+        validator_error_fmt: format string to use for validator errors. Defaults to DEFAULT_VALIDATOR_ERROR.
             Format string receives two variables - {value} the value that failed conversion, and {error_content}
             set by the validator.
 
@@ -205,7 +205,9 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
             to entering the value.
 
         return_value: TABLE_VALUE (or True) to return the value from the table row, TABLE_ID (or
-            False) to return the id.  show_table: will print the table before asking for the prompt 
+            False) to return the id.
+
+        show_table: will print the table before asking for the prompt
             before asking for the input.
 
         sort_by_value: whether to sort the table rows by value (True) or id (False). Defaults to sort by id.
