@@ -10,6 +10,8 @@
     * get to 100% coverage and add badge
     * For consistency with wtform, should 'cleaners' be changed to 'filters'?
     * Changelog link broken in README. Add TODO too?
+    * change put_in_a_list to tolist (consistent with memoryview)
+    * Add bytearray type to isstring (doesn't match bytes, str, unicode or basestring)
 
 * get_input:
     * show all errors for validation errors? Perform like flash messages where can have a list of them?
@@ -33,8 +35,9 @@
 
 * cleaners:
     * add swapcase and casefold styles to Capitalization
+    * add EncodingCleaner to encode the value (see str.encode)
+    * add cleaner to clean string from byte or bytearray to str (or unicode in 2.x)
     * Unicode support:
-        * add EncodingCleaner to encode the value (see str.encode)
         * cleaner for Unicode normalization and character encodings
     * cleaner for html quoting/unquoting
     * strip sql injection when dealing with tables
@@ -50,6 +53,7 @@
     * yes_no convertor, add 'yes_values' and 'no_values' lists
     * Time convertor
     * Float convertor - add places, rounding and locale parameters/options
+    * add a Complex convertor?
     * add: File convertor - pattern for name, suffix, path, check for existence, wildcard for multiple fields
  
 * validators:
