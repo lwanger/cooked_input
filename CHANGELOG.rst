@@ -10,7 +10,7 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
-* v0.3.0:
+* v0.2.12:
 
   * renamed ChoicesValidator to ChoiceValidator
 
