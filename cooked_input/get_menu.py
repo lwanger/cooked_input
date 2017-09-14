@@ -8,19 +8,20 @@ TODO:
 
 - Examples/scenarios:
     - menus:
-        - example runner
         X simple menu (numbered item built from list)
+        X pick-once and quit
+        X loop w/ pick until quit picked
         - action functions (with args/kwargs for context)
         - sub-menus
+        - filter functions (i.e. only choices matching a role)
         - different borders
         - sub-menu with multiple parents
-        - pick-once and quit
-        - loop w/ pick until quit picked
         - dynamic menu - from: list, pretty-table, database, Pandas
         - different display functions (i.e. function for displaying the table - silent_table for no display of menu or table)
-        - filter functions (i.e. only choices matching a role)
         - set user profile - list users, add profile, edit profile
         - use lambda for actions
+        - example runner
+
 """
 
 """
@@ -213,7 +214,7 @@ class Menu(object):
 
 def get_menu(choices, title=None, prompt=None, default_choice='', add_quit=False, **kwargs):
     menu_choices = [MenuChoice(choice) for choice in choices]
-    menu = Menu(menu_choices, title=None, prompt=None, default_choice='', add_quit=add_quit, **kwargs)
+    menu = Menu(menu_choices, title=title, prompt=prompt, default_choice=default_choice, add_quit=add_quit, **kwargs)
     result = menu.get_menu_choice()
 
     if add_quit and result=='quit':
@@ -261,8 +262,6 @@ def simple_menu():
     print('done')
 
 def test_get_menu():
-    # get_menu(choices, title=None, prompt=None, default_choice='', **kwargs):
-
     choices = ['red', 'blue', 'green']
 
     print('test_get_menu:\n')
@@ -271,7 +270,7 @@ def test_get_menu():
     print('result={}'.format(result))
 
     print('\nwith options...\n')
-    result = get_menu(choices, title='My Menu', prompt="Choose m'lady", default_choice='red', add_quit=True)
+    result = get_menu(choices, title='My Menu', prompt="Choose m'lady", default_choice='red', add_quit=True, case_sensitive=True)
     print('result={}'.format(result))
 
 
