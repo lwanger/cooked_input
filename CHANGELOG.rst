@@ -12,9 +12,11 @@ see TODO.md for list of TODO items
 
 * v0.3.0:
 
-  * added get_menu
+  * added get_menu and Menu classes (Menu, MenuItem, etc.)
 
-  * added ConvertorError exception. Changed Convertors to use itt
+  * added ConvertorError exception. Changed Convertors to use it
+
+  * added ChoiceIndexConvertor to support get_menu
 
 * v0.2.12:
 

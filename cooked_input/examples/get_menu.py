@@ -5,9 +5,11 @@ Len Wanger, 2017
 """
 
 from collections import namedtuple
-from cooked_input import get_int
+# from cooked_input import get_int
+from cooked_input import get_menu
 
-
+"""
+# old way:
 # Define actions for menu items
 def do_action_1():
     print('\nCalled do_action 1')
@@ -47,3 +49,18 @@ if __name__ == '__main__':
             break
         else:
             item.action()
+"""
+
+if __name__ == '__main__':
+    # new way
+    choices = ['red', 'blue', 'green']
+
+    print('test_get_menu:\n')
+    print('simplest case:\n')
+    result = get_menu(choices)
+    print('result={}'.format(result))
+
+    print('\nwith options...\n')
+    result = get_menu(choices, title='My Menu', prompt="Choose m'lady", default_choice='red', add_exit=True,
+                      case_sensitive=True)
+    print('result={}'.format(result))

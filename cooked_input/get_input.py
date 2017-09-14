@@ -15,8 +15,8 @@ import getpass
 from .error_callbacks import MaxRetriesError, ValidationError, ConvertorError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
 from .validators import RangeValidator, ChoiceValidator, in_all
-from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor, YesNoConvertor, \
-    ListConvertor
+from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor
+from .convertors import YesNoConvertor, ListConvertor
 from .cleaners import StripCleaner
 from .input_utils import compose, make_pretty_table
 

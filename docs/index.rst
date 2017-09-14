@@ -16,6 +16,7 @@ This is documentation for cooked_input |my_version|, generated |my_date|.
    README
    tutorial
    get_input
+   get_menu
    cleaners
    convertors
    validators

@@ -4,13 +4,12 @@ get_menu - menu system for cooked_input
 Len Wanger, 2017
 
 TODO:
-    - When settles down, add calls to __init__.py
 
 - Examples/scenarios:
     - menus:
         X simple menu (numbered item built from list)
-        X pick-once and quit
-        X loop w/ pick until quit picked
+        X pick-once and exit
+        X loop w/ pick until exit picked
         - action functions (with args/kwargs for context)
         - sub-menus
         - filter functions (i.e. only choices matching a role)
@@ -51,60 +50,61 @@ TODO:
 navigation buttons (selected line and up/down, pageup/pagedown, home,end
 """
 
-from future.utils import raise_from
 import sys
-from collections import namedtuple
 import veryprettytable as pt
-from cooked_input import get_input, Convertor, Validator, CapitalizationCleaner, StripCleaner, ChoiceCleaner, ChoiceValidator, RangeValidator
-from cooked_input.input_utils import put_in_a_list
-from cooked_input import ConvertorError
-
-
-# MenuChoice = namedtuple("MenuChoice", "tag text action")
+from cooked_input import get_input
+from .cleaners import CapitalizationCleaner, StripCleaner, ChoiceCleaner
+from .convertors import ChoiceIndexConvertor
+from .validators import RangeValidator
 
 MENU_DEFAULT_ACTION = 'default'
-MENU_ACTION_QUIT = 'quit'
+MENU_ACTION_EXIT = 'exit'
 
 
-class MenuChoice(object):
+class MenuItem(object):
     def __init__(self, text, tag=None, action=MENU_DEFAULT_ACTION):
+        """
+        MenuItem is used to represent individual menu items (choices) in the Menu class.
+
+        :param text: the text description to be used for the item in the printed menu
+        :param tag:  a value that can be used to choose the item. If None, a default tag will be assigned by the Menu
+        :param action:  the action to take when the item is selected
+
+        MenuItem actions:
+
+        +---------------------+--------------------------------------------------------------------------+
+        | value               | action                                                                   |
+        +---------------------+--------------------------------------------------------------------------+
+        | MENU_DEFAULT_ACTION |  use default method to handle the menu item (e.g. call                   |
+        |                     |  default_action handler function)                                        |
+        +---------------------+--------------------------------------------------------------------------+
+        | MENU_ACTION_EXIT    |  the menu item should exit the menu                                      |
+        +---------------------+--------------------------------------------------------------------------+
+
+        """
         self.text = text
         self.tag = tag
         self.action = action
 
     def __repr__(self):
-        return 'MenuChoice(text={}, tag={}, action={})'.format(self.text, self.tag, self.action)
-
-
-class TableRowConvertor(Convertor):
-    """
-    convert the cleaned input to the integer row of a table
-    """
-    def __init__(self, choices=(), value_error_str='a valid row number', **kwargs):
-        choices_list = put_in_a_list(choices)
-        self._choices = {v: i for i,v in enumerate(choices_list)}
-        super(TableRowConvertor, self).__init__(value_error_str, **kwargs)
-
-    def __call__(self, value, error_callback, convertor_fmt_str):
-        result = None
-        try:
-            result = self._choices[value]
-        except (KeyError) as ve:
-            error_callback(convertor_fmt_str, value, self.value_error_str)
-            raise_from(ConvertorError(str(ve)), ve)
-
-        return result
-
-    def __repr__(self):
-        return 'TableRowConvertor(choices={}, value_error_str={})'.format(self._choices, self.value_error_str)
+        return 'MenuItem(text={}, tag={}, action={})'.format(self.text, self.tag, self.action)
 
 
 class Menu(object):
     def __init__(self, rows=(), title=None, prompt=None, default_choice='', default_action=None, **kwargs):
+        """
+
+        :param rows:
+        :param title:
+        :param prompt:
+        :param default_choice:
+        :param default_action:
+        :param kwargs:
+        """
         try:
-            self.add_quit = kwargs['add_quit']
+            self.add_exit = kwargs['add_exit']
         except KeyError:
-            self.add_quit = True
+            self.add_exit = True
 
         try:
             self.action_args = kwargs['action_args']
@@ -150,8 +150,8 @@ class Menu(object):
             self.tbl.add_row(r)
             self._rows.append(v)
 
-        if self.add_quit:
-            r = MenuChoice('quit', 'quit', MENU_ACTION_QUIT)
+        if self.add_exit:
+            r = MenuItem('exit', 'exit', MENU_ACTION_EXIT)
             self.tbl.add_row([r.tag, r.text, r.action])
             self._rows.append(r)
 
@@ -176,7 +176,7 @@ class Menu(object):
             cleaners.append(CapitalizationCleaner('lower'))
         cleaners.append(ChoiceCleaner(choices))
 
-        convertor = TableRowConvertor(choices)
+        convertor = ChoiceIndexConvertor(choices)
         validators = RangeValidator(min_val=0, max_val=len(choices))
         return choices, cleaners, convertor, validators
 
@@ -201,7 +201,7 @@ class Menu(object):
             choice = self._get_choice(menu_choices, menu_cleaners, menu_convertor, menu_validators)
             action = choice.action
 
-            if action == MENU_ACTION_QUIT:
+            if action == MENU_ACTION_EXIT:
                 break
             elif action == MENU_DEFAULT_ACTION:
                 self.default_action(choice.tag, self.action_args, self.action_kwargs)
@@ -212,12 +212,12 @@ class Menu(object):
         return True
 
 
-def get_menu(choices, title=None, prompt=None, default_choice='', add_quit=False, **kwargs):
-    menu_choices = [MenuChoice(choice) for choice in choices]
-    menu = Menu(menu_choices, title=title, prompt=prompt, default_choice=default_choice, add_quit=add_quit, **kwargs)
+def get_menu(choices, title=None, prompt=None, default_choice='', add_exit=False, **kwargs):
+    menu_choices = [MenuItem(choice) for choice in choices]
+    menu = Menu(menu_choices, title=title, prompt=prompt, default_choice=default_choice, add_exit=add_exit, **kwargs)
     result = menu.get_menu_choice()
 
-    if add_quit and result=='quit':
+    if add_exit and result=='exit':
         return result
 
     return menu_choices[result-1].text
@@ -235,29 +235,29 @@ def action_1(tag, *args, **kwargs):
 
 def simple_menu():
     menu_choices = [
-        MenuChoice("Choice 1", None, None),
-        MenuChoice("Choice 2", 2, MENU_DEFAULT_ACTION),
-        MenuChoice("Do Foo", 'foo', MENU_DEFAULT_ACTION),
-        MenuChoice("Do Bar (action_1)", 'bar', action_1),
-        MenuChoice("STOP the menu!", 'stop', MENU_ACTION_QUIT),
+        MenuItem("Choice 1", None, None),
+        MenuItem("Choice 2", 2, MENU_DEFAULT_ACTION),
+        MenuItem("Do Foo", 'foo', MENU_DEFAULT_ACTION),
+        MenuItem("Do Bar (action_1)", 'bar', action_1),
+        MenuItem("STOP the menu!", 'stop', MENU_ACTION_EXIT),
     ]
 
-    print('\nget_menu_choice - add_quit=True\n')
+    print('\nget_menu_choice - add_exit=True\n')
     menu = Menu(menu_choices[:-1])
     choice = menu.get_menu_choice()
     print('choice={}, action={}'.format(choice, menu.get_action(choice)))
 
-    print('\nget_menu_choice - add_quit=False (no exit!), case_sensitive=True, with title\n')
-    menu = Menu(menu_choices[:-1], title='My Menu:', add_quit=False, case_sensitive=True)
+    print('\nget_menu_choice - add_exit=False (no exit!), case_sensitive=True, with title\n')
+    menu = Menu(menu_choices[:-1], title='My Menu:', add_exit=False, case_sensitive=True)
     choice = menu.get_menu_choice()
     print('choice={}, action={}'.format(choice, menu.get_action(choice)))
 
-    print('\nget_menu_choice - add_quit=False, w/ prompt, default="stop"\n')
-    menu = Menu(menu_choices, prompt='Choose or die!', default_choice='stop', default_action=default_action, add_quit=False)
+    print('\nget_menu_choice - add_exit=False, w/ prompt, default="stop"\n')
+    menu = Menu(menu_choices, prompt='Choose or die!', default_choice='stop', default_action=default_action, add_exit=False)
     choice = menu.get_menu_choice()
     print('choice={}, action={}'.format(choice, menu.get_action(choice)))
 
-    print('\nmenu.run - add_quit=True\n')
+    print('\nmenu.run - add_exit=True\n')
     menu.run()
     print('done')
 
@@ -270,7 +270,7 @@ def test_get_menu():
     print('result={}'.format(result))
 
     print('\nwith options...\n')
-    result = get_menu(choices, title='My Menu', prompt="Choose m'lady", default_choice='red', add_quit=True, case_sensitive=True)
+    result = get_menu(choices, title='My Menu', prompt="Choose m'lady", default_choice='red', add_exit=True, case_sensitive=True)
     print('result={}'.format(result))
 
 

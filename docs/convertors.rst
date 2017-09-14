@@ -80,3 +80,8 @@ YesNoConvertor
 --------------
 
 .. autoclass:: cooked_input.YesNoConvertor
+
+ChoiceIndexConvertor
+--------------------
+
+.. autoclass:: cooked_input.ChoiceIndexConvertor

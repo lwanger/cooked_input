@@ -17,6 +17,12 @@
     * show all errors for validation errors? Perform like flash messages where can have a list of them?
     * provide kwarg/option to run all validators, instead of failing on first one, so can see all errors.
     * send error messages to stderr?
+    
+* get_menu:
+    * documment - include action_handlers (and their parameters)
+    * add to tutorial - get_menu and Menu.run and setting parameters
+    * add examples
+    * add coverage tests
 
 * get_table_input
     * lots of plans to improve tables and menus! Scheduled for v0.3+

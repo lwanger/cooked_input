@@ -10,6 +10,7 @@ import csv
 from io import StringIO
 from future.utils import raise_from
 
+from .input_utils import put_in_a_list
 from .error_callbacks import ConvertorError
 
 
@@ -296,3 +297,34 @@ class TableConvertor(Convertor):
 
     def __repr__(self):
         return 'TableConvertor(%s)' % self.value_error_str
+
+
+    """
+    convert the cleaned input to the integer row of a table
+    """
+class ChoiceIndexConvertor(Convertor):
+    """
+    convert a value from an ordered list of choice to the integer index of the value in the list This is useful to get
+    the row index from a table of values.
+
+    :param values:  an ordered list of values
+    :param value_error_str: the error string to use when an improper value is input.
+    :param kwargs: no kwargs are currently supported.
+    """
+    def __init__(self, values=(), value_error_str='a valid row number', **kwargs):
+        choices_list = put_in_a_list(values)
+        self._choices = {v: i for i,v in enumerate(choices_list)}
+        super(ChoiceIndexConvertor, self).__init__(value_error_str, **kwargs)
+
+    def __call__(self, value, error_callback, convertor_fmt_str):
+        result = None
+        try:
+            result = self._choices[value]
+        except (KeyError) as ve:
+            error_callback(convertor_fmt_str, value, self.value_error_str)
+            raise_from(ConvertorError(str(ve)), ve)
+
+        return result
+
+    def __repr__(self):
+        return 'ChoiceIndexConvertor(choices={}, value_error_str={})'.format(self._choices, self.value_error_str)
