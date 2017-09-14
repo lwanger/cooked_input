@@ -12,7 +12,7 @@ import copy
 import logging
 import getpass
 
-from .error_callbacks import MaxRetriesError, ValidationError
+from .error_callbacks import MaxRetriesError, ValidationError, ConvertorError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
 from .validators import RangeValidator, ChoiceValidator, in_all
 from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor, YesNoConvertor, \
@@ -56,7 +56,7 @@ def process(value, cleaners=None, convertor=None, validators=None, error_callbac
             converted_response = convertor(cleaned_response, error_callback, convertor_error_fmt)
         else:
             converted_response = cleaned_response
-    except ValidationError:
+    except ConvertorError:
         return (False, None)
 
     valid_response = in_all(converted_response, validators, error_callback, validator_error_fmt)

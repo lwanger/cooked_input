@@ -10,6 +10,12 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* v0.3.0:
+
+  * added get_menu
+
+  * added ConvertorError exception. Changed Convertors to use itt
+
 * v0.2.12:
 
   * renamed ChoicesValidator to ChoiceValidator

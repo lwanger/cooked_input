@@ -22,6 +22,9 @@ class ValidationError(ValueError):
     # Exception raised when a value does not pass validation.
     pass
 
+class ConvertorError(ValueError):
+    # Exception raised when a value does not pass validation.
+    pass
 
 ### Default error callback format strings
 DEFAULT_CONVERTOR_ERROR = '"{value}" cannot be converted to {error_content}'
