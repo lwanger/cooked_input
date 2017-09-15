@@ -5,7 +5,6 @@ Len Wanger, 2017
 
 TODO:
 
-- Make get_menu use default_str...
 - Examples/scenarios:
     - menus:
         X simple menu (numbered item built from list)
@@ -57,7 +56,7 @@ from cooked_input import get_input
 from .cleaners import CapitalizationCleaner, StripCleaner, ChoiceCleaner
 from .convertors import ChoiceIndexConvertor
 from .validators import RangeValidator
-from .error_callbacks import silent_error
+
 
 MENU_DEFAULT_ACTION = 'default'
 MENU_ACTION_EXIT = 'exit'
@@ -171,10 +170,16 @@ class Menu(object):
                 return row.action
         raise ValueError('Menu.get_action: tag ({}) not in the menu'.format(tag))
 
+    def do_action(self, tag):
+        action = self.get_action(tag)
+        if callable(action):
+            action(tag, self.action_args, self.action_kwargs)
+        elif action == 'default' and self.default_action is not None:
+            self.default_action(tag, self.action_args, self.action_kwargs)
+
     def _prep_get_input(self):
         choices = tuple(c.tag for c in self._rows)
 
-        # cleaners = [StripCleaner(), CapitalizationCleaner('lower'), ChoiceCleaner(choices)]
         cleaners = [StripCleaner()]
         if not self.case_sensitive:
             cleaners.append(CapitalizationCleaner('lower'))
