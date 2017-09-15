@@ -5,51 +5,44 @@ Len Wanger, 2017
 """
 
 from collections import namedtuple
-# from cooked_input import get_int
 from cooked_input import get_menu
+from cooked_input import Menu, MenuItem, MENU_DEFAULT_ACTION, MENU_ACTION_EXIT
 
-"""
-# old way:
-# Define actions for menu items
-def do_action_1():
-    print('\nCalled do_action 1')
+def default_action(tag, *args, **kwargs):
+    print('called default_action, tag={}, args={} kwargs={}'.format(tag, args, kwargs))
+    return True
 
-def do_action_2():
-    print('\nCalled do_action 2')
+def action_1(tag, *args, **kwargs):
+    print('called action_1')
+    return True
 
-def do_action_3():
-    print('\nCalled do_action 3')
-
-
-def show_menu(menu_table):
-    print('\nMenu:')
-    for i,item in enumerate(menu_table):
-        print('\t{}.\t{}'.format(i+1, item[1]))
-
-
-if __name__ == '__main__':
-    MenuItem = namedtuple('MenuItem', 'tag desc action')
-    menu_items = [
-        MenuItem('ACTION_1', 'Do action number 1', do_action_1),
-        MenuItem('ACTION_2', 'Do action number 2', do_action_2),
-        MenuItem('ACTION_3', 'Do action number 3', do_action_3),
-        MenuItem('QUIT', 'Quit', None)
+def simple_menu():
+    menu_choices = [
+        MenuItem("Choice 1", None, None),
+        MenuItem("Choice 2", 2, MENU_DEFAULT_ACTION),
+        MenuItem("Do Foo", 'foo', MENU_DEFAULT_ACTION),
+        MenuItem("Do Bar (action_1)", 'bar', action_1),
+        MenuItem("STOP the menu!", 'stop', MENU_ACTION_EXIT),
     ]
 
-    menu_table = [(i + 1, menu_item.desc) for i, menu_item in enumerate(menu_items)]
-    prompt_str = 'What would you like to do?'
-    error_fmt = 'Not a valid menu choice'
+    print('\nget_menu_choice - add_exit=True\n')
+    menu = Menu(menu_choices[:-1])
+    choice = menu.get_menu_choice()
+    print('choice={}, action={}'.format(choice, menu.get_action(choice)))
 
-    while True:
-        show_menu(menu_table)
-        menu_choice = get_int(minimum=1, maximum=len(menu_table), prompt=prompt_str, validator_error_fmt=error_fmt)
-        item = menu_items[menu_choice - 1]
+    print('\nget_menu_choice - add_exit=False (no exit!), case_sensitive=True, with title\n')
+    menu = Menu(menu_choices[:-1], title='My Menu:', add_exit=False, case_sensitive=True)
+    choice = menu.get_menu_choice()
+    print('choice={}, action={}'.format(choice, menu.get_action(choice)))
 
-        if item.tag == 'QUIT':
-            break
-        else:
-            item.action()
-"""
+    print('\nget_menu_choice - add_exit=False, w/ prompt, default="stop"\n')
+    menu = Menu(menu_choices, prompt='Choose or die!', default_choice='stop', default_action=default_action, add_exit=False)
+    choice = menu.get_menu_choice()
+    print('choice={}, action={}'.format(choice, menu.get_action(choice)))
+
+    print('\nmenu.run - add_exit=True\n')
+    menu.run()
+    print('done')
 
 if __name__ == '__main__':
     # new way
@@ -61,6 +54,8 @@ if __name__ == '__main__':
     print('result={}'.format(result))
 
     print('\nwith options...\n')
-    result = get_menu(choices, title='My Menu', prompt="Choose m'lady", default_choice='red', add_exit=True,
-                      case_sensitive=True)
+    # error_fmt = 'Not a valid menu choice'
+    prompt_str= 'Enter a menu choice'
+    result = get_menu(choices, title='My Menu', prompt=prompt_str, default_choice='red', add_exit=True, case_sensitive=True)
+                      # case_sensitive=True, validator_error_fmt=error_fmt)
     print('result={}'.format(result))

@@ -5,6 +5,7 @@ Len Wanger, 2017
 
 TODO:
 
+- Make get_menu use default_str...
 - Examples/scenarios:
     - menus:
         X simple menu (numbered item built from list)
@@ -56,6 +57,7 @@ from cooked_input import get_input
 from .cleaners import CapitalizationCleaner, StripCleaner, ChoiceCleaner
 from .convertors import ChoiceIndexConvertor
 from .validators import RangeValidator
+from .error_callbacks import silent_error
 
 MENU_DEFAULT_ACTION = 'default'
 MENU_ACTION_EXIT = 'exit'
@@ -91,13 +93,14 @@ class MenuItem(object):
 
 
 class Menu(object):
-    def __init__(self, rows=(), title=None, prompt=None, default_choice='', default_action=None, **kwargs):
+    def __init__(self, rows=(), title=None, prompt=None, default_choice=None, default_str=None, default_action=None, **kwargs):
         """
 
         :param rows:
         :param title:
         :param prompt:
         :param default_choice:
+        :param default_str:
         :param default_action:
         :param kwargs:
         """
@@ -128,6 +131,7 @@ class Menu(object):
 
         self.title = title
         self.default_choice = default_choice
+        self.default_str= default_str
         self.default_action = default_action
         self._rows = []
         self.tbl = pt.VeryPrettyTable()
@@ -185,7 +189,7 @@ class Menu(object):
             print('{}'.format(self.title))
         print(self.tbl.get_string(fields=['tag', 'text']))  # don't show action
         result = get_input(prompt=self.prompt, cleaners=menu_cleaners, convertor=menu_convertor,
-                           validators=menu_validators, default=self.default_choice)
+                           validators=menu_validators, default=self.default_choice, default_str=self.default_str)
 
         return self._rows[result]
 
@@ -214,66 +218,18 @@ class Menu(object):
 
 def get_menu(choices, title=None, prompt=None, default_choice='', add_exit=False, **kwargs):
     menu_choices = [MenuItem(choice) for choice in choices]
-    menu = Menu(menu_choices, title=title, prompt=prompt, default_choice=default_choice, add_exit=add_exit, **kwargs)
+    default_str = default_choice
+    default_idx = None
+
+    for i,mc in enumerate(menu_choices):
+        if mc.text == default_choice:
+            default_idx = i+1
+            break
+
+    menu = Menu(menu_choices, title=title, prompt=prompt, default_choice=default_idx, default_str=default_str, add_exit=add_exit, **kwargs)
     result = menu.get_menu_choice()
 
     if add_exit and result=='exit':
         return result
 
     return menu_choices[result-1].text
-
-
-### tests ####
-def default_action(tag, *args, **kwargs):
-    print('called default_action, tag={}, args={} kwargs={}'.format(tag, args, kwargs))
-    return True
-
-def action_1(tag, *args, **kwargs):
-    print('called action_1')
-    return True
-
-
-def simple_menu():
-    menu_choices = [
-        MenuItem("Choice 1", None, None),
-        MenuItem("Choice 2", 2, MENU_DEFAULT_ACTION),
-        MenuItem("Do Foo", 'foo', MENU_DEFAULT_ACTION),
-        MenuItem("Do Bar (action_1)", 'bar', action_1),
-        MenuItem("STOP the menu!", 'stop', MENU_ACTION_EXIT),
-    ]
-
-    print('\nget_menu_choice - add_exit=True\n')
-    menu = Menu(menu_choices[:-1])
-    choice = menu.get_menu_choice()
-    print('choice={}, action={}'.format(choice, menu.get_action(choice)))
-
-    print('\nget_menu_choice - add_exit=False (no exit!), case_sensitive=True, with title\n')
-    menu = Menu(menu_choices[:-1], title='My Menu:', add_exit=False, case_sensitive=True)
-    choice = menu.get_menu_choice()
-    print('choice={}, action={}'.format(choice, menu.get_action(choice)))
-
-    print('\nget_menu_choice - add_exit=False, w/ prompt, default="stop"\n')
-    menu = Menu(menu_choices, prompt='Choose or die!', default_choice='stop', default_action=default_action, add_exit=False)
-    choice = menu.get_menu_choice()
-    print('choice={}, action={}'.format(choice, menu.get_action(choice)))
-
-    print('\nmenu.run - add_exit=True\n')
-    menu.run()
-    print('done')
-
-def test_get_menu():
-    choices = ['red', 'blue', 'green']
-
-    print('test_get_menu:\n')
-    print('simplest case:\n')
-    result = get_menu(choices)
-    print('result={}'.format(result))
-
-    print('\nwith options...\n')
-    result = get_menu(choices, title='My Menu', prompt="Choose m'lady", default_choice='red', add_exit=True, case_sensitive=True)
-    print('result={}'.format(result))
-
-
-if __name__ == '__main__':
-    test_get_menu()
-    # simple_menu()
