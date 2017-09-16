@@ -11,7 +11,7 @@ TODO:
         X pick-once and exit
         X loop w/ pick until exit picked
         - action functions (with args/kwargs for context)
-        - sub-menus
+        X sub-menus
         - filter functions (i.e. only choices matching a role)
         - different borders
         - sub-menu with multiple parents
@@ -60,6 +60,10 @@ from .validators import RangeValidator
 
 MENU_DEFAULT_ACTION = 'default'
 MENU_ACTION_EXIT = 'exit'
+MENU_ACTION_RETURN = 'return'
+
+MENU_ADD_EXIT = 'exit'
+MENU_ADD_RETURN = 'return'
 
 
 class MenuItem(object):
@@ -92,7 +96,7 @@ class MenuItem(object):
 
 
 class Menu(object):
-    def __init__(self, rows=(), title=None, prompt=None, default_choice=None, default_str=None, default_action=None, **kwargs):
+    def __init__(self, rows=(), title=None, prompt=None, default_choice=None, default_str=None, default_action=None, **options):
         """
 
         :param rows:
@@ -101,25 +105,41 @@ class Menu(object):
         :param default_choice:
         :param default_str:
         :param default_action:
-        :param kwargs:
+        :param options: see below for a list of valid options
+
+        Options:
+
+        add_exit            automatically add an exit MenuItem at the end of the menu when True (default)
+
+        MENU_ADD_EXIT = 'exit'
+MENU_ADD_RETURN = 'return'
+
+        action_args         a list of arguments to pass to action functions
+        action_kwargs       a dictionary of keyword arguments to pass to action functions
+        case_sensitive      whether choosing menu items should be case sensitive (True) or not (False - default)
         """
         try:
-            self.add_exit = kwargs['add_exit']
+            add_exit = options['add_exit']
+            if add_exit in { False, MENU_ADD_EXIT, MENU_ADD_RETURN }:
+                self.add_exit = add_exit
+            else:
+                print('Menu:__init__: ')
+                raise RuntimeError('Menu: unexpected value for add_exit option ({})'.format(add_exit))
         except KeyError:
-            self.add_exit = True
+            self.add_exit = MENU_ADD_EXIT
 
         try:
-            self.action_args = kwargs['action_args']
+            self.action_args = options['action_args']
         except KeyError:
             self.action_args = []
 
         try:
-            self.action_kwargs = kwargs['action_kwargs']
+            self.action_kwargs = options['action_kwargs']
         except KeyError:
             self.action_kwargs = {}
 
         try:
-            self.case_sensitive = kwargs['case_sensitive']
+            self.case_sensitive = options['case_sensitive']
         except KeyError:
             self.case_sensitive = False
 
@@ -154,7 +174,10 @@ class Menu(object):
             self._rows.append(v)
 
         if self.add_exit:
-            r = MenuItem('exit', 'exit', MENU_ACTION_EXIT)
+            if self.add_exit == MENU_ADD_EXIT:
+                r = MenuItem('exit', 'exit', MENU_ACTION_EXIT)
+            if self.add_exit == MENU_ADD_RETURN:
+                r = MenuItem('return', 'return', MENU_ACTION_EXIT)
             self.tbl.add_row([r.tag, r.text, r.action])
             self._rows.append(r)
 
@@ -212,12 +235,17 @@ class Menu(object):
 
             if action == MENU_ACTION_EXIT:
                 break
+            elif action == MENU_ACTION_RETURN:
+                break
             elif action == MENU_DEFAULT_ACTION:
-                self.default_action(choice.tag, self.action_args, self.action_kwargs)
+                if callable(self.default_action):
+                    self.default_action(choice.tag, self.action_args, self.action_kwargs)
+                else:
+                    print('Menu:run: default_action not set for {}'.format(choice), file=sys.stderr)
             elif callable(action):
                 action(choice.tag, self.action_args, self.action_kwargs)
             else:
-                print('Menu.run - no action specified for tag ({})'.format(choice.tag), file=sys.stderr)
+                print('Menu.run - no action specified for {}'.format(choice), file=sys.stderr)
         return True
 
 
