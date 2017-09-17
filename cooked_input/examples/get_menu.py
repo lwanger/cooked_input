@@ -21,18 +21,20 @@ def test_get_menu_2():
     print('\nwith options...\n')
     # error_fmt = 'Not a valid menu choice'
     prompt_str = 'Enter a menu choice'
-    result = get_menu(choices, title='My Menu', prompt=prompt_str, default_choice='red', add_exit=True,
+    result = get_menu(choices, title='My Menu', prompt=prompt_str, default_choice='red', add_exit=MENU_ADD_EXIT,
                       case_sensitive=True)
-    # case_sensitive=True, validator_error_fmt=error_fmt)
     print('result={}'.format(result))
 
-def default_action(tag, *args, **kwargs):
-    print('called default_action, tag={}, args={} kwargs={}'.format(tag, args, kwargs))
+
+def default_action(tag, kwargs):
+    print('called default_action, tag={}, kwargs={}'.format(tag, kwargs))
     return True
 
-def action_1(text, *args, **kwargs):
-    print('called action_1, text={}, args={}, kwargs={}'.format(text, args, kwargs))
+
+def action_1(text, kwargs):
+    print('called action_1, text={}, kwargs={}'.format(text, kwargs))
     return True
+
 
 def show_choice(menu, choice):
     action = menu.get_action(choice)
@@ -44,7 +46,7 @@ def test_action_menu():
     menu_choices = [
         MenuItem("Choice 1 - no specified tag, no specified action", None, None),
         MenuItem("Choice 2 - default action", 2, MENU_DEFAULT_ACTION),
-        MenuItem("Choice 3 - text tag, lambda action", 'foo', lambda tag,args,kwargs: print('lambda action: tag={}, args={}, kwargs={}'.format(tag,args,kwargs))),
+        MenuItem("Choice 3 - text tag, lambda action", 'foo', lambda tag,kwargs: print('lambda action: tag={}, kwargs={}'.format(tag,kwargs))),
         MenuItem("Choice 4 - text tag, action handler function specified", 'bar', action_1),
         MenuItem("STOP the menu!", 'stop', MENU_ACTION_EXIT),
     ]
@@ -69,8 +71,8 @@ def test_action_menu():
     print('done')
 
 
-def sub_menu_action(tag, *args, **kwargs):
-    print('sub_menu2: tag={}, args={}, kwargs={}'.format(tag, args, kwargs))
+def sub_menu_action(tag, kwargs):
+    print('sub_menu2: tag={}, kwargs={}'.format(tag, kwargs))
 
     sub_menu_choices = [
         MenuItem("sub menu 2: Choice 1", 1, MENU_DEFAULT_ACTION),
@@ -101,11 +103,44 @@ def test_sub_menu():
     print('done')
 
 
+def change_kwargs(tag, action_dict):
+    # Change the action_dict values...
+    if tag == 1:
+        action_dict['first'] = 'Ron'
+        action_dict['last'] = 'McGee'
+    elif tag == 2:
+        action_dict['first'] = 'Len'
+        action_dict['last'] = 'Wanger'
+
+    print(f'kwargs={action_dict}')
+    return action_dict
+
+def test_args_menu():
+    print('test sending args and kwargs to menus:\n')
+
+    menu_choices = [
+        MenuItem("Change kwargs to Ron McGee", None, change_kwargs),
+        MenuItem("Change kwargs to Len Wanger", None, change_kwargs),
+        MenuItem("Change kwargs to Dick Ellis with lambda", None, lambda tag, ad: ad.update({'first':'Dick', 'last': 'Ellis'})),
+        MenuItem("call default action (print args and kwargs)", None, MENU_DEFAULT_ACTION),
+        MenuItem("call action_1 (print args and kwargs)", None, action_1),
+    ]
+
+    my_profile = {'first': 'Len', 'last': 'Wanger'}
+
+    print('\nmenu.run - with sub-menu\n')
+    menu = Menu(menu_choices, default_action=default_action, action_dict=my_profile)
+    menu.run()
+    print('done')
+
+
 if __name__ == '__main__':
     # test_get_menu_1()
     # test_get_menu_2()
-    test_action_menu()
+    # test_action_menu()
     # test_sub_menu()
+    test_args_menu()
+
 
 
 

@@ -12,7 +12,7 @@ TODO:
         X simple menu (numbered item built from list)
         X pick-once and exit
         X loop w/ pick until exit picked
-        - action functions (with args/kwargs for context)
+        X action functions (with args/kwargs for context)
         X sub-menus
         - filter functions (i.e. only choices matching a role)
         - different borders
@@ -111,13 +111,9 @@ class Menu(object):
 
         Options:
 
-        add_exit            automatically add an exit MenuItem at the end of the menu when True (default)
-
-        MENU_ADD_EXIT = 'exit'
-MENU_ADD_RETURN = 'return'
-
-        action_args         a list of arguments to pass to action functions
-        action_kwargs       a dictionary of keyword arguments to pass to action functions
+        add_exit            automatically adds a MenuItem to exit the menu (MENU_ADD_EXIT - default) or return to the
+                            parent menu (MENU_ADD_RETURN), or not to add a MenuItem at all (False)
+        action_dict         a dictionary of values to pass to action functions. Used to provide context to the action
         case_sensitive      whether choosing menu items should be case sensitive (True) or not (False - default)
         """
         try:
@@ -136,9 +132,9 @@ MENU_ADD_RETURN = 'return'
             self.action_args = []
 
         try:
-            self.action_kwargs = options['action_kwargs']
+            self.action_dict = options['action_dict']
         except KeyError:
-            self.action_kwargs = {}
+            self.action_dict = {}
 
         try:
             self.case_sensitive = options['case_sensitive']
@@ -184,7 +180,8 @@ MENU_ADD_RETURN = 'return'
             self._rows.append(r)
 
     def __repr__(self):
-        return 'Menu(rows=..., title={}, prompt={}, default_choice={}, kwargs=...)'.format(self.title, self.prompt, self.default_choice)
+        return 'Menu(rows=..., title={}, prompt={}, default_choice={}, action_dict={})'.format(self.title, self.prompt,
+                    self.default_choice, self.action_dict)
 
     def get_numchoices(self):
         return len(self._rows)
@@ -198,9 +195,10 @@ MENU_ADD_RETURN = 'return'
     def do_action(self, tag):
         action = self.get_action(tag)
         if callable(action):
-            action(tag, self.action_args, self.action_kwargs)
+            action(tag, self.action_dict)
         elif action == 'default' and self.default_action is not None:
-            self.default_action(tag, self.action_args, self.action_kwargs)
+            # self.default_action(tag, self.action_args, self.)
+            self.default_action(tag, self.action_dict)
 
     def _prep_get_input(self):
         choices = tuple(c.tag for c in self._rows)
@@ -254,11 +252,11 @@ MENU_ADD_RETURN = 'return'
                 break
             elif action == MENU_DEFAULT_ACTION:
                 if callable(self.default_action):
-                    self.default_action(choice.tag, self.action_args, self.action_kwargs)
+                    self.default_action(choice.tag, self.action_dict)
                 else:
                     print('Menu:run: default_action not set for {}'.format(choice), file=sys.stderr)
             elif callable(action):
-                action(choice.tag, self.action_args, self.action_kwargs)
+                action(choice.tag, self.action_dict)
             else:
                 print('Menu.run - no action specified for {}'.format(choice), file=sys.stderr)
         return True

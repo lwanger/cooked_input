@@ -18,6 +18,8 @@ see TODO.md for list of TODO items
 
   * added ChoiceIndexConvertor to support get_menu
 
+  * modified get_menu example for new menu structure
+
 * v0.2.12:
 
   * renamed ChoicesValidator to ChoiceValidator
