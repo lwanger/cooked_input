@@ -5,6 +5,8 @@ Len Wanger, 2017
 
 TODO:
 
+- Document and add to tutorial
+
 - Examples/scenarios:
     - menus:
         X simple menu (numbered item built from list)
@@ -14,11 +16,11 @@ TODO:
         X sub-menus
         - filter functions (i.e. only choices matching a role)
         - different borders
-        - sub-menu with multiple parents
+        X sub-menu with multiple parents
         - dynamic menu - from: list, pretty-table, database, Pandas
         - different display functions (i.e. function for displaying the table - silent_table for no display of menu or table)
         - set user profile - list users, add profile, edit profile
-        - use lambda for actions
+        X use lambda for actions
         - example runner
 
 """
@@ -225,6 +227,19 @@ MENU_ADD_RETURN = 'return'
         menu_choices, menu_cleaners, menu_convertor, menu_validators = self._prep_get_input()
         row = self._get_choice(menu_choices, menu_cleaners, menu_convertor, menu_validators)
         return row.tag
+
+    def __call__(self, tag=None, args=[], kwargs={}):
+        """
+        This makes Menus convenient by making them callable. To call the run method on a menu just call the
+        menu like a function: (i.e. my_menu()). The reason it takes takes, args, and kwargs is so it can be
+        used for submenus by putting the menu as the action for the MenuItem.
+
+        :param tag: tag the menu was called with (used for submenus)
+        :param args: arg list the menu was called with (used for submenus)
+        :param kwargs: keyword arg dictionary the menu was called with (used for submenus)
+        :return: the status from run.
+        """
+        return self.run()
 
     def run(self):
         menu_choices, menu_cleaners, menu_convertor, menu_validators = self._prep_get_input()

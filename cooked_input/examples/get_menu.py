@@ -42,10 +42,10 @@ def show_choice(menu, choice):
 
 def test_action_menu():
     menu_choices = [
-        MenuItem("Choice 1", None, None),
-        MenuItem("Choice 2", 2, MENU_DEFAULT_ACTION),
-        MenuItem("Do Foo", 'foo', MENU_DEFAULT_ACTION),
-        MenuItem("Do Bar (action_1)", 'bar', action_1),
+        MenuItem("Choice 1 - no specified tag, no specified action", None, None),
+        MenuItem("Choice 2 - default action", 2, MENU_DEFAULT_ACTION),
+        MenuItem("Choice 3 - text tag, lambda action", 'foo', lambda tag,args,kwargs: print('lambda action: tag={}, args={}, kwargs={}'.format(tag,args,kwargs))),
+        MenuItem("Choice 4 - text tag, action handler function specified", 'bar', action_1),
         MenuItem("STOP the menu!", 'stop', MENU_ACTION_EXIT),
     ]
 
@@ -68,34 +68,31 @@ def test_action_menu():
     menu.run()
     print('done')
 
-def sub_menu1(tag, *args, **kwargs):
-    print('sub_menu1: tag={}, args={}, kwargs={}'.format(tag, args, kwargs))
+
+def sub_menu_action(tag, *args, **kwargs):
+    print('sub_menu2: tag={}, args={}, kwargs={}'.format(tag, args, kwargs))
 
     sub_menu_choices = [
-        MenuItem("sm1: Choice 1", 1, MENU_DEFAULT_ACTION),
-        MenuItem("sm1: Choice 2", 2, MENU_DEFAULT_ACTION),
-        MenuItem("Return to parent menu", 3, MENU_ADD_RETURN),
-    ]
-    sub_menu = Menu(sub_menu_choices, title="Sub-Menu 1", add_exit=False)
-    sub_menu.run()
-
-
-def sub_menu2(tag, *args, **kwargs):
-    print('sub_menu1: tag={}, args={}, kwargs={}'.format(tag, args, kwargs))
-
-    sub_menu_choices = [
-        MenuItem("sm2: Choice 1", 1, MENU_DEFAULT_ACTION),
-        MenuItem("sm2: Choice 2", 2, MENU_DEFAULT_ACTION),
+        MenuItem("sub menu 2: Choice 1", 1, MENU_DEFAULT_ACTION),
+        MenuItem("sub menu 2: Choice 2", 2, MENU_DEFAULT_ACTION),
     ]
     sub_menu = Menu(sub_menu_choices, title="Sub-Menu 2", add_exit=MENU_ADD_RETURN)
     sub_menu.run()
 
 
 def test_sub_menu():
+    sub_menu_1_items = [
+        MenuItem("sub menu 1: Choice 1", 1, MENU_DEFAULT_ACTION),
+        MenuItem("sub menu 1: Choice 2", 2, MENU_DEFAULT_ACTION),
+    ]
+    sub_menu_1 = Menu(sub_menu_1_items, title="Sub-Menu 2", add_exit=MENU_ADD_RETURN)
+
+    # call submenus two different ways. First by using it as a callable, which calls run on the sub_menu, and second
+    # with an explicit action handler
     menu_choices = [
         MenuItem("Choice 1", None, MENU_DEFAULT_ACTION),
-        MenuItem("sub_menu 1", None, sub_menu1),
-        MenuItem("sub_menu 2", None, sub_menu2),
+        MenuItem("sub_menu 1", None, sub_menu_1),
+        MenuItem("sub_menu 2", None, sub_menu_action),
     ]
 
     print('\nmenu.run - with sub-menu\n')
@@ -107,8 +104,8 @@ def test_sub_menu():
 if __name__ == '__main__':
     # test_get_menu_1()
     # test_get_menu_2()
-    # test_action_menu()
-    test_sub_menu()
+    test_action_menu()
+    # test_sub_menu()
 
 
 
