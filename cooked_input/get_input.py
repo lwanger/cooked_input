@@ -494,12 +494,10 @@ def get_list(cleaners=(StripCleaner()), validators=None, value_error_str='list o
         result = get_input(cleaners, convertor=ListConvertor(value_error_str=value_error_str, delimiter=delimiter,
                             elem_convertor=elem_convertor), validators=validators, **new_options)
 
-        if elem_validators is not None:
-            for elem in result:
-                valid = validate(elem, elem_validators, error_callback=error_callback, validator_fmt_str=validator_error_fmt)
-                if not valid:
-                    break
-            if valid:
+        if elem_validators is None:
+            break
+        else:
+            if all(validate(elem, elem_validators, error_callback=error_callback, validator_fmt_str=validator_error_fmt) for elem in result):
                 break
 
     return result
