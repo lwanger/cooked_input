@@ -15,7 +15,7 @@ TODO:
         X action functions (with args/kwargs for context)
         X sub-menus
         X refresh option on menus to re-evaluate the MenuItems each pass through run (in case strings changed for dynamic items)
-        - filter functions (i.e. only choices matching a role)
+        X filter functions (i.e. only choices matching a role)
         - different borders
         X sub-menu with multiple parents
         - dynamic menu - from: list, pretty-table, database, Pandas
@@ -54,7 +54,6 @@ navigation buttons (selected line and up/down, pageup/pagedown, home,end
 """
 
 import sys
-from copy import copy
 import string
 import veryprettytable as pt
 from cooked_input import get_input
@@ -72,13 +71,14 @@ MENU_ADD_RETURN = 'return'
 
 
 class MenuItem(object):
-    def __init__(self, text, tag=None, action=MENU_DEFAULT_ACTION):
+    def __init__(self, text, tag=None, action=MENU_DEFAULT_ACTION, item_data=None):
         """
         MenuItem is used to represent individual menu items (choices) in the Menu class.
 
         :param text: the text description to be used for the item in the printed menu
         :param tag:  a value that can be used to choose the item. If None, a default tag will be assigned by the Menu
         :param action:  the action to take when the item is selected
+        :param item_data:  a dictionary containing data for the menu item. Used for item filters.
 
         MenuItem actions:
 
@@ -95,9 +95,10 @@ class MenuItem(object):
         self.text = text
         self.tag = tag
         self.action = action
+        self.item_data = item_data
 
     def __repr__(self):
-        return 'MenuItem(text={}, tag={}, action={})'.format(self.text, self.tag, self.action)
+        return 'MenuItem(text={}, tag={}, action={}, item_data={})'.format(self.text, self.tag, self.action, self.item_data)
 
 
 class Menu(object):
@@ -118,6 +119,8 @@ class Menu(object):
                             parent menu (MENU_ADD_RETURN), or not to add a MenuItem at all (False)
         action_dict         a dictionary of values to pass to action functions. Used to provide context to the action
         case_sensitive      whether choosing menu items should be case sensitive (True) or not (False - default)
+        item_filter         a function used to determine which menu items to display. An item is display if the function returns True for the item.
+                                All items are displayed if item_filter is None (default)
         refresh             refresh menu items each time the menu is shown (True), or just when created (False). Useful for dynamic menus
         item_filter              a function used to filter menu items. MenuItem is shown if returns True, and not if False
         """
@@ -165,7 +168,6 @@ class Menu(object):
         self.default_choice = default_choice
         self.default_str= default_str
         self.default_action = default_action
-        # self._rows = copy(rows)
         self._rows = []
         self.tbl = pt.VeryPrettyTable()
 
@@ -177,7 +179,7 @@ class Menu(object):
         self.tbl.align['tag'] = 'r'
         # self.tbl.left_padding_width = 2
 
-        self.refresh_items(rows=rows, add_exit=True)
+        self.refresh_items(rows=rows, add_exit=True, item_filter=self.item_filter)
 
     def __repr__(self):
         return 'Menu(rows=..., title={}, prompt={}, default_choice={}, action_dict={})'.format(self.title, self.prompt,
@@ -225,7 +227,7 @@ class Menu(object):
         row = self._get_choice(menu_choices, menu_cleaners, menu_convertor, menu_validators)
         return row.tag
 
-    def refresh_items(self, rows=None, add_exit=False):
+    def refresh_items(self, rows=None, add_exit=False, item_filter=None):
         # Used to update rows in the table. Adds tags if necessary. formatter is used so
         # values can be substituted in format strings from action_dict using vformat.
         formatter = string.Formatter()
@@ -239,13 +241,21 @@ class Menu(object):
         self._rows = []
 
         for i, row in enumerate(use_rows):
-            if row.tag is None:
-                table_entry = ['{:3}'.format(i+1), formatter.vformat(row.text, None, self.action_dict), row.action]
-                row.tag = i+1
-            else:
-                table_entry = [row.tag, formatter.vformat(row.text, None, self.action_dict), row.action]
+            item_filter_result = True
+            if item_filter:
+                if callable(item_filter):
+                    item_filter_result = item_filter(row, self.action_dict)
+                else:
+                    item_filter_result = item_filter
 
-            self.tbl.add_row(table_entry)
+            if item_filter_result:
+                if row.tag is None:
+                    table_entry = ['{:3}'.format(i+1), formatter.vformat(row.text, None, self.action_dict), row.action]
+                    row.tag = i+1
+                else:
+                    table_entry = [row.tag, formatter.vformat(row.text, None, self.action_dict), row.action]
+
+                self.tbl.add_row(table_entry)
             self._rows.append(row)
 
         if add_exit and self.add_exit:
@@ -253,10 +263,8 @@ class Menu(object):
                 table_entry = MenuItem('exit', 'exit', MENU_ACTION_EXIT)
             if self.add_exit == MENU_ADD_RETURN:
                 table_entry = MenuItem('return', 'return', MENU_ACTION_EXIT)
-            self.tbl.add_row([table_entry.tag, table_entry.text, table_entry.action])
 
-            # if clear_first:
-            #     self._rows.append(table_entry)
+            self.tbl.add_row([table_entry.tag, table_entry.text, table_entry.action])
             self._rows.append(table_entry)
 
 
@@ -295,7 +303,8 @@ class Menu(object):
                 print('Menu.run - no action specified for {}'.format(choice), file=sys.stderr)
 
             if self.refresh:
-                self.refresh_items(add_exit=False)
+                self.refresh_items(add_exit=False, item_filter=self.item_filter)
+                menu_choices, menu_cleaners, menu_convertor, menu_validators = self._prep_get_input()
 
         return True
 

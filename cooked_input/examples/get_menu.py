@@ -4,8 +4,8 @@ cooked input example of using table input to pick from a menu.
 Len Wanger, 2017
 """
 
-from cooked_input import get_menu, get_string
-from cooked_input import Menu, MenuItem, MENU_DEFAULT_ACTION, MENU_ACTION_EXIT, MENU_ADD_RETURN, MENU_ADD_EXIT
+from cooked_input import get_menu, get_string, get_list, validate, Validator, ChoiceValidator
+from cooked_input import Menu, MenuItem, MENU_DEFAULT_ACTION, MENU_ACTION_EXIT, MENU_ACTION_RETURN, MENU_ADD_RETURN, MENU_ADD_EXIT
 
 
 def test_get_menu_1():
@@ -31,8 +31,8 @@ def default_action(tag, kwargs):
     return True
 
 
-def action_1(text, kwargs):
-    print('called action_1, text={}, kwargs={}'.format(text, kwargs))
+def action_1(tag, action_dict):
+    print('called action_1, text={}, action_dict={}'.format(text, action_dict))
     return True
 
 
@@ -160,14 +160,74 @@ def test_refresh_menu():
 
     print('done')
 
+#
+# item_filter example: Filter the menu items by user roles
+#
+def show_roles(tag, action_dict):
+    # an action item to print the user's roles
+    print('called show_roles: user={} {}, roles={}'.format(action_dict['first'], action_dict['last'], action_dict['roles']))
+    return True
+
+def change_roles(tag, action_dict):
+    # an action item to get a new list of roles for the user
+    role_validator = ChoiceValidator(['admin', 'editor', 'user'])
+    prompt_str = 'Enter roles for user {} {}'.format(action_dict['first'], action_dict['last'])
+    result = get_list(prompt=prompt_str, default=action_dict['roles'], elem_validators=role_validator)
+    action_dict['roles'] = set(result)
+    return result
+
+class IntersectionValidator(Validator):
+    def __init__(self, choices=None):
+        if choices is None:
+            self._choices = {}
+        else:
+            self._choices = set(choices)
+
+    def __call__(self, value, error_callback, validator_fmt_str):
+        sv = set(value)
+        if len(sv.intersection(self._choices)) != 0:
+            return True
+        else:
+            return False
+
+def role_item_filter(row, action_dict):
+    # check if the roles in action_dict for the current user matches any of the required roles for the menu item
+    if row.item_data == None or row.action in {MENU_ACTION_EXIT, MENU_ACTION_RETURN}:
+        return True
+
+    try:
+        role_validator = IntersectionValidator(row.item_data['roles'])
+        return validate(action_dict['roles'], role_validator, error_callback=None)
+    except (TypeError, KeyError):
+        return False
+
+def test_item_filter():
+    all_roles = {'roles': {'admin', 'user'}}
+    admin_only = {'roles': {'admin'}}
+
+    menu_choices = [
+        MenuItem("Change roles from: {roles}", None, change_roles, item_data=all_roles),
+        MenuItem("Change roles to: 'admin'", None, lambda tag, ad: ad.update({'roles': {'admin'}}), item_data=all_roles),
+        MenuItem("call default action (print args and kwargs) - admin only!", None, lambda tag, ad: print('roles={}'.format(ad['roles'])), item_data=admin_only),
+        MenuItem("call show_roles", None, show_roles),
+    ]
+
+    print('\nmenu.run\n')
+    my_profile = {'first': 'Len', 'last': 'Wanger', 'roles': ['user'] }
+    menu = Menu(menu_choices, default_action=default_action, action_dict=my_profile, refresh=True, item_filter=role_item_filter)
+    menu.run()
+
+    print('done')
+
 
 if __name__ == '__main__':
-    test_get_menu_1()
-    test_get_menu_2()
+    # test_get_menu_1()
+    # test_get_menu_2()
     # test_action_menu()
     # test_sub_menu()
     # test_args_menu()
-    test_refresh_menu()
+    # test_refresh_menu()
+    test_item_filter()
 
 
 

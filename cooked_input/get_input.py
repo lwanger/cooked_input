@@ -9,16 +9,17 @@ Copyright: Len Wanger, 2017
 
 import sys
 import copy
+import collections
 import logging
 import getpass
 
 from .error_callbacks import MaxRetriesError, ValidationError, ConvertorError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
-from .validators import RangeValidator, ChoiceValidator, in_all
+from .validators import RangeValidator, ChoiceValidator, in_all, validate
 from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor
 from .convertors import YesNoConvertor, ListConvertor
 from .cleaners import StripCleaner
-from .input_utils import compose, make_pretty_table
+from .input_utils import compose, make_pretty_table, isstring, put_in_a_list
 
 from .convertors import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
 
@@ -125,7 +126,10 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
         elif k == 'required':
             required = True if v else False
         elif k == 'default':
-            default_val = str(v) if v else None
+            if v is None:
+                default_val = None
+            else:
+                default_val = str(v)
         elif k == 'default_str':  # for get_from_table may want to display value but return id.
             default_string = v
         elif k == 'hidden':
@@ -446,12 +450,17 @@ def get_yes_no(cleaners=(StripCleaner()), validators=None, **options):
     return result
 
 
-def get_list(cleaners=(StripCleaner()), validators=None, **options):
+def get_list(cleaners=(StripCleaner()), validators=None, value_error_str='list of values', delimiter=',',
+             elem_convertor=None, elem_validators=None, **options):
     """
     Convenience function to get a list of values.
 
     :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
     :param validators: list of validators to apply to validate the cleaned and converted value
+    :param value_error_str: the format string for the value errors (see ListConvertor)
+    :param delimiter: the delimiter to use between values (see ListConvertor)
+    :param elem_convertor: the Convertor to use for each element (see ListConvertor)
+    :param elem_validator: the Validator to use for each element
     :param options: all get_input options supported, see get_input documentation for details.
 
     :return: the cleaned, converted, validated list of values
@@ -461,5 +470,36 @@ def get_list(cleaners=(StripCleaner()), validators=None, **options):
     if 'prompt' not in options:
         new_options['prompt'] = 'Enter a list of values (separated by commas)'
 
-    result = get_input(cleaners, convertor=ListConvertor(), validators=validators, **new_options)
+    error_callback = print_error
+    validator_error_fmt = DEFAULT_VALIDATOR_ERROR
+
+    for k, v in options.items():
+        if k == 'error_callback':
+            error_callback = v
+        elif k == 'validator_error_fmt':
+            validator_error_fmt = v
+        elif k == 'default':
+            if v is None:
+                default_val = None
+            else:
+                if isstring(v):
+                    default_val = v
+                elif isinstance(v, collections.Iterable):
+                    default_val = (delimiter+' ').join(v)
+                else:
+                    default_val = str(v)
+            new_options['default'] = default_val
+
+    while True:
+        result = get_input(cleaners, convertor=ListConvertor(value_error_str=value_error_str, delimiter=delimiter,
+                            elem_convertor=elem_convertor), validators=validators, **new_options)
+
+        if elem_validators is not None:
+            for elem in result:
+                valid = validate(elem, elem_validators, error_callback=error_callback, validator_fmt_str=validator_error_fmt)
+                if not valid:
+                    break
+            if valid:
+                break
+
     return result
