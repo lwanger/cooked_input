@@ -14,6 +14,7 @@ TODO:
         X loop w/ pick until exit picked
         X action functions (with args/kwargs for context)
         X sub-menus
+        X refresh option on menus to re-evaluate the MenuItems each pass through run (in case strings changed for dynamic items)
         - filter functions (i.e. only choices matching a role)
         - different borders
         X sub-menu with multiple parents
@@ -53,6 +54,8 @@ navigation buttons (selected line and up/down, pageup/pagedown, home,end
 """
 
 import sys
+from copy import copy
+import string
 import veryprettytable as pt
 from cooked_input import get_input
 from .cleaners import CapitalizationCleaner, StripCleaner, ChoiceCleaner
@@ -115,6 +118,8 @@ class Menu(object):
                             parent menu (MENU_ADD_RETURN), or not to add a MenuItem at all (False)
         action_dict         a dictionary of values to pass to action functions. Used to provide context to the action
         case_sensitive      whether choosing menu items should be case sensitive (True) or not (False - default)
+        refresh             refresh menu items each time the menu is shown (True), or just when created (False). Useful for dynamic menus
+        item_filter              a function used to filter menu items. MenuItem is shown if returns True, and not if False
         """
         try:
             add_exit = options['add_exit']
@@ -141,6 +146,16 @@ class Menu(object):
         except KeyError:
             self.case_sensitive = False
 
+        try:
+            self.refresh = options['refresh']
+        except KeyError:
+            self.refresh = False
+
+        try:
+            self.item_filter = options['item_filter']
+        except KeyError:
+            self.item_filter = None
+
         if prompt is None:
             self.prompt = 'Choose a menu item'
         else:
@@ -150,6 +165,7 @@ class Menu(object):
         self.default_choice = default_choice
         self.default_str= default_str
         self.default_action = default_action
+        # self._rows = copy(rows)
         self._rows = []
         self.tbl = pt.VeryPrettyTable()
 
@@ -161,23 +177,7 @@ class Menu(object):
         self.tbl.align['tag'] = 'r'
         # self.tbl.left_padding_width = 2
 
-        for i, v in enumerate(rows):
-            if v.tag is None:
-                r = ['{:3}'.format(i+1), v.text, v.action]
-                v.tag = i+1
-            else:
-                r = [v.tag, v.text, v.action]
-
-            self.tbl.add_row(r)
-            self._rows.append(v)
-
-        if self.add_exit:
-            if self.add_exit == MENU_ADD_EXIT:
-                r = MenuItem('exit', 'exit', MENU_ACTION_EXIT)
-            if self.add_exit == MENU_ADD_RETURN:
-                r = MenuItem('return', 'return', MENU_ACTION_EXIT)
-            self.tbl.add_row([r.tag, r.text, r.action])
-            self._rows.append(r)
+        self.refresh_items(rows=rows, add_exit=True)
 
     def __repr__(self):
         return 'Menu(rows=..., title={}, prompt={}, default_choice={}, action_dict={})'.format(self.title, self.prompt,
@@ -197,7 +197,6 @@ class Menu(object):
         if callable(action):
             action(tag, self.action_dict)
         elif action == 'default' and self.default_action is not None:
-            # self.default_action(tag, self.action_args, self.)
             self.default_action(tag, self.action_dict)
 
     def _prep_get_input(self):
@@ -225,6 +224,41 @@ class Menu(object):
         menu_choices, menu_cleaners, menu_convertor, menu_validators = self._prep_get_input()
         row = self._get_choice(menu_choices, menu_cleaners, menu_convertor, menu_validators)
         return row.tag
+
+    def refresh_items(self, rows=None, add_exit=False):
+        # Used to update rows in the table. Adds tags if necessary. formatter is used so
+        # values can be substituted in format strings from action_dict using vformat.
+        formatter = string.Formatter()
+
+        if rows is None:
+            use_rows = self._rows
+        else:
+            use_rows = rows
+
+        self.tbl.clear_rows()
+        self._rows = []
+
+        for i, row in enumerate(use_rows):
+            if row.tag is None:
+                table_entry = ['{:3}'.format(i+1), formatter.vformat(row.text, None, self.action_dict), row.action]
+                row.tag = i+1
+            else:
+                table_entry = [row.tag, formatter.vformat(row.text, None, self.action_dict), row.action]
+
+            self.tbl.add_row(table_entry)
+            self._rows.append(row)
+
+        if add_exit and self.add_exit:
+            if self.add_exit == MENU_ADD_EXIT:
+                table_entry = MenuItem('exit', 'exit', MENU_ACTION_EXIT)
+            if self.add_exit == MENU_ADD_RETURN:
+                table_entry = MenuItem('return', 'return', MENU_ACTION_EXIT)
+            self.tbl.add_row([table_entry.tag, table_entry.text, table_entry.action])
+
+            # if clear_first:
+            #     self._rows.append(table_entry)
+            self._rows.append(table_entry)
+
 
     def __call__(self, tag=None, args=[], kwargs={}):
         """
@@ -259,6 +293,10 @@ class Menu(object):
                 action(choice.tag, self.action_dict)
             else:
                 print('Menu.run - no action specified for {}'.format(choice), file=sys.stderr)
+
+            if self.refresh:
+                self.refresh_items(add_exit=False)
+
         return True
 
 
@@ -272,7 +310,8 @@ def get_menu(choices, title=None, prompt=None, default_choice='', add_exit=False
             default_idx = i+1
             break
 
-    menu = Menu(menu_choices, title=title, prompt=prompt, default_choice=default_idx, default_str=default_str, add_exit=add_exit, **kwargs)
+    menu = Menu(menu_choices, title=title, prompt=prompt, default_choice=default_idx, default_str=default_str,
+                add_exit=add_exit, **kwargs)
     result = menu.get_menu_choice()
 
     if add_exit and result=='exit':
