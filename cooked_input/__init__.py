@@ -2,7 +2,7 @@
 
 from .get_input import get_input, get_table_input, process
 from .get_input import get_string, get_int, get_float, get_boolean, get_date, get_yes_no, get_list
-from .get_menu import get_menu, Menu, MenuItem
+from .get_menu import get_menu, Menu, MenuItem, DynamicMenuItem
 from .get_menu import MENU_ACTION_EXIT, MENU_ACTION_RETURN, MENU_DEFAULT_ACTION, MENU_ADD_EXIT, MENU_ADD_RETURN
 from .error_callbacks import MaxRetriesError, ConvertorError, ValidationError
 from .error_callbacks import print_error, log_error, silent_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR

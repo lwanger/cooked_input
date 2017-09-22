@@ -4,8 +4,16 @@ cooked input example of using table input to pick from a menu.
 Len Wanger, 2017
 """
 
+from collections import namedtuple
+
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+from sqlalchemy import Sequence
+from sqlalchemy.orm import sessionmaker
+
 from cooked_input import get_menu, get_string, get_list, validate, Validator, ChoiceValidator
-from cooked_input import Menu, MenuItem, MENU_DEFAULT_ACTION, MENU_ACTION_EXIT, MENU_ACTION_RETURN, MENU_ADD_RETURN, MENU_ADD_EXIT
+from cooked_input import Menu, MenuItem, DynamicMenuItem, MENU_DEFAULT_ACTION, MENU_ACTION_EXIT, MENU_ACTION_RETURN, MENU_ADD_RETURN, MENU_ADD_EXIT
 
 
 def test_get_menu_1():
@@ -32,7 +40,7 @@ def default_action(tag, kwargs):
 
 
 def action_1(tag, action_dict):
-    print('called action_1, text={}, action_dict={}'.format(text, action_dict))
+    print('called action_1, text={}, action_dict={}'.format(tag, action_dict))
     return True
 
 
@@ -219,6 +227,88 @@ def test_item_filter():
 
     print('done')
 
+#### Dynamic menu from DB stuff ####
+def make_menu_entry(i, row, item_data):
+    return MenuItem(row.fullname, None, MENU_DEFAULT_ACTION)
+
+# def make_menu_entry(i, row, item_data):
+#     return MenuItem(row.fullname, row.name, MENU_DEFAULT_ACTION)
+
+
+def user_filter(row, action_dict):
+    # Only allow user names starting with W or E
+    if row.text[0] in {'W', 'E'}:
+        return True
+    else:
+        return False
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
+    name = Column(String)
+    fullname = Column(String)
+    password = Column(String)
+
+    def __repr__(self):
+        return "<User(name='%s', fullname='%s', password='%s')>" % (self.name, self.fullname, self.password)
+
+def test_dynamic_menu_from_db(filter_items=False):
+    engine = create_engine('sqlite:///:memory:', echo=True)
+    Base.metadata.create_all(engine)
+
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    session.add_all([
+        User(name='ed', fullname='Ed Jones', password='edspassword'),
+        User(name='wendy', fullname='Wendy Williams', password='foobar'),
+        User(name='mary', fullname='Mary Contrary', password='xxg527'),
+        User(name='fred', fullname='Fred Flinstone', password='blah')])
+
+    session.commit()
+
+    # qry = session.query(User.name, User.fullname)
+    qry = session.query(User.name, User.fullname).order_by(User.fullname)
+    # qry = session.query(User.name, User.fullname).filter(User.name=='ed')
+    dmi = DynamicMenuItem(qry, make_menu_entry, item_data=None)
+    for row in dmi():
+        print(row)
+
+    print('adding foo')  # show that the stored query will update with data changes
+    session.add(User(name='foo', fullname='Foo Winn', password='foospassword'))
+    session.commit()
+
+    if filter_items:
+        menu = Menu(rows=dmi, item_filter=user_filter)
+    else:
+        menu = Menu(rows=dmi)
+
+    menu()
+#### End of Dynamic menu from DB stuff ####
+
+def make_menu_dict_entry(i, row, item_data):
+    return MenuItem(row['fullname'], None, MENU_DEFAULT_ACTION)
+
+def test_dynamic_menu_from_list(filter_items=False):
+    users = [
+        { 'name':'ed', 'fullname': 'Ed Jones', 'password': 'edspassword' },
+        { 'name':'wendy', 'fullname': 'Wendy Williams', 'password': 'foobar' },
+        { 'name':'mary', 'fullname': 'Mary Contrary', 'password': 'xxg527' },
+        { 'name':'fred', 'fullname': 'Fred Flinstone', 'password': 'blah'  } ]
+
+    dmi = DynamicMenuItem(users, make_menu_dict_entry, item_data=None)
+
+    if filter_items:
+        menu = Menu(rows=dmi, item_filter=user_filter)
+    else:
+        menu = Menu(rows=dmi)
+
+    menu()
+
+
+#####
 if __name__ == '__main__':
     # test_get_menu_1()
     # test_get_menu_2()
@@ -226,8 +316,10 @@ if __name__ == '__main__':
     # test_sub_menu()
     # test_args_menu()
     # test_refresh_menu()
-    test_item_filter()
-
+    # test_item_filter()
+    test_dynamic_menu_from_db(filter_items=False)
+    # test_dynamic_menu_from_db(filter_items=True)
+    test_dynamic_menu_from_list()
 
 
 

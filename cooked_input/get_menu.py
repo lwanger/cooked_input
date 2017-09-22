@@ -16,14 +16,17 @@ TODO:
         X sub-menus
         X refresh option on menus to re-evaluate the MenuItems each pass through run (in case strings changed for dynamic items)
         X filter functions (i.e. only choices matching a role)
-        - different borders
         X sub-menu with multiple parents
-        - dynamic menu - from: list, pretty-table, database, Pandas
+        X use lambda for actions
+        - dynamic menu - from:
+            - list
+            - pretty-table
+            X database
+            - Pandas
         - different display functions (i.e. function for displaying the table - silent_table for no display of menu or table)
         - set user profile - list users, add profile, edit profile
-        X use lambda for actions
+        - different borders
         - example runner
-
 """
 
 """
@@ -55,6 +58,8 @@ navigation buttons (selected line and up/down, pageup/pagedown, home,end
 
 import sys
 import string
+from collections import  namedtuple
+
 import veryprettytable as pt
 from cooked_input import get_input
 from .cleaners import CapitalizationCleaner, StripCleaner, ChoiceCleaner
@@ -68,6 +73,8 @@ MENU_ACTION_RETURN = 'return'
 
 MENU_ADD_EXIT = 'exit'
 MENU_ADD_RETURN = 'return'
+
+MenuEntry = namedtuple("MenuEntry", "tag text action")
 
 
 class MenuItem(object):
@@ -101,6 +108,26 @@ class MenuItem(object):
         return 'MenuItem(text={}, tag={}, action={}, item_data={})'.format(self.text, self.tag, self.action, self.item_data)
 
 
+class DynamicMenuItem(MenuItem):
+    def __init__(self, query, make_menu_entry, item_data=None):
+        self.query = query
+        self.make_menu_entry = make_menu_entry
+        self. item_data = item_data
+
+    def __repr__(self):
+        return 'DynamicMenuItem(query={}, make_menu_entry={}, item_data={})'.format(self.query, self.make_menu_entry, self.item_data)
+
+    def __call__(self, *args, **kwargs):
+        mis = []
+
+        for i, row in enumerate(self.query):
+            me = self.make_menu_entry(i+1, row, self.item_data)
+            mi = MenuItem(me.text, me.tag, me.action, item_data=self.item_data)
+            mis.append(mi)
+
+        return mis
+
+
 class Menu(object):
     def __init__(self, rows=(), title=None, prompt=None, default_choice=None, default_str=None, default_action=None, **options):
         """
@@ -121,7 +148,7 @@ class Menu(object):
         case_sensitive      whether choosing menu items should be case sensitive (True) or not (False - default)
         item_filter         a function used to determine which menu items to display. An item is display if the function returns True for the item.
                                 All items are displayed if item_filter is None (default)
-        refresh             refresh menu items each time the menu is shown (True), or just when created (False). Useful for dynamic menus
+        refresh             refresh menu items each time the menu is shown (True - default), or just when created (False). Useful for dynamic menus
         item_filter              a function used to filter menu items. MenuItem is shown if returns True, and not if False
         """
         try:
@@ -152,7 +179,7 @@ class Menu(object):
         try:
             self.refresh = options['refresh']
         except KeyError:
-            self.refresh = False
+            self.refresh = True
 
         try:
             self.item_filter = options['item_filter']
@@ -168,6 +195,7 @@ class Menu(object):
         self.default_choice = default_choice
         self.default_str= default_str
         self.default_action = default_action
+        self._menu_items = rows
         self._rows = []
         self.tbl = pt.VeryPrettyTable()
 
@@ -179,11 +207,12 @@ class Menu(object):
         self.tbl.align['tag'] = 'r'
         # self.tbl.left_padding_width = 2
 
-        self.refresh_items(rows=rows, add_exit=True, item_filter=self.item_filter)
+        if self.refresh is False:
+            self.refresh_items(rows=rows, add_exit=True, item_filter=self.item_filter)
 
     def __repr__(self):
-        return 'Menu(rows=..., title={}, prompt={}, default_choice={}, action_dict={})'.format(self.title, self.prompt,
-                    self.default_choice, self.action_dict)
+        return 'Menu(rows={}, title={}, prompt={}, default_choice={}, action_dict={})'.format(self._menu_items, self.title,
+                    self.prompt, self.default_choice, self.action_dict)
 
     def get_numchoices(self):
         return len(self._rows)
@@ -202,6 +231,9 @@ class Menu(object):
             self.default_action(tag, self.action_dict)
 
     def _prep_get_input(self):
+        if self.refresh:
+            self.refresh_items(self._menu_items, self.add_exit, self.item_filter)
+
         choices = tuple(c.tag for c in self._rows)
 
         cleaners = [StripCleaner()]
@@ -233,30 +265,39 @@ class Menu(object):
         formatter = string.Formatter()
 
         if rows is None:
-            use_rows = self._rows
+            use_rows = self._menu_items
         else:
             use_rows = rows
 
         self.tbl.clear_rows()
         self._rows = []
 
-        for i, row in enumerate(use_rows):
-            item_filter_result = True
-            if item_filter:
-                if callable(item_filter):
-                    item_filter_result = item_filter(row, self.action_dict)
-                else:
-                    item_filter_result = item_filter
+        menu_idx = 1
 
-            if item_filter_result:
-                if row.tag is None:
-                    table_entry = ['{:3}'.format(i+1), formatter.vformat(row.text, None, self.action_dict), row.action]
-                    row.tag = i+1
-                else:
-                    table_entry = [row.tag, formatter.vformat(row.text, None, self.action_dict), row.action]
+        if isinstance(use_rows, DynamicMenuItem):  # expand dynamic rows
+            menu_items = use_rows()
+        else:
+            menu_items = use_rows
 
-                self.tbl.add_row(table_entry)
-            self._rows.append(row)
+        if item_filter is None or item_filter is True:
+            filtered_items = menu_items
+        elif callable(item_filter):
+            filtered_items = []
+            for item in menu_items:
+                if  item_filter(item, self.action_dict):
+                    filtered_items.append(item)
+
+        for item in filtered_items:
+            if item.tag is None:
+                tag_str = '{:3}'.format(menu_idx)
+                tag = menu_idx
+            else:
+                tag = tag_str = item.tag
+
+            table_entry = MenuEntry(tag, formatter.vformat(item.text, None, self.action_dict), item.action)
+            self.tbl.add_row([tag_str, formatter.vformat(item.text, None, self.action_dict), item.action])
+            self._rows.append(table_entry)
+            menu_idx += 1
 
         if add_exit and self.add_exit:
             if self.add_exit == MENU_ADD_EXIT:
@@ -303,7 +344,6 @@ class Menu(object):
                 print('Menu.run - no action specified for {}'.format(choice), file=sys.stderr)
 
             if self.refresh:
-                self.refresh_items(add_exit=False, item_filter=self.item_filter)
                 menu_choices, menu_cleaners, menu_convertor, menu_validators = self._prep_get_input()
 
         return True
