@@ -16,7 +16,7 @@ see TODO.md for list of TODO items
 
   * added ConvertorError exception. Changed Convertors to use it
 
-  * added ChoiceIndexConvertor to support get_menu
+  * added ChoiceConvertor to support get_menu
 
   * modified get_menu example for new menu structure
 

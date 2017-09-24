@@ -4,7 +4,7 @@ cooked input example of using table input to pick from a menu.
 Len Wanger, 2017
 """
 
-from collections import namedtuple
+# from collections import namedtuple
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -12,7 +12,7 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy import Sequence
 from sqlalchemy.orm import sessionmaker
 
-from cooked_input import get_menu, get_string, get_list, validate, Validator, ChoiceValidator
+from cooked_input import get_menu, get_string, get_int, get_list, validate, Validator, ChoiceValidator
 from cooked_input import Menu, MenuItem, DynamicMenuItem, MENU_DEFAULT_ACTION, MENU_ACTION_EXIT, MENU_ACTION_RETURN, MENU_ADD_RETURN, MENU_ADD_EXIT
 
 
@@ -228,11 +228,8 @@ def test_item_filter():
     print('done')
 
 #### Dynamic menu from DB stuff ####
-def make_menu_entry(i, row, item_data):
-    return MenuItem(row.fullname, None, MENU_DEFAULT_ACTION)
-
-# def make_menu_entry(i, row, item_data):
-#     return MenuItem(row.fullname, row.name, MENU_DEFAULT_ACTION)
+def menu_item_factory(i, row, item_data):
+    return MenuItem(row.fullname, None, MENU_DEFAULT_ACTION, item_data)
 
 
 def user_filter(row, action_dict):
@@ -272,7 +269,7 @@ def test_dynamic_menu_from_db(filter_items=False):
     # qry = session.query(User.name, User.fullname)
     qry = session.query(User.name, User.fullname).order_by(User.fullname)
     # qry = session.query(User.name, User.fullname).filter(User.name=='ed')
-    dmi = DynamicMenuItem(qry, make_menu_entry, item_data=None)
+    dmi = DynamicMenuItem(qry, menu_item_factory, item_data=None)
     for row in dmi():
         print(row)
 
@@ -288,23 +285,34 @@ def test_dynamic_menu_from_db(filter_items=False):
     menu()
 #### End of Dynamic menu from DB stuff ####
 
-def make_menu_dict_entry(i, row, item_data):
-    return MenuItem(row['fullname'], None, MENU_DEFAULT_ACTION)
+def menu_item_factory(i, row, item_data):
+    if len(row['name'])> item_data['min_len']-1:
+        return MenuItem(row['fullname'], None, MENU_DEFAULT_ACTION)
+    else:  # hide short names!
+        return MenuItem(row['fullname'], None, MENU_DEFAULT_ACTION, hidden=True, enabled=False)
+        # return MenuItem(row['fullname'], None, MENU_DEFAULT_ACTION, hidden=True, enabled=True)
+
+def set_filter_len_action(tag, action_dict):
+    result = get_int(prompt='Enter the minimum user name length to show', minimum=0)
+    action_dict['min_len'] = result
+
 
 def test_dynamic_menu_from_list(filter_items=False):
     users = [
         { 'name':'ed', 'fullname': 'Ed Jones', 'password': 'edspassword' },
         { 'name':'wendy', 'fullname': 'Wendy Williams', 'password': 'foobar' },
         { 'name':'mary', 'fullname': 'Mary Contrary', 'password': 'xxg527' },
+        { 'name':'leonard', 'fullname': 'Leonard Nemoy', 'password': 'spock' },
         { 'name':'fred', 'fullname': 'Fred Flinstone', 'password': 'blah'  } ]
 
-    dmi = DynamicMenuItem(users, make_menu_dict_entry, item_data=None)
+    action_dict = {'min_len': 4}
+    dmi = [ DynamicMenuItem(users, menu_item_factory, action_dict),
+            MenuItem('Set minimum length ({min_len})', 'filter', set_filter_len_action, hidden=True)
+          ]
 
-    if filter_items:
-        menu = Menu(rows=dmi, item_filter=user_filter)
-    else:
-        menu = Menu(rows=dmi)
-
+    header = 'Showing users with user length > {min_len}\n'
+    footer = 'type "filter" to change minimum length'
+    menu = Menu(rows=dmi, action_dict=action_dict, header=header, footer=footer)
     menu()
 
 
@@ -317,7 +325,7 @@ if __name__ == '__main__':
     # test_args_menu()
     # test_refresh_menu()
     # test_item_filter()
-    test_dynamic_menu_from_db(filter_items=False)
+    # test_dynamic_menu_from_db(filter_items=False)
     # test_dynamic_menu_from_db(filter_items=True)
     test_dynamic_menu_from_list()
 

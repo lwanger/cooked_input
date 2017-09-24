@@ -299,22 +299,18 @@ class TableConvertor(Convertor):
         return 'TableConvertor(%s)' % self.value_error_str
 
 
+class ChoiceConvertor(Convertor):
     """
-    convert the cleaned input to the integer row of a table
-    """
-class ChoiceIndexConvertor(Convertor):
-    """
-    convert a value from an ordered list of choice to the integer index of the value in the list This is useful to get
-    the row index from a table of values.
+    convert a value to it's return value in a dictionary. Can be used to map the row index from a table of values or to
+    map multiple tags to a single choce
 
-    :param values:  an ordered list of values
+    :param value_dict:  a dictionary containing keys to map from and values to map to
     :param value_error_str: the error string to use when an improper value is input.
     :param kwargs: no kwargs are currently supported.
     """
-    def __init__(self, values=(), value_error_str='a valid row number', **kwargs):
-        choices_list = put_in_a_list(values)
-        self._choices = {v: i for i,v in enumerate(choices_list)}
-        super(ChoiceIndexConvertor, self).__init__(value_error_str, **kwargs)
+    def __init__(self, value_dict=(), value_error_str='a valid row number', **kwargs):
+        self._choices = value_dict
+        super(ChoiceConvertor, self).__init__(value_error_str, **kwargs)
 
     def __call__(self, value, error_callback, convertor_fmt_str):
         result = None
@@ -327,4 +323,4 @@ class ChoiceIndexConvertor(Convertor):
         return result
 
     def __repr__(self):
-        return 'ChoiceIndexConvertor(choices={}, value_error_str={})'.format(self._choices, self.value_error_str)
+        return 'ChoiceConvertor(choices={}, value_error_str={})'.format(self._choices, self.value_error_str)

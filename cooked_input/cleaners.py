@@ -173,7 +173,7 @@ class ChoiceCleaner(Cleaner):
             return value
 
     def __repr__(self):
-        return 'ChoiceCleaner(choices={})' % ([v for v in self._str_choices.values()])
+        return 'ChoiceCleaner(choices={})'.format(self._str_choices)
 
 
 class RemoveCleaner(Cleaner):
