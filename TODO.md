@@ -4,6 +4,8 @@
 **TODO:**
 
 * general:
+    * List processing - have process done on each list element - allows ChoiceCleaner on each element, etc.
+    * Gray out visible but disabled entries in menus
     * Improve the README file
     * Add queue_errors error handler. Use for an example to send flash_messages for Flask support. Add option to 
         validators to force running all validators vs. quiting after first error found
@@ -63,6 +65,7 @@
     * add: File convertor - pattern for name, suffix, path, check for existence, wildcard for multiple fields
  
 * validators:
+    * add intersection_validator? See get_menu example. useful for filtering user roles.
     * add: date range, date day of week
     * allow forcing to validate all validators instead of stopping on first failure
     * return list of all validation failures

@@ -1,4 +1,4 @@
 future
-prettytable
+veryprettytable
 dateparser
 validus

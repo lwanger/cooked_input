@@ -10,7 +10,7 @@ import csv
 from io import StringIO
 from future.utils import raise_from
 
-from .input_utils import put_in_a_list
+# from .input_utils import put_in_a_list
 from .error_callbacks import ConvertorError
 
 

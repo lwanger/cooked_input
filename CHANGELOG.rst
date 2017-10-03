@@ -18,6 +18,8 @@ see TODO.md for list of TODO items
 
   * added ChoiceConvertor to support get_menu
 
+  * fixed bug: menus now work if rows is a single MenuItem, not a list of MenuItems
+
   * modified get_menu example for new menu structure
 
   * added elem_validators to get_list to validate list items

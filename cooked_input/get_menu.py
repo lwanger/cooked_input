@@ -119,11 +119,13 @@ class MenuItem(object):
                         self.action, self.item_data, self.hidden, self.enabled)
 
 
-class DynamicMenuItem(object):
+#class DynamicMenuItem(object):
+class DynamicMenuItem(MenuItem):
     def __init__(self, query, menu_item_factory, item_data=None):
         self.query = query
         self.menu_item_factory = menu_item_factory
         self. item_data = item_data
+        # no call to super... sub-class is so isinstance works to detect subclass.
 
     def __repr__(self):
         return 'DynamicMenuItem(query={}, make_menu_entry={}, item_data={})'.format(self.query, self.menu_item_factory, self.item_data)
@@ -256,7 +258,11 @@ class Menu(object):
         if self.refresh:
             self.refresh_items(self._menu_items, self.add_exit, self.item_filter)
 
-        choices = {item.tag: i for i, item in enumerate(self._rows) if item.enabled is True}
+        if self.case_sensitive:
+            choices = {str(item.tag): i for i, item in enumerate(self._rows) if item.enabled is True}
+        else:
+            choices = {str(item.tag).lower(): i for i, item in enumerate(self._rows) if item.enabled is True}
+
         cleaners = [StripCleaner()]
         if not self.case_sensitive:
             cleaners.append(CapitalizationCleaner('lower'))
@@ -298,6 +304,8 @@ class Menu(object):
 
         if rows is None:
             use_rows = self._menu_items
+        elif isinstance(rows, MenuItem):  # single item, not list
+            use_rows = [rows]
         else:
             use_rows = rows
 
