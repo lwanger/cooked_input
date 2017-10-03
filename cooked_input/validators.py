@@ -10,6 +10,7 @@ Copyright: Len Wanger, 2017
 
 from __future__ import print_function
 
+import os
 import sys
 import string
 import re
@@ -313,6 +314,27 @@ class AnyOfValidator(Validator):
 
     def __repr__(self):
         return 'AnyOfValidator(validators={})'.format(self._validators)
+
+
+class IsFileValidator(Validator):
+    """
+    check is a string is the name of an existing filename
+
+    :param value - the filename to verify
+    :param kwargs: kwargs: no kwargs are currently supported.
+    """
+    def __init__(self, **kwargs):
+        super(IsFileValidator, self).__init__(**kwargs)
+
+    def __call__(self, value, error_callback, validator_fmt_str):
+        if os.path.isfile(value):
+            return True
+        else:
+            error_callback(validator_fmt_str, value, '{} is not a valid file'.format(value))
+            return False
+
+    def __repr__(self):
+        return 'IsFileValidator()'
 
 
 class SimpleValidator(Validator):

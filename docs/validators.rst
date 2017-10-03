@@ -76,6 +76,12 @@ EqualToValidator
 .. autoclass:: cooked_input.EqualToValidator
 
 
+IsFileValidator
+---------------
+
+.. autoclass:: cooked_input.IsFileValidator
+
+
 LengthValidator
 ---------------
 

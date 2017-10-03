@@ -24,6 +24,8 @@ see TODO.md for list of TODO items
 
   * added elem_validators to get_list to validate list items
 
+  * added IsFileValidator
+
 * v0.2.12:
 
   * renamed ChoicesValidator to ChoiceValidator
