@@ -6,12 +6,19 @@ see: https://github.com/lwanger/cooked_input for more information.
 Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
+from __future__ import unicode_literals
 
 import sys
 import copy
 import collections
 import logging
 import getpass
+
+from prompt_toolkit import prompt
+from prompt_toolkit.key_binding.defaults import load_key_bindings_for_prompt
+from prompt_toolkit.keys import Keys
+from prompt_toolkit.styles import style_from_dict
+from prompt_toolkit.token import Token
 
 from .error_callbacks import MaxRetriesError, ValidationError, ConvertorError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
@@ -20,15 +27,42 @@ from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanCon
 from .convertors import YesNoConvertor, ListConvertor
 from .cleaners import StripCleaner
 from .input_utils import compose, make_pretty_table, isstring, put_in_a_list
-
 from .convertors import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
 
+
+# Custom exceptions for get_input
+class GetInputInterrupt(KeyboardInterrupt):
+    pass
+
+# prompt_toolkit stuff
+default_key_registry = load_key_bindings_for_prompt()
+
+@default_key_registry.add_binding(Keys.ControlD)
+def _(event):
+    # When ControlD cancel the current get_input operation
+    raise GetInputInterrupt('User interrupted get_input')
+
+# for bottom toolbar
+# def get_bottom_toolbar_text():
+#     print('F1 for help, Ctrl-D to abort action')
+#
+# def get_bottom_toolbar_tokens(cli):
+#     # return [(Token.Toolbar, ' This is a toolbar. ')]
+#     return [(Token.Toolbar, ' This is a toolbar. ')]
+#
+# bottom_toolbar_style = style_from_dict({
+#     Token.Toolbar: '#ffffff bg:#333333',
+# })
+
+
+# Python 2/3 compatibility
 if sys.version_info[0] > 2:  # For Python 3
     # from abc import ABCMeta, abstractmethod
     def raw_input(prompt_msg):
         return input(prompt_msg)
 
 
+# get_input stiff
 def process(value, cleaners=None, convertor=None, validators=None, error_callback=print_error,
             convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
     """
@@ -101,6 +135,16 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
             Format string receives two variables - {value} the value that failed conversion, and {error_content}
             set by the validator.
 
+        use_prompt_toolkit: if True will use the prompt_toolkit for the input, else uses input or raw_input. For more
+            details, see the prompt_toolkit documentation at: http://python-prompt-toolkit.readthedocs.io/en/stable/index.html
+
+        key_registry: If using the prompt toolkit, key_registry defines custom key bindings.
+
+        # use_bottom_toolbar: = if True will, and using prompt_toolkit, will show a bottom toolbar.
+        #
+        # bottom_toolbar_str: = if using the bottom toolbar, this is the string used for the text.
+
+
     :param cleaners: list of cleaners to apply to clean the value
     :param convertor: the convertor to apply to the cleaned value
     :param validators: list of validators to apply to validate the cleaned and converted value
@@ -117,6 +161,12 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     error_callback = print_error
     convertor_error_fmt = DEFAULT_CONVERTOR_ERROR
     validator_error_fmt = DEFAULT_VALIDATOR_ERROR
+    use_prompt_toolkit = True
+    key_registry = default_key_registry
+    use_bottom_toolbar = False
+    bottom_toolbar_str = 'Ctrl-D to abort'
+    bottom_toolbar_str = ''
+
     converted_response = None
     valid_response = None
 
@@ -142,6 +192,14 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
             convertor_error_fmt = v
         elif k == 'validator_error_fmt':
             validator_error_fmt = v
+        elif k == 'use_prompt_toolkit':
+            use_prompt_toolkit = v
+        elif k == 'use_bottom_toolbar':
+            use_bottom_toolbar = v
+        elif k == 'bottom_toolbar_str':
+            bottom_toolbar_str = v
+        elif k == 'key_registry':
+            key_registry = v
         else:
             logging.warning('Warning: get_input received unknown option (%s)' % k)
 
@@ -166,10 +224,19 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
     print('')
 
     while (max_retries is None) or (retries < max_retries):
-        if hidden:
-            response = getpass.getpass(prompt=input_str)
+        if use_prompt_toolkit is True:
+            if use_bottom_toolbar is True:
+                bottom_toolbar_tokens = lambda x: [(Token.Toolbar, bottom_toolbar_str)]
+                bottom_toolbar_style = style_from_dict({Token.Toolbar: '#ffffff bg:#333333'})
+                response = prompt(input_str, is_password=hidden, key_bindings_registry=key_registry,
+                                  get_bottom_toolbar_tokens=bottom_toolbar_tokens, style=bottom_toolbar_style)
+            else:
+                response = prompt(input_str, is_password=hidden, key_bindings_registry=key_registry)
         else:
-            response = raw_input(input_str)
+            if hidden:
+                response = getpass.getpass(prompt=input_str)
+            else:
+                response = raw_input(input_str)
 
         if not required and not response:
             return None

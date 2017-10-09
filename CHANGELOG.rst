@@ -26,6 +26,9 @@ see TODO.md for list of TODO items
 
   * added IsFileValidator
 
+  * added support to use prompt_toolkit for get_input. By default is used. Added option to use it or not. Also can
+    have a bottom toolbar shown. Finally, can send a key registry to set key stroke actions.
+
 * v0.2.12:
 
   * renamed ChoicesValidator to ChoiceValidator
