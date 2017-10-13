@@ -34,12 +34,12 @@ def test_get_menu_2():
     print('result={}'.format(result))
 
 
-def default_action(tag, kwargs):
+def default_action(tag, kwargs, item_data):
     print('called default_action, tag={}, kwargs={}'.format(tag, kwargs))
     return True
 
 
-def action_1(tag, action_dict):
+def action_1(tag, action_dict, item_data):
     print('called action_1, text={}, action_dict={}'.format(tag, action_dict))
     return True
 
@@ -79,7 +79,7 @@ def test_action_menu():
     print('done')
 
 
-def sub_menu_action(tag, kwargs):
+def sub_menu_action(tag, kwargs, item_data):
     print('sub_menu2: tag={}, kwargs={}'.format(tag, kwargs))
 
     sub_menu_choices = [
@@ -292,7 +292,7 @@ def menu_item_factory(i, row, item_data):
         return MenuItem(row['fullname'], None, MENU_DEFAULT_ACTION, hidden=True, enabled=False)
         # return MenuItem(row['fullname'], None, MENU_DEFAULT_ACTION, hidden=True, enabled=True)
 
-def set_filter_len_action(tag, action_dict):
+def set_filter_len_action(tag, action_dict, item_data):
     result = get_int(prompt='Enter the minimum user name length to show', minimum=0)
     action_dict['min_len'] = result
 

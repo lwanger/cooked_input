@@ -135,14 +135,14 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
             Format string receives two variables - {value} the value that failed conversion, and {error_content}
             set by the validator.
 
-        use_prompt_toolkit: if True will use the prompt_toolkit for the input, else uses input or raw_input. For more
-            details, see the prompt_toolkit documentation at: http://python-prompt-toolkit.readthedocs.io/en/stable/index.html
+        use_prompt_toolkit: if True will use the prompt_toolkit for the input, else uses input or raw_input. For 
+            more details, see the prompt_toolkit documentation at: http://python-prompt-toolkit.readthedocs.io/en/stable/index.html
 
         key_registry: If using the prompt toolkit, key_registry defines custom key bindings.
 
-        # use_bottom_toolbar: = if True will, and using prompt_toolkit, will show a bottom toolbar.
-        #
-        # bottom_toolbar_str: = if using the bottom toolbar, this is the string used for the text.
+        use_bottom_toolbar: If True will, and using prompt_toolkit, will show a bottom toolbar.
+        
+        bottom_toolbar_str: If using the bottom toolbar, this is the string used for the text.
 
 
     :param cleaners: list of cleaners to apply to clean the value

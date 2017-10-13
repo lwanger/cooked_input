@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 """
 get_menu - menu system for cooked_input
 
@@ -63,6 +65,7 @@ TODO:
             render(page_num='first'|'last'|'current'|'next'|'last'|#) - renders with stop/end and navigation (page x of y) or 'found' with search
 navigation buttons (selected line and up/down, pageup/pagedown, home,end
 """
+
 
 import sys
 import string
@@ -241,18 +244,29 @@ class Menu(object):
     def get_numchoices(self):
         return len(self._rows)
 
+    def get_row(self, tag):
+        for row in self._rows:
+            if row.tag == tag:
+                #return row.action
+                return row
+        raise ValueError('Menu.get_row: tag ({}) not in the menu'.format(tag))
+
     def get_action(self, tag):
         for row in self._rows:
             if row.tag == tag:
                 return row.action
         raise ValueError('Menu.get_action: tag ({}) not in the menu'.format(tag))
+    
 
     def do_action(self, tag):
-        action = self.get_action(tag)
+        row = self.get_row(tag)
+        action = row.action
         if callable(action):
-            action(tag, self.action_dict)
+            #action(tag, self.action_dict)
+            action(tag, self.action_dict, row.item_data)
         elif action == 'default' and self.default_action is not None:
-            self.default_action(tag, self.action_dict)
+            #self.default_action(tag, self.action_dict)
+            self.default_action(tag, self.action_dict, row.item_data)
 
     def _prep_get_input(self):
         if self.refresh:
@@ -381,11 +395,13 @@ class Menu(object):
                 break
             elif action == MENU_DEFAULT_ACTION:
                 if callable(self.default_action):
-                    self.default_action(choice.tag, self.action_dict)
+                    #self.default_action(choice.tag, self.action_dict)
+                    self.default_action(choice.tag, self.action_dict, choice.item_data)
                 else:
                     print('Menu:run: default_action not set for {}'.format(choice), file=sys.stderr)
             elif callable(action):
-                action(choice.tag, self.action_dict)
+                #action(choice.tag, self.action_dict)
+                action(choice.tag, self.action_dict, choice.item_data)
             else:
                 print('Menu.run - no action specified for {}'.format(choice), file=sys.stderr)
 
