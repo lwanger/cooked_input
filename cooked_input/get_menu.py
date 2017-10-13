@@ -157,6 +157,8 @@ class Menu(object):
 
         Options:
 
+        required            requires an entry if True, exits the menu on blank entry if False
+
         add_exit            automatically adds a MenuItem to exit the menu (MENU_ADD_EXIT - default) or return to the
                             parent menu (MENU_ADD_RETURN), or not to add a MenuItem at all (False)
         action_dict         a dictionary of values to pass to action functions. Used to provide context to the action
@@ -168,6 +170,11 @@ class Menu(object):
         header              a format string to print before the table, can use any value from action_dict as well as pagination information
         footer              a format string to print after the table, can use any values from action_dict as well as pagination information
         """
+        try:
+            self.required = options['required']
+        except KeyError:
+            self.required = True
+
         try:
             add_exit = options['add_exit']
             if add_exit in { False, MENU_ADD_EXIT, MENU_ADD_RETURN }:
@@ -247,7 +254,6 @@ class Menu(object):
     def get_row(self, tag):
         for row in self._rows:
             if row.tag == tag:
-                #return row.action
                 return row
         raise ValueError('Menu.get_row: tag ({}) not in the menu'.format(tag))
 
@@ -262,10 +268,8 @@ class Menu(object):
         row = self.get_row(tag)
         action = row.action
         if callable(action):
-            #action(tag, self.action_dict)
             action(tag, self.action_dict, row.item_data)
         elif action == 'default' and self.default_action is not None:
-            #self.default_action(tag, self.action_dict)
             self.default_action(tag, self.action_dict, row.item_data)
 
     def _prep_get_input(self):
@@ -303,13 +307,21 @@ class Menu(object):
             print( formatter.vformat(self.footer, None, self.action_dict) )
 
         result = get_input(prompt=self.prompt, cleaners=menu_cleaners, convertor=menu_convertor,
-                           validators=menu_validators, default=self.default_choice, default_str=self.default_str)
-        return self._rows[result]
+                           validators=menu_validators, default=self.default_choice, default_str=self.default_str, required=self.required)
+
+        if result is None:
+            return None
+        else:
+            return self._rows[result]
 
     def get_menu_choice(self):
         menu_choices, menu_cleaners, menu_convertor, menu_validators = self._prep_get_input()
         row = self._get_choice(menu_choices, menu_cleaners, menu_convertor, menu_validators)
-        return row.tag
+
+        if row is None:
+            return 'exit'
+        else:
+            return row.tag
 
     def refresh_items(self, rows=None, add_exit=False, item_filter=None):
         # Used to update rows in the table. Adds tags if necessary. formatter is used so
@@ -387,7 +399,11 @@ class Menu(object):
 
         while True:
             choice = self._get_choice(menu_choices, menu_cleaners, menu_convertor, menu_validators)
-            action = choice.action
+
+            if choice is None:
+                action - MENU_ACTION_EXIT
+            else:
+                action = choice.action
 
             if action == MENU_ACTION_EXIT:
                 break
@@ -395,12 +411,10 @@ class Menu(object):
                 break
             elif action == MENU_DEFAULT_ACTION:
                 if callable(self.default_action):
-                    #self.default_action(choice.tag, self.action_dict)
                     self.default_action(choice.tag, self.action_dict, choice.item_data)
                 else:
                     print('Menu:run: default_action not set for {}'.format(choice), file=sys.stderr)
             elif callable(action):
-                #action(choice.tag, self.action_dict)
                 action(choice.tag, self.action_dict, choice.item_data)
             else:
                 print('Menu.run - no action specified for {}'.format(choice), file=sys.stderr)
@@ -424,6 +438,9 @@ def get_menu(choices, title=None, prompt=None, default_choice='', add_exit=False
     menu = Menu(menu_choices, title=title, prompt=prompt, default_choice=default_idx, default_str=default_str,
                 add_exit=add_exit, **kwargs)
     result = menu.get_menu_choice()
+
+    if result is None:
+        return 'exit'
 
     if add_exit and result=='exit':
         return result
