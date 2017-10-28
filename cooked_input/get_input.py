@@ -27,20 +27,37 @@ from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanCon
 from .convertors import YesNoConvertor, ListConvertor
 from .cleaners import StripCleaner
 from .input_utils import compose, make_pretty_table, isstring, put_in_a_list
-from .convertors import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
-
+# from .convertors import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
 
 # Custom exceptions for get_input
 class GetInputInterrupt(KeyboardInterrupt):
     pass
 
 # prompt_toolkit stuff
-default_key_registry = load_key_bindings_for_prompt()
+default_key_registry = load_key_bindings_for_prompt(enable_abort_and_exit_bindings=True, enable_search=False,
+                                                    enable_auto_suggest_bindings=False)
 
+# registry = load_key_bindings_for_prompt()
+
+# @registry.add_binding(Keys.ControlD)
 @default_key_registry.add_binding(Keys.ControlD)
 def _(event):
-    # When ControlD cancel the current get_input operation
-    raise GetInputInterrupt('User interrupted get_input')
+    raise GetInputInterrupt('Operation cancelled by user')
+
+# @registry.add_binding(Keys.Tab)
+@default_key_registry.add_binding(Keys.Tab)
+def _(event):
+    event.cli.buffers['DEFAULT_BUFFER'].insert_text('\t')
+
+
+# @registry.add_binding(Keys.F1)
+# @default_key_registry.add_binding(Keys.F1)
+# def _(event):
+#     # When F1 is hit print a help message
+#     def get_help_text():
+#         print('F1 for help')
+#     event.cli.run_in_terminal(get_help_text)
+
 
 # for bottom toolbar
 # def get_bottom_toolbar_text():
@@ -264,7 +281,13 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
         raise MaxRetriesError('Maximum retries exceeded')
 
 
-def get_table_input(table=None, cleaners=None, convertor=None, validators=None, **options):
+# Table(rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None, default_action=None, **options):
+# show_table? sort_by_value?
+# navigation keys
+# return value from action (default - return tag)
+
+# def get_table_input(table=None, cleaners=None, convertor=None, validators=None, **options):
+def get_table_input(table=None, **options):
     """
     Get input value from a table of values. Allow to type in and return either the id or the value 
     for the choice. Useful for entering values from database tables.
@@ -294,6 +317,8 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
 
     :return: the cleaned, converted, validated input value. This is an id or value from the table depending on input_value.
     """
+    """
+
     input_value = TABLE_VALUE
     return_value = TABLE_VALUE
     show_table = True
@@ -371,6 +396,9 @@ def get_table_input(table=None, cleaners=None, convertor=None, validators=None, 
                         return t[TABLE_VALUE]
                     else:
                         return t[TABLE_ID]
+    """
+    return table.get_table_choice()
+
 
 
 #############################

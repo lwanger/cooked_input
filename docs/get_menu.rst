@@ -3,20 +3,20 @@ get_menu
 
 `get_menu` contains classes and functions to support text-based menus in `cooked_input`.
 
-MenuItem:
-=========
+TableItem:
+==========
 
-.. autofunction:: cooked_input.MenuItem
+.. autofunction:: cooked_input.TableItem
 
-DynamicMenuItem:
-================
+DynamicTableItem:
+=================
 
-.. autofunction:: cooked_input.DynamicMenuItem
+.. autofunction:: cooked_input.DynamicTableItem
 
-Menu:
-=====
+Table:
+======
 
-.. autofunction:: cooked_input.Menu
+.. autofunction:: cooked_input.Table
 
 convenience functions:
 ======================
