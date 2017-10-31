@@ -287,7 +287,7 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
 # return value from action (default - return tag)
 
 # def get_table_input(table=None, cleaners=None, convertor=None, validators=None, **options):
-def get_table_input(table=None, **options):
+def get_table_input(table=None, do_action=True, **options):
     """
     Get input value from a table of values. Allow to type in and return either the id or the value 
     for the choice. Useful for entering values from database tables.
@@ -397,7 +397,8 @@ def get_table_input(table=None, **options):
                     else:
                         return t[TABLE_ID]
     """
-    return table.get_table_choice()
+    # return table.get_table_choice(do_action)
+    return table.get_table_choice(do_action, **options)
 
 
 

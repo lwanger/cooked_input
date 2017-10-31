@@ -227,8 +227,33 @@ class DynamicTableItem(TableItem):
         return table_items
 
 
+def return_row_action(row, action_dict):
+    """
+    Default action function for Tables. This function returns the whole row of data.
+
+    :param row: the data associated with the selected row
+    :param action_dict: the dictionary of values associated with the action - ignored in this function
+
+    :return: A list containing all of the data for the selected row of the table.
+    """
+    return row.values
+
+
 class Table(object):
-    # TODO - document
+    # TODO - document, including actions
+
+    # def return_row_action(row, action_dict):
+    #     """
+    #     Default action function for Tables. This function returns the whole row of data.
+    #
+    #     :param row: the data associated with the selected row
+    #     :param action_dict: the dictionary of values associated with the action - ignored in this function
+    #
+    #     :return: A list containing all of the data for the selected row of the table.
+    #     """
+    #     return row
+
+
     def __init__(self, rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None,
                  default_action=None, rows_per_page=20, **options):
         """
@@ -317,7 +342,13 @@ class Table(object):
         self.title = title
         self.default_choice = default_choice
         self.default_str= default_str
-        self.default_action = default_action
+
+        if default_action is None:
+            # self.default_action = self.return_row_action
+            self.default_action = return_row_action
+        else:
+            self.default_action = default_action
+
         self.rows_per_page = rows_per_page
         self._table_items = put_in_a_list(rows)             # the original, raw table items for the table
         self._rows = []                     # the expanded, refreshed table items for the table used to create the pretty table
@@ -387,7 +418,7 @@ class Table(object):
         elif action == 'default' and self.default_action is not None:
             # self.default_action(tag, self.action_dict, row.item_data)
             # self.default_action(tag, row, self.action_dict) # TODO - passing row now -- item_data available from row
-            self.default_action(row, self.action_dict) # TODO - passing row now -- item_data available from row
+            return self.default_action(row, self.action_dict) # TODO - passing row now -- item_data available from row
 
     def show_rows(self, start_row):
         # set the starting and ending rows to show
@@ -454,7 +485,17 @@ class Table(object):
         validators = RangeValidator(min_val=0, max_val=max(choices.values()))   # TODO - This is wrong... only works for integers? Should be ChoiceValidator?
         return choices, cleaners, convertor, validators
 
-    def _get_choice(self, table_choices, table_cleaners, table_convertor, table_validators):
+    # def _get_choice(self, table_choices, table_cleaners, table_convertor, table_validators):
+    def _get_choice(self, table_choices, table_cleaners, table_convertor, table_validators, **options):
+        gi_options = {}
+        gi_options['prompt'] = self.prompt
+        gi_options['required'] = self.required
+        gi_options['default'] = self.default_choice
+        gi_options['default_str'] = self.default_str
+        for k,v in options.items():
+            gi_options[k] = v
+
+
         formatter = string.Formatter()
 
         # print header
@@ -471,28 +512,29 @@ class Table(object):
         if self.footer:
             print( formatter.vformat(self.footer, None, self.action_dict) )
 
-        result = get_input(prompt=self.prompt, cleaners=table_cleaners, convertor=table_convertor,
-                           validators=table_validators, default=self.default_choice, default_str=self.default_str,
-                           required=self.required)
-        # result = get_table_input(prompt=self.prompt, cleaners=table_cleaners, convertor=table_convertor,
+        # result = get_input(prompt=self.prompt, cleaners=table_cleaners, convertor=table_convertor,
         #                    validators=table_validators, default=self.default_choice, default_str=self.default_str,
         #                    required=self.required)
+        result = get_input(cleaners=table_cleaners, convertor=table_convertor, validators=table_validators, **gi_options)
 
         if result is None:
             return None
         else:
             return self._rows[result]
 
-    def get_table_choice(self):
+    def get_table_choice(self, do_action=True, **options):
+        # TODO - document - get the choice from the table - does not run the action...
         table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
         self.show_rows(0)
-        row = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators)
+        row = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
 
         if row is None:
             return 'exit'
         else:
-            # return row.tag  # TODO - should this return tag or row data?
-            return row
+            if do_action:
+                return self.do_action(row)
+            else:
+                return row
 
     def refresh_items(self, rows=None, add_exit=False, item_filter=None):
         # Used to update rows in the table. Adds tags if necessary. formatter is used so
@@ -533,7 +575,8 @@ class Table(object):
             else:
                 tag = tag_str = item.tag
 
-            item_values = [formatter.vformat(v, None, self.action_dict) for v in item.values]
+            # item_values = [formatter.vformat(v, None, self.action_dict) for v in item.values]
+            item_values = [formatter.vformat(str(v), None, self.action_dict) for v in item.values]
             row_entry = TableItem(item_values, tag, item.action, item_data=item.item_data, hidden=item.hidden, enabled=item.enabled)
 
             if item.hidden is not True:
@@ -544,12 +587,23 @@ class Table(object):
             table_idx += 1
 
         if add_exit and self.add_exit:
+            num_values = 1
+            if len(filtered_items):
+                num_values = len(filtered_items[0].values)
+            row_values = ['' for i in range(num_values)]
             if self.add_exit == TABLE_ADD_EXIT:
-                row_entry = TableItem('exit', 'exit', TABLE_ACTION_EXIT)
+                row_tag, row_action = 'exit', TABLE_ACTION_EXIT
             if self.add_exit == TABLE_ADD_RETURN:
-                row_entry = TableItem('return', 'return', TABLE_ACTION_EXIT)
+                # row_entry = TableItem('return', 'return', TABLE_ACTION_EXIT)
+                row_tag, row_action = 'return', TABLE_ACTION_EXIT
 
-            self.table.add_row([row_entry.tag, row_entry.values[0], row_entry.action])
+            # row_values[0] = row_tag
+            row_entry = TableItem(row_values, row_tag, row_action)
+            # row_entry = TableItem(row_tag, row_values, row_action)
+
+            # self.table.add_row([row_entry.tag, row_entry.values[0], row_entry.action])
+            # self.table.add_row([row_entry.tag] + row_entry.values + [row_entry.action])
+            self.table.add_row([row_entry.tag] + row_entry.values + [row_entry.action])
             self._rows.append(row_entry)
 
 
@@ -572,8 +626,11 @@ class Table(object):
         table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
         self.show_rows(0)
 
+        options = {'prompt': self.prompt}
+
         while True:
-            choice = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators)
+            # choice = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators)
+            choice = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
 
             if choice is None:
                 action - TABLE_ACTION_EXIT
@@ -586,11 +643,13 @@ class Table(object):
                 break
             elif action == TABLE_DEFAULT_ACTION:
                 if callable(self.default_action):
-                    self.default_action(choice.tag, self.action_dict, choice.item_data)
+                    # self.default_action(choice.tag, self.action_dict, choice.item_data)
+                    self.default_action(choice, self.action_dict)
                 else:
                     print('Table:run: default_action not set for {}'.format(choice), file=sys.stderr)
             elif callable(action):
-                action(choice.tag, self.action_dict, choice.item_data)
+                # action(choice.tag, self.action_dict, choice.item_data)
+                action(choice, self.action_dict)
             else:
                 print('Table.run - no action specified for {}'.format(choice), file=sys.stderr)
 
@@ -661,14 +720,14 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
 
     # return menu_choices[result-1].text
     # return menu_choices[result-1].values[0]
-    return result.values[0]
+    # return result.values[0]
+    return result
 
 
+# TODO - Note, this is not being used for now!
 # def get_table_input(table=None, **options):
-def get_table_input(self, cleaners=None, convertor=None, validators=None, **options):
-# def get_table_input(prompt=self.prompt, cleaners=table_cleaners, convertor=table_convertor,
-#                      validators=table_validators, default=self.default_choice, default_str=self.default_str,
-#                      required=self.required)
+def get_table_input(self, cleaners=None, convertor=None, validators=None, do_action=False, **options):
+    # TODO - document!
     # process options - TODO - too much duplicated code with get_input..
     prompt_str = ''
     required = True
@@ -767,4 +826,7 @@ def get_table_input(self, cleaners=None, convertor=None, validators=None, **opti
     finally:
         loop.close()
 
-    return result
+    if do_action:
+        return self.do_action()
+    else:
+        return result
