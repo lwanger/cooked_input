@@ -76,5 +76,5 @@ if __name__ == '__main__':
     #                 convertor_error_fmt=convertor_fmt, validator_error_fmt=validator_fmt))
 
     print(get_input(convertor=IntConvertor(), validators=[zero_to_ten_validator, not_5_validator],
-                    prompt='Enter a non-zero integer between 0 and 10, but not 5 (errors not printed)', error_callback=log_error,
+                    prompt='Enter an integer between 0 and 10, but not 5 (errors not printed)', error_callback=log_error,
                     convertor_error_fmt=convertor_fmt, validator_error_fmt=validator_fmt))

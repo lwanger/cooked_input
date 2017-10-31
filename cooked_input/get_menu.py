@@ -159,6 +159,16 @@ def register_table_keys(registry):
     return registry
 
 
+def return_row_action(row, action_dict):
+    """
+    Default action function for Tables. This function returns the whole row of data.
+
+    :param row: the data associated with the selected row
+    :param action_dict: the dictionary of values associated with the action - ignored in this function
+
+    :return: A list containing all of the data for the selected row of the table.
+    """
+    return row.values
 
 
 class TableItem(object):
@@ -225,18 +235,6 @@ class DynamicTableItem(TableItem):
             table_items.append(table_item)
 
         return table_items
-
-
-def return_row_action(row, action_dict):
-    """
-    Default action function for Tables. This function returns the whole row of data.
-
-    :param row: the data associated with the selected row
-    :param action_dict: the dictionary of values associated with the action - ignored in this function
-
-    :return: A list containing all of the data for the selected row of the table.
-    """
-    return row.values
 
 
 class Table(object):
