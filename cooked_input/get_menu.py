@@ -231,7 +231,7 @@ class DynamicTableItem(TableItem):
         table_items = []
 
         for i, row in enumerate(self.query):
-            table_item = self.menu_item_factory(i + 1, row, self.item_data)
+            table_item = self.table_item_factory(i + 1, row, self.item_data)
             table_items.append(table_item)
 
         return table_items
@@ -352,15 +352,44 @@ class Table(object):
         self._rows = []                     # the expanded, refreshed table items for the table used to create the pretty table
         self.table = pt.VeryPrettyTable()     # the pretty table to display
 
-        num_cols = len(self._table_items[0].values)
+        # if (self._table_items[0], DynamicTableItem):
+        #     # For dynamic tables, need to call the factory method to get a sample row so can determine the number of columns
+        #     first_row = self._table_items[0].query.first()
+        #     self._table_items[0].table_item_factory(0, first_row, self._table_items[0].item_data)
+        #     num_cols = len(first_row.values)
+        # else:
+        #     num_cols = len(self.rows[0].values)
+
+        # if col_names is None:
+        #     field_names = ['col {}'.format(i) for i in range(1, num_cols+1)]
+        # elif isstring(col_names):
+        #     field_names = col_names.split()
+        # elif len(col_names) == num_cols:
+        #     field_names = col_names
+        # else:
+        #     raise RuntimeError('Table: number of column names does not match number of columns in the table'.format())
 
         if col_names is None:
+            if (self._table_items[0], DynamicTableItem):
+                # For dynamic tables, need to call the factory method to get a sample row so can determine the number of columns
+                # first_row = self._table_items[0].query.first()
+                for first_row in self._table_items[0].query:
+                    break
+                first_item = self._table_items[0].table_item_factory(0, first_row, self._table_items[0].item_data)
+                num_cols = len(first_item.values)
+            else:
+                num_cols = len(self.rows[0].values)
+
             field_names = ['col {}'.format(i) for i in range(1, num_cols+1)]
         elif isstring(col_names):
-            field_names = col_names.split()
-        elif len(col_names) == num_cols:
-            field_names = col_names
+            field_name_list = col_names.split()
+            field_names = field_name_list
+            num_cols = len(field_name_list)
         else:
+            field_names = col_names
+            num_cols = len(field_names)
+
+        if len(field_names) != num_cols:
             raise RuntimeError('Table: number of column names does not match number of columns in the table'.format())
 
         # self.field_names = ['tag', *field_names]
@@ -563,7 +592,7 @@ class Table(object):
         elif callable(item_filter):
             filtered_items = []
             for item in table_items:
-                if  item_filter(item, self.action_dict):
+                if item_filter(item, self.action_dict):
                     filtered_items.append(item)
 
         for item in filtered_items:
@@ -591,7 +620,7 @@ class Table(object):
             row_values = ['' for i in range(num_values)]
             if self.add_exit == TABLE_ADD_EXIT:
                 row_tag, row_action = 'exit', TABLE_ACTION_EXIT
-            if self.add_exit == TABLE_ADD_RETURN:
+            elif self.add_exit == TABLE_ADD_RETURN:
                 # row_entry = TableItem('return', 'return', TABLE_ACTION_EXIT)
                 row_tag, row_action = 'return', TABLE_ACTION_EXIT
 
@@ -653,6 +682,7 @@ class Table(object):
 
             if self.refresh:
                 table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
+                self.show_rows(self.table.start)
 
         return True
 

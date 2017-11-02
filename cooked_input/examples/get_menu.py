@@ -238,7 +238,9 @@ def menu_item_factory(i, row, item_data):
 
 def user_filter(row, action_dict):
     # Only allow user names starting with W or E
-    if row.text[0] in {'W', 'E'}:
+    # if row.text[0] in {'W', 'E'}:
+    name = row.values[0]
+    if name[0] in {'W', 'E'}:
         return True
     else:
         return False
@@ -273,7 +275,8 @@ def test_dynamic_menu_from_db(filter_items=False):
     # qry = session.query(User.name, User.fullname)
     qry = session.query(User.name, User.fullname).order_by(User.fullname)
     # qry = session.query(User.name, User.fullname).filter(User.name=='ed')
-    dmi = DynamicTableItem(qry, menu_item_factory, item_data=None)
+    # dmi = DynamicTableItem(qry, menu_item_factory, item_data=None)
+    dmi = DynamicTableItem(qry, menu_item_factory, item_data={'min_len':3})
     for row in dmi():
         print(row)
 
@@ -286,15 +289,23 @@ def test_dynamic_menu_from_db(filter_items=False):
     else:
         menu = Table(rows=dmi)
 
-    Table()
+    # Table()
+    menu()
 #### End of Dynamic menu from DB stuff ####
 
 def menu_item_factory(i, row, item_data):
+    # test item factory that sets the item to hidden if it's shorter than the minimum length set in the item_data dict
+    if len(row.name)> item_data['min_len']-1:
+        return TableItem(row.fullname, None, TABLE_DEFAULT_ACTION)
+    else:  # hide short names!
+        return TableItem(row.fullname, None, TABLE_DEFAULT_ACTION, hidden=True, enabled=False)
+
+def menu_item_factory2(i, row, item_data):
+    # test item factory that sets the item to hidden if it's shorter than the minimum length set in the item_data dict
     if len(row['name'])> item_data['min_len']-1:
         return TableItem(row['fullname'], None, TABLE_DEFAULT_ACTION)
     else:  # hide short names!
         return TableItem(row['fullname'], None, TABLE_DEFAULT_ACTION, hidden=True, enabled=False)
-
 
 def set_filter_len_action(row, action_dict):
     result = get_int(prompt='Enter the minimum user name length to show', minimum=0)
@@ -308,24 +319,31 @@ def test_dynamic_menu_from_list(filter_items=False):
         { 'name':'mary', 'fullname': 'Mary Contrary', 'password': 'xxg527' },
         { 'name':'leonard', 'fullname': 'Leonard Nemoy', 'password': 'spock' },
         { 'name':'fred', 'fullname': 'Fred Flinstone', 'password': 'blah'  } ]
+        # ['ed', 'Ed Jones', 'edspassword'],
+        # ['wendy', 'Wendy Williams', 'foobar'],
+        # ['mary', 'Mary Contrary', 'xxg527'],
+        # ['leonard', 'Leonard Nemoy', 'spock'],
+        # ['fred', 'Fred Flinstone', 'blah']]
 
     action_dict = {'min_len': 4}
-    dmi = [ DynamicTableItem(users, menu_item_factory, action_dict),
+    dmi = [ DynamicTableItem(users, menu_item_factory2, action_dict),
             TableItem('Set minimum length ({min_len})', 'filter', set_filter_len_action, hidden=True)
           ]
 
     header = 'Showing users with user length > {min_len}\n'
     footer = 'type "filter" to change minimum length'
     menu = Table(rows=dmi, action_dict=action_dict, header=header, footer=footer)
-    Table()
+    # Table()
+    menu()
 
 
 #####
 if __name__ == '__main__':
     if False:
-        test_get_menu_1()
-        test_get_menu_2()
-        test_action_Table()
+        pass
+    test_get_menu_1()
+    test_get_menu_2()
+    test_action_Table()
     test_sub_Table()
     test_args_Table()
     test_refresh_Table()
