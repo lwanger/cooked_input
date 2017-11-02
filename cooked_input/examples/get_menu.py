@@ -47,10 +47,11 @@ def action_1(row, action_dict):
 
 
 def show_choice(menu, choice):
-    action = menu.get_action(choice.tag)
-    print('choice={}, action={}'.format(choice, action))
+    # action = menu.get_action(choice.tag)
+    # print('choice={}, action={}'.format(choice, action))
+    print('choice={}'.format(choice))
     # menu.do_action(choice.tag)
-    menu.do_action(choice)
+    # menu.do_action(choice)
 
 
 def test_action_Table():
@@ -341,8 +342,8 @@ def test_dynamic_menu_from_list(filter_items=False):
 if __name__ == '__main__':
     if False:
         pass
-    test_get_menu_1()
-    test_get_menu_2()
+        test_get_menu_1()
+        test_get_menu_2()
     test_action_Table()
     test_sub_Table()
     test_args_Table()

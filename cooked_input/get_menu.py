@@ -370,7 +370,7 @@ class Table(object):
         #     raise RuntimeError('Table: number of column names does not match number of columns in the table'.format())
 
         if col_names is None:
-            if (self._table_items[0], DynamicTableItem):
+            if isinstance(self._table_items[0], DynamicTableItem):
                 # For dynamic tables, need to call the factory method to get a sample row so can determine the number of columns
                 # first_row = self._table_items[0].query.first()
                 for first_row in self._table_items[0].query:
@@ -378,7 +378,8 @@ class Table(object):
                 first_item = self._table_items[0].table_item_factory(0, first_row, self._table_items[0].item_data)
                 num_cols = len(first_item.values)
             else:
-                num_cols = len(self.rows[0].values)
+                # num_cols = len(self.rows[0].values)
+                num_cols = len(self._table_items[0].values)
 
             field_names = ['col {}'.format(i) for i in range(1, num_cols+1)]
         elif isstring(col_names):
@@ -446,6 +447,8 @@ class Table(object):
             # self.default_action(tag, self.action_dict, row.item_data)
             # self.default_action(tag, row, self.action_dict) # TODO - passing row now -- item_data available from row
             return self.default_action(row, self.action_dict) # TODO - passing row now -- item_data available from row
+        else:
+            return row
 
     def show_rows(self, start_row):
         # set the starting and ending rows to show
@@ -558,10 +561,11 @@ class Table(object):
         if row is None:
             return 'exit'
         else:
-            if do_action:
-                return self.do_action(row)
-            else:
-                return row
+            # if do_action:
+            #     return self.do_action(row)
+            # else:
+            #     return row
+            return self.do_action(row)
 
     def refresh_items(self, rows=None, add_exit=False, item_filter=None):
         # Used to update rows in the table. Adds tags if necessary. formatter is used so
