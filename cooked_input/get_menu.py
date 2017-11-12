@@ -7,21 +7,16 @@ Len Wanger, 2017
 
 TODO:
 
-- Document and add to tutorial
+# Table(rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None, default_action=None, **options):
+# show_table? sort_by_value?
+# navigation keys
+# return value from action (default - return tag)
 
-- have dynamic menu function create MenuItems
+
+- Document and add to tutorial
 
 - Examples/scenarios:
     - menus:
-        X simple menu (numbered item built from list)
-        X pick-once and exit
-        X loop w/ pick until exit picked
-        X action functions (with args/kwargs for context)
-        X sub-menus
-        X refresh option on menus to re-evaluate the MenuItems each pass through run (in case strings changed for dynamic items)
-        X filter functions (i.e. only choices matching a role)
-        X sub-menu with multiple parents
-        X use lambda for actions
         - dynamic menu - from:
             X list
             X database
@@ -32,8 +27,6 @@ TODO:
         - different borders
         - example runner
         - change Menus to tables - extend table to multiple columns with first as tag
-        X Add hidden to MenuItem
-        X Add disabled to MenuItem
         - How to deal with non unique tags? Unique option and keep set of tags? Or pick first, or pick from current paginated page
         X Header and footer to print. So can have commands listed per page as hidden menu items (e.g. Search or filter)
         - Dynamic function - for long tables, lookup entered value instead of showing as rows. Maybe lazy evaluation? A lookup cleaner?
@@ -70,26 +63,20 @@ navigation buttons (selected line and up/down, pageup/pagedown, home,end
 import sys
 import string
 import logging
-# from collections import  namedtuple
 
-# from prompt_toolkit import prompt
-from prompt_toolkit.key_binding.defaults import load_key_bindings_for_prompt
-from prompt_toolkit.keys import Keys
-# from prompt_toolkit.styles import style_from_dict
-# from prompt_toolkit.token import Token
 from prompt_toolkit.layout.containers import Window, VSplit
 from prompt_toolkit.layout.controls import BufferControl
 from prompt_toolkit.buffer import Buffer
-from prompt_toolkit.interface import Application, CommandLineInterface, AcceptAction
+from prompt_toolkit.interface import Application, CommandLineInterface
 from prompt_toolkit.shortcuts import create_eventloop
-from prompt_toolkit.key_binding.manager import KeyBindingManager
+from prompt_toolkit.key_binding.manager import KeyBindingManager, Registry
 from prompt_toolkit.keys import Keys
 
 from prompt_toolkit.layout.containers import HSplit
 from prompt_toolkit.layout.dimension import LayoutDimension
 
 import veryprettytable as pt
-# from cooked_input import get_input, print_error, GetInputInterrupt
+
 from cooked_input import get_input
 from cooked_input import GetInputInterrupt
 from cooked_input import default_key_registry
@@ -108,55 +95,76 @@ TABLE_ADD_RETURN = 'return'
 TABLE_ADD_NONE = 'none'
 
 
-def register_table_keys(registry):
+# def register_table_keys(registry):
+def register_table_keys(registry, ptable, table_buffer):
+    # closure values to avoid globals. ptable is the Table instance, table_buffer is the prompt_toolkit buffer
+    # for the table text.
+    tbl = ptable
+    tbl_buffer = table_buffer
+    # prompt_buffer = prompt_buffer # TODO - redraw prompt...
+
     @registry.add_binding(Keys.Escape, eager=True)
     def _(event):
         event.cli.set_return_value(None)
 
     @registry.add_binding(Keys.ControlD, eager=True)
     def _(event):
-        # event.cli.set_return_value(None)
-        raise GetInputInterrupt
+        raise GetInputInterrupt('Operation cancelled by the user.')
 
     @registry.add_binding(Keys.PageUp)
     def _(event):
-        global ptable
-        ptable.table_page_up(event.cli.buffers['TABLE'])
+        # global ptable
+        # ptable.table_page_up(event.cli.buffers['TABLE'])
+        tbl.page_up(event.cli.buffers[tbl_buffer])
+
 
     @registry.add_binding(Keys.PageDown)
     def _(event):
-        global ptable
-        ptable.table_page_down(event.cli.buffers['TABLE'])
+        # global ptable
+        # ptable.table_page_down(event.cli.buffers['TABLE'])
+        # ptable.page_down(event.cli.buffers['TABLE'])
+        tbl.page_down(event.cli.buffers[tbl_buffer])
 
     @registry.add_binding(Keys.Home)
     def _(event):
-        global ptable
-        ptable.table_goto_home(event.cli.buffers['TABLE'])
+        # global ptable
+        # ptable.table_goto_home(event.cli.buffers['TABLE'])
+        tbl.goto_home(event.cli.buffers[tbl_buffer])
+
 
     @registry.add_binding(Keys.End)
     def _(event):
-        global ptable
-        ptable.table_goto_end(event.cli.buffers['TABLE'])
+        # global ptable
+        # ptable.table_goto_end(event.cli.buffers['TABLE'])
+        tbl.goto_end(event.cli.buffers[tbl_buffer])
+
 
     @registry.add_binding(Keys.Up)
     def _(event):
-        global ptable
+        # global ptable
         # up arrow goes down in the table
-        ptable.table_go_down(event.cli.buffers['TABLE'])
+        # ptable.table_go_down(event.cli.buffers['TABLE'])
+        tbl.scroll_down_one_row(event.cli.buffers[tbl_buffer])
+
 
     @registry.add_binding(Keys.Down)
     def _(event):
-        global ptable
+        # global ptable
         # down arrow goes up in the table
         # ptable.table_go_up(event.cli.buffers['TABLE'])
-        ptable.table_go_up(event.cli.buffers['TABLE'])
+        tbl.scroll_up_one_row(event.cli.buffers[tbl_buffer])
+
 
     # ????
     @registry.add_binding(Keys.Enter)
     def _(event):
         event.cli.set_return_value(event.cli.buffers['DEFAULT_BUFFER'].text)
 
-    return registry
+    # @registry.add_binding(Keys.F2)
+    # def _(event):
+    #     print('F2!')
+
+    # return registry
 
 
 def return_row_action(row, action_dict):
@@ -240,18 +248,6 @@ class DynamicTableItem(TableItem):
 class Table(object):
     # TODO - document, including actions
 
-    # def return_row_action(row, action_dict):
-    #     """
-    #     Default action function for Tables. This function returns the whole row of data.
-    #
-    #     :param row: the data associated with the selected row
-    #     :param action_dict: the dictionary of values associated with the action - ignored in this function
-    #
-    #     :return: A list containing all of the data for the selected row of the table.
-    #     """
-    #     return row
-
-
     def __init__(self, rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None,
                  default_action=None, rows_per_page=20, **options):
         """
@@ -276,7 +272,6 @@ class Table(object):
         item_filter         a function used to determine which menu items to display. An item is display if the function returns True for the item.
                                 All items are displayed if item_filter is None (default)
         refresh             refresh menu items each time the menu is shown (True - default), or just when created (False). Useful for dynamic menus
-        item_filter              a function used to filter menu items. MenuItem is shown if returns True, and not if False
         header              a format string to print before the table, can use any value from action_dict as well as pagination information
         footer              a format string to print after the table, can use any values from action_dict as well as pagination information
         """
@@ -294,11 +289,6 @@ class Table(object):
                 raise RuntimeError('Table: unexpected value for add_exit option ({})'.format(add_exit))
         except KeyError:
             self.add_exit = TABLE_ADD_EXIT
-
-        # try:
-        #     self.action_args = options['action_args']
-        # except KeyError:
-        #     self.action_args = []
 
         try:
             self.action_dict = options['action_dict']
@@ -342,7 +332,6 @@ class Table(object):
         self.default_str= default_str
 
         if default_action is None:
-            # self.default_action = self.return_row_action
             self.default_action = return_row_action
         else:
             self.default_action = default_action
@@ -352,33 +341,19 @@ class Table(object):
         self._rows = []                     # the expanded, refreshed table items for the table used to create the pretty table
         self.table = pt.VeryPrettyTable()     # the pretty table to display
 
-        # if (self._table_items[0], DynamicTableItem):
-        #     # For dynamic tables, need to call the factory method to get a sample row so can determine the number of columns
-        #     first_row = self._table_items[0].query.first()
-        #     self._table_items[0].table_item_factory(0, first_row, self._table_items[0].item_data)
-        #     num_cols = len(first_row.values)
-        # else:
-        #     num_cols = len(self.rows[0].values)
-
-        # if col_names is None:
-        #     field_names = ['col {}'.format(i) for i in range(1, num_cols+1)]
-        # elif isstring(col_names):
-        #     field_names = col_names.split()
-        # elif len(col_names) == num_cols:
-        #     field_names = col_names
-        # else:
-        #     raise RuntimeError('Table: number of column names does not match number of columns in the table'.format())
-
         if col_names is None:
             if isinstance(self._table_items[0], DynamicTableItem):
+                # Find the first DynamicTable with data to get the number of columns
                 # For dynamic tables, need to call the factory method to get a sample row so can determine the number of columns
-                # first_row = self._table_items[0].query.first()
-                for first_row in self._table_items[0].query:
-                    break
-                first_item = self._table_items[0].table_item_factory(0, first_row, self._table_items[0].item_data)
-                num_cols = len(first_item.values)
+                first_item = None
+                for ti in self._table_items:
+                    for first_row in ti.query:
+                        first_item = self._table_items[0].table_item_factory(0, first_row, self._table_items[0].item_data)
+                if first_item is None:  # None of the table items had any data
+                    num_cols = 0
+                else:
+                    num_cols = len(first_item.values)
             else:
-                # num_cols = len(self.rows[0].values)
                 num_cols = len(self._table_items[0].values)
 
             field_names = ['col {}'.format(i) for i in range(1, num_cols+1)]
@@ -393,9 +368,7 @@ class Table(object):
         if len(field_names) != num_cols:
             raise RuntimeError('Table: number of column names does not match number of columns in the table'.format())
 
-        # self.field_names = ['tag', *field_names]
         self.field_names = ['tag'] + field_names
-        # self.table.field_names = ['tag', *field_names, 'action']
         self.table.field_names = ['tag'] + field_names + ['action']
 
         self.table.set_style(pt.PLAIN_COLUMNS)
@@ -427,25 +400,12 @@ class Table(object):
     def get_action(self, tag):
         row = self.get_row(tag)
         return row.action
-        # for row in self._rows:
-        #     if row.tag == tag:
-        #         return row.action
-        # raise ValueError('Table.get_action: tag ({}) not in the table'.format(tag))
-    
 
-    # def do_action(self, tag):
     def do_action(self, row):
-        # TODO - should action get the row data?
-        # row = self.get_row(tag)
         action = row.action
         if callable(action):
-            # action(tag, self.action_dict, row.item_data)
-            # action(tag, row, self.action_dict)  # TODO - passing row now -- item_data available from row
-            # call action with row and action_dict. Tag and item_data available from MenuItem
             return action(row, self.action_dict)
         elif action == 'default' and self.default_action is not None:
-            # self.default_action(tag, self.action_dict, row.item_data)
-            # self.default_action(tag, row, self.action_dict) # TODO - passing row now -- item_data available from row
             return self.default_action(row, self.action_dict) # TODO - passing row now -- item_data available from row
         else:
             return row
@@ -467,39 +427,47 @@ class Table(object):
 
         self.table.end = table_end
 
-    def page_up(self, buffer):
+    def page_up(self, buffer=None):
         # page up for the table
         self.show_rows(self.table.start - self.rows_per_page)
-        buffer.text = self.table.get_string()
+        if buffer:
+            buffer.text = self.table.get_string()
 
-    def page_down(self, buffer):
-        # page up for the table
+
+    def page_down(self, buffer=None):
         self.show_rows(self.table.start + self.rows_per_page)
-        buffer.text = self.table.get_string()
+        if buffer:
+            buffer.text = self.table.get_string()
 
-    def goto_home(self, buffer):
+    def goto_home(self, buffer=None):
         # page up for the table
+        buff = buffer if buffer is not None else self.buffers['TABLE']
         self.show_rows(0)
-        buffer.text = self.table.get_string()
+        buff.text = self.table.get_string()
 
-    def goto_end(self, buffer):
+    def goto_end(self, buffer=None):
         # page up for the table
-        self.show_rows(self.table_max_rows - self.rows_per_page)
-        buffer.text = self.table.get_string()
+        buff = buffer if buffer is not None else self.buffers['TABLE']
+        self.show_rows(self.get_num_rows() - self.rows_per_page)
+        buff.text = self.table.get_string()
 
-    def scroll_up_one_row(self, buffer):
+    def scroll_up_one_row(self, buffer=None):
         # go up one row
+        buff = buffer if buffer is not None else self.buffers['TABLE']
         self.show_rows(self.table.start + 1)
-        buffer.text = self.table.get_string()
+        buff.text = self.table.get_string()
 
-    def scroll_down_one_row(self, buffer):
+    def scroll_down_one_row(self, buffer=None):
         # go down one row
+        buff = buffer if buffer is not None else self.buffers['TABLE']
         self.show_rows(self.table.start - 1)
-        buffer.text = self.table.get_string()
+        buff.text = self.table.get_string()
 
     def _prep_get_input(self):
         if self.refresh:
             self.refresh_items(self._table_items, self.add_exit, self.item_filter)
+        if len(self._rows) == 0:
+            raise RuntimeError('get_menu::_prep_get_input: Table has no rows of data ({}).'.format(self))
 
         if self.case_sensitive:
             choices = {str(item.tag): i for i, item in enumerate(self._rows) if item.enabled is True}
@@ -513,9 +481,9 @@ class Table(object):
 
         convertor = ChoiceConvertor(choices)
         validators = RangeValidator(min_val=0, max_val=max(choices.values()))   # TODO - This is wrong... only works for integers? Should be ChoiceValidator?
+
         return choices, cleaners, convertor, validators
 
-    # def _get_choice(self, table_choices, table_cleaners, table_convertor, table_validators):
     def _get_choice(self, table_choices, table_cleaners, table_convertor, table_validators, **options):
         gi_options = {}
         gi_options['prompt'] = self.prompt
@@ -524,7 +492,6 @@ class Table(object):
         gi_options['default_str'] = self.default_str
         for k,v in options.items():
             gi_options[k] = v
-
 
         formatter = string.Formatter()
 
@@ -542,9 +509,6 @@ class Table(object):
         if self.footer:
             print( formatter.vformat(self.footer, None, self.action_dict) )
 
-        # result = get_input(prompt=self.prompt, cleaners=table_cleaners, convertor=table_convertor,
-        #                    validators=table_validators, default=self.default_choice, default_str=self.default_str,
-        #                    required=self.required)
         result = get_input(cleaners=table_cleaners, convertor=table_convertor, validators=table_validators, **gi_options)
 
         if result is None:
@@ -554,6 +518,29 @@ class Table(object):
 
     def get_table_choice(self, do_action=True, **options):
         # TODO - document - get the choice from the table - does not run the action...
+        # TODO - can raise GetInputInterrupt... handle here or not?
+
+        # if True:
+        #     use_key_registry = default_key_registry
+        # else:
+        #     use_key_registry = Registry()
+        #     use_key_registry.key_bindings.extend(default_key_registry.key_bindings)
+        #     # key_registry =  default_key_registry
+        #
+        # if 'key_registry' in options:
+        #     # key_registry = options['key_registry']
+        #     options_key_registry = options['key_registry']
+        #     use_key_registry.key_bindings.extend(options_key_registry.key_bindings)
+
+        if 'key_registry' in options:
+            use_key_registry = options['key_registry']
+            # register_table_keys(options['key_registry'], self, 'DEFAULT_BUFFER')
+        else:
+            use_key_registry = default_key_registry
+            # register_table_keys(default_key_registry, self, 'DEFAULT_BUFFER')
+
+        register_table_keys(use_key_registry, self, 'DEFAULT_BUFFER')
+
         table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
         self.show_rows(0)
         row = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
@@ -561,10 +548,6 @@ class Table(object):
         if row is None:
             return 'exit'
         else:
-            # if do_action:
-            #     return self.do_action(row)
-            # else:
-            #     return row
             return self.do_action(row)
 
     def refresh_items(self, rows=None, add_exit=False, item_filter=None):
@@ -606,12 +589,17 @@ class Table(object):
             else:
                 tag = tag_str = item.tag
 
-            # item_values = [formatter.vformat(v, None, self.action_dict) for v in item.values]
-            item_values = [formatter.vformat(str(v), None, self.action_dict) for v in item.values]
+            try:
+                item_values = [formatter.vformat(str(v), None, self.action_dict) for v in item.values]
+            except (ValueError):
+                # a curly brace in the value causes a ValueError exception. Double it up to fix this.
+                item_values = []
+                for v in item.values:
+                    v2 = str(item.values).replace('}', '}}').replace('{', '{{')
+                    item_values.append(v2)
             row_entry = TableItem(item_values, tag, item.action, item_data=item.item_data, hidden=item.hidden, enabled=item.enabled)
 
             if item.hidden is not True:
-                # self.table.add_row([tag_str, *item_values, item.action])
                 self.table.add_row([tag_str] + item_values + [item.action])
 
             self._rows.append(row_entry)
@@ -625,20 +613,14 @@ class Table(object):
             if self.add_exit == TABLE_ADD_EXIT:
                 row_tag, row_action = 'exit', TABLE_ACTION_EXIT
             elif self.add_exit == TABLE_ADD_RETURN:
-                # row_entry = TableItem('return', 'return', TABLE_ACTION_EXIT)
                 row_tag, row_action = 'return', TABLE_ACTION_EXIT
 
-            # row_values[0] = row_tag
             row_entry = TableItem(row_values, row_tag, row_action)
-            # row_entry = TableItem(row_tag, row_values, row_action)
 
-            # self.table.add_row([row_entry.tag, row_entry.values[0], row_entry.action])
-            # self.table.add_row([row_entry.tag] + row_entry.values + [row_entry.action])
             self.table.add_row([row_entry.tag] + row_entry.values + [row_entry.action])
             self._rows.append(row_entry)
 
 
-    # def __call__(self, tag=None, args=[], kwargs={}):
     def __call__(self, tag=None, action_dict={}, item_data={}):
         """
         This makes tables convenient by making them callable. To call the run method on a table just call the
@@ -660,8 +642,11 @@ class Table(object):
         options = {'prompt': self.prompt}
 
         while True:
-            # choice = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators)
-            choice = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
+            try:
+                choice = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
+            except (GetInputInterrupt) as gii:
+                print('\n{}\n'.format(gii))
+                continue
 
             if choice is None:
                 action - TABLE_ACTION_EXIT
@@ -674,13 +659,19 @@ class Table(object):
                 break
             elif action == TABLE_DEFAULT_ACTION:
                 if callable(self.default_action):
-                    # self.default_action(choice.tag, self.action_dict, choice.item_data)
-                    self.default_action(choice, self.action_dict)
+                    try:
+                        self.default_action(choice, self.action_dict)
+                    except (GetInputInterrupt) as gii:
+                        print('\n{}\n'.format(gii))
+                        return False
                 else:
                     print('Table:run: default_action not set for {}'.format(choice), file=sys.stderr)
             elif callable(action):
-                # action(choice.tag, self.action_dict, choice.item_data)
-                action(choice, self.action_dict)
+                try:
+                    action(choice, self.action_dict)
+                except (GetInputInterrupt) as gii:
+                    print('\n{}\n'.format(gii))
+                    continue
             else:
                 print('Table.run - no action specified for {}'.format(choice), file=sys.stderr)
 
@@ -689,36 +680,6 @@ class Table(object):
                 self.show_rows(self.table.start)
 
         return True
-
-
-# Table(rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None, default_action=None, **options):
-# show_table? sort_by_value?
-# navigation keys
-# return value from action (default - return tag)
-
-#def get_menu(choices, title=None, prompt=None, default_choice=None, **kwargs):
-
-
-# def get_table_input(table=None, **options):
-#     """
-#     Get input value from a table of values. Useful for entering values from database tables.
-#
-#     :param table: list of tuples, with each tuple being: (id, value) for the items in the table.
-#     :param options: all get_input options supported, see get_input documentation for details.
-#
-#     :return: the cleaned, converted, validated input value. This is an id or value from the table depending on input_value.
-#
-#
-#     """
-#
-#     # process options...
-#     valid_get_input_opts = ( 'prompt', 'required', 'default', 'default_str', 'hidden', 'retries', 'error_callback',
-#                              'convertor_error_fmt', 'validator_error_fmt', 'use_prompt_toolkit', 'use_bottom_toolbar',
-#                              'bottom_toolbar_str', 'key_registry')
-#
-#     result = table.get_table_choice()
-#     return result
-
 
 
 def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=False, **kwargs):
@@ -750,14 +711,10 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
     if add_exit and result=='exit':
         return result
 
-    # return menu_choices[result-1].text
-    # return menu_choices[result-1].values[0]
-    # return result.values[0]
     return result
 
 
 # TODO - Note, this is not being used for now!
-# def get_table_input(table=None, **options):
 def get_table_input(self, cleaners=None, convertor=None, validators=None, do_action=False, **options):
     # TODO - document!
     # process options - TODO - too much duplicated code with get_input..
@@ -814,7 +771,6 @@ def get_table_input(self, cleaners=None, convertor=None, validators=None, do_act
     if default_val is not None and not default_string:
         default_string = str(default_val)
 
-    # if not required and default_val is not None:
     if default_val is not None:
         # TODO - have a way to set blank if there is a default_val... a command like 'blank' or 'erase'?
         # logging.warning('Warning: both required and a default value specified. Blank inputs will use default value.')

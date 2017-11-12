@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from .get_input import get_input, get_table_input, process
-# from .get_input import GetInput
-# from .get_input import get_input, get_table_input
 from .get_input import get_string, get_int, get_float, get_boolean, get_date, get_yes_no, get_list
 from .get_input import GetInputInterrupt
 from .get_input import default_key_registry
-# from .get_menu import get_menu, Menu, MenuItem, DynamicMenuItem
 from .get_menu import get_menu, Table, TableItem, DynamicTableItem
-# from .get_menu import MENU_ACTION_EXIT, MENU_ACTION_RETURN, MENU_DEFAULT_ACTION, MENU_ADD_EXIT, MENU_ADD_RETURN
 from .get_menu import TABLE_ACTION_EXIT, TABLE_ACTION_RETURN, TABLE_DEFAULT_ACTION, TABLE_ADD_EXIT, TABLE_ADD_RETURN
 from .error_callbacks import MaxRetriesError, ConvertorError, ValidationError
 from .error_callbacks import print_error, log_error, silent_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR

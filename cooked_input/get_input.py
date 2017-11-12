@@ -9,7 +9,6 @@ Copyright: Len Wanger, 2017
 from __future__ import unicode_literals
 
 import sys
-import copy
 import collections
 import logging
 import getpass
@@ -22,12 +21,11 @@ from prompt_toolkit.token import Token
 
 from .error_callbacks import MaxRetriesError, ValidationError, ConvertorError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
-from .validators import RangeValidator, ChoiceValidator, in_all, validate
-from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor
+from .validators import RangeValidator, in_all, validate
+from .convertors import IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor
 from .convertors import YesNoConvertor, ListConvertor
 from .cleaners import StripCleaner
-from .input_utils import compose, make_pretty_table, isstring, put_in_a_list
-# from .convertors import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
+from .input_utils import compose, isstring
 
 # Custom exceptions for get_input
 class GetInputInterrupt(KeyboardInterrupt):
@@ -39,12 +37,10 @@ default_key_registry = load_key_bindings_for_prompt(enable_abort_and_exit_bindin
 
 # registry = load_key_bindings_for_prompt()
 
-# @registry.add_binding(Keys.ControlD)
 @default_key_registry.add_binding(Keys.ControlD)
 def _(event):
     raise GetInputInterrupt('Operation cancelled by user')
 
-# @registry.add_binding(Keys.Tab)
 @default_key_registry.add_binding(Keys.Tab)
 def _(event):
     event.cli.buffers['DEFAULT_BUFFER'].insert_text('\t')
@@ -281,12 +277,6 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
         raise MaxRetriesError('Maximum retries exceeded')
 
 
-# Table(rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None, default_action=None, **options):
-# show_table? sort_by_value?
-# navigation keys
-# return value from action (default - return tag)
-
-# def get_table_input(table=None, cleaners=None, convertor=None, validators=None, **options):
 def get_table_input(table=None, do_action=True, **options):
     """
     Get input value from a table of values. Allow to type in and return either the id or the value 
@@ -317,87 +307,6 @@ def get_table_input(table=None, do_action=True, **options):
 
     :return: the cleaned, converted, validated input value. This is an id or value from the table depending on input_value.
     """
-    """
-
-    input_value = TABLE_VALUE
-    return_value = TABLE_VALUE
-    show_table = True
-    default_val = None
-    sort_by_value = False
-    valid_get_input_opts = ('value_error', 'prompt', 'required', 'default_str', 'hidden', 'retries', 'error_callback',
-                            'convertor_error_fmt', 'validator_error_fmt')
-
-    for k, v in options.items():
-        if k == 'input_value':
-            if v in {TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE}:
-                input_value = v
-            else:
-                logging.warning('Warning: get_table_input received unknown value for input_value (%s)' % v)
-        elif k == 'return_value':
-            return_value = TABLE_VALUE if v else TABLE_ID
-        elif k == 'show_table':
-            show_table = v
-        elif k == 'default':
-            default_val = v
-        elif k == 'sort_by_id':
-            sort_by_value = v
-        elif k not in valid_get_input_opts:
-            logging.warning('Warning: get_table_input received unknown option (%s)' % k)
-
-    # put together options to pass to get_input.
-    convertor_options_to_keep = {'input_value', 'value_error'}
-    get_input_options_to_skip = {'input_value', 'return_value', 'show_table', 'sort_by_id', 'value_error'}
-    convertor_options = {k: v for k, v in options.items() if k in convertor_options_to_keep}
-    get_input_options = {k: v for k, v in options.items() if k not in get_input_options_to_skip}
-
-    if default_val and input_value == TABLE_ID:
-        # Handle case where id inputted, but default value displayed
-        get_input_options['default_str'] = str(default_val)
-        for row in table:
-            if row[TABLE_VALUE] == default_val or row[TABLE_ID] == default_val:
-                get_input_options['default'] = row[TABLE_ID]
-                break
-        else:
-            raise ValueError('default value not found in table.')
-
-    if input_value == TABLE_ID_OR_VALUE:
-        choices = tuple(item[TABLE_VALUE] for item in table) + tuple(item[TABLE_ID] for item in table)
-    elif input_value == TABLE_VALUE:
-        choices = tuple(item[TABLE_VALUE] for item in table)
-    else:
-        choices = tuple(item[TABLE_ID] for item in table)
-
-    if validators and not callable(validators):
-        table_validators = list(copy.deepcopy(validators)) + ChoiceValidator(choices=choices)
-    else:
-        table_validators = [ChoiceValidator(choices=choices)]
-
-    if show_table:
-        table_prompt = make_pretty_table(table, 'name', sort_by_value)
-        print(table_prompt)
-
-    convertor = TableConvertor(table, convertor, **convertor_options)
-    returned_value = get_input(cleaners=cleaners, convertor=convertor, validators=table_validators, **get_input_options)
-
-    # Make sure returned value is id or value as requested.
-    if input_value == return_value:
-        return returned_value
-    else:
-        for t in table:
-            if input_value == TABLE_VALUE:
-                if t[TABLE_VALUE] == returned_value:
-                    return t[TABLE_ID]
-            elif input_value == TABLE_ID:
-                if t[TABLE_ID] == returned_value:
-                    return t[TABLE_VALUE]
-            else:  # input_value == TABLE_ID_OR_VALUE
-                if t[TABLE_VALUE] == returned_value or t[TABLE_ID] == returned_value:
-                    if return_value == TABLE_VALUE:
-                        return t[TABLE_VALUE]
-                    else:
-                        return t[TABLE_ID]
-    """
-    # return table.get_table_choice(do_action)
     return table.get_table_choice(do_action, **options)
 
 
