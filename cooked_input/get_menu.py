@@ -78,12 +78,13 @@ from prompt_toolkit.layout.dimension import LayoutDimension
 import veryprettytable as pt
 
 from cooked_input import get_input
-from cooked_input import GetInputInterrupt
+from cooked_input import GetInputInterrupt, RefreshScreenInterrupt
 from cooked_input import default_key_registry
 from .input_utils import put_in_a_list, isstring
 from .cleaners import CapitalizationCleaner, StripCleaner, ChoiceCleaner
 from .convertors import ChoiceConvertor
-from .validators import RangeValidator
+# from .validators import RangeValidator
+from .validators import ChoiceValidator
 
 
 TABLE_DEFAULT_ACTION = 'default'
@@ -120,10 +121,8 @@ def register_table_keys(registry, ptable, table_buffer):
 
     @registry.add_binding(Keys.PageDown)
     def _(event):
-        # global ptable
-        # ptable.table_page_down(event.cli.buffers['TABLE'])
-        # ptable.page_down(event.cli.buffers['TABLE'])
-        tbl.page_down(event.cli.buffers[tbl_buffer])
+        # tbl.page_down(event.cli.buffers[tbl_buffer])
+        tbl.page_down()
 
     @registry.add_binding(Keys.Home)
     def _(event):
@@ -177,6 +176,131 @@ def return_row_action(row, action_dict):
     :return: A list containing all of the data for the selected row of the table.
     """
     return row.values
+
+
+def return_tag_action(row, action_dict):
+    """
+    Default action function for menus. This function returns the tag for the
+    row of data.
+
+    :param row: the data associated with the selected row
+    :param action_dict: the dictionary of values associated with the action - ignored in this function
+
+    :return: A list containing all of the data for the selected row of the table.
+    """
+    return row.tag
+
+
+class TableItem(object):
+    def __init__(self, col_values, tag=None, action=TABLE_DEFAULT_ACTION, item_data=None, hidden=False, enabled=True):
+        """
+        # TODO - flesh out documentation - for instance parameters to action calls
+
+        TableItem is used to represent individual rows in a table. Can also be used for menu items.
+
+        :param col_values: A list of values the row's columns
+        :param tag:  a value that can be used to choose the item. If None, a default tag will be assigned by the Table
+            The tag is often an integer of the row number, a database ID, or a textual tag.
+        :param action:  the action to take when the item is selected. By default the tag value is returned.
+        :param item_data:  a dictionary containing data for the table row. Can be used for database ID's. Also
+            used for item filters
+        :param hidden:  Table row will not be shown if True (but will still be selectable), the table row is shown
+            if False (default). Useful for filtering tables
+        :param enabled:  Table row is shown and selectable if True (default), shown and not selectable if False
+
+        TableItem actions:
+
+        +----------------------+--------------------------------------------------------------------------+
+        | value                | action                                                                   |
+        +----------------------+--------------------------------------------------------------------------+
+        | TABLE_DEFAULT_ACTION |  use default method to handle the table item (e.g. call                  |
+        |                      |  default_action handler function)                                        |
+        +----------------------+--------------------------------------------------------------------------+
+        | TABLE_ACTION_EXIT    |  selecting the table row should exit (ie exit the menu)                  |
+        +----------------------+--------------------------------------------------------------------------+
+        | TABLE_ACTION_RETURN  |  selecting the table row should return (ie return from the menu)         |
+        +----------------------+--------------------------------------------------------------------------+
+
+        """
+        self.values = put_in_a_list(col_values)
+        self.tag = tag
+        self.action = action
+        self.item_data = item_data
+        self.hidden = hidden
+        self.enabled = enabled
+
+    def __repr__(self):
+        return 'TableItem(col_values={}, tag={}, action={}, item_data={}, hidden={}, enabled={})'.format(self.values, self.tag,
+                                                                                                         self.action, self.item_data, self.hidden, self.enabled)
+
+
+class DynamicTableItem(TableItem):
+    # TODO - document - dynamically create table items from an iterable (query). Each iteration calls the table item
+    # factory to add that row to the table. Document factory calls - get row #, row data, and item_data. Returns a
+    # Table item. Row # is 1 based (not zero based).
+    def __init__(self, query, table_item_factory, item_data=None):
+        self.query = query
+        self.table_item_factory = table_item_factory
+        self.item_data = item_data
+        # no call to super... sub-class is so isinstance works to detect subclass.
+
+    def __repr__(self):
+        return 'DynamicTableItem(query={}, table_item_factory={}, item_data={})'.format(self.query, self.table_item_factory, self.item_data)
+
+    def __call__(self, *args, **kwargs):
+        table_items = []
+
+        for i, row in enumerate(self.query):
+            table_item = self.table_item_factory(i + 1, row, self.item_data)
+            table_items.append(table_item)
+
+        return table_items
+
+
+class Table(object):
+    # TODO - document, including actions
+
+    def __init__(self, rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None,
+                 default_action=None, rows_per_page=20, **options):
+        """
+
+        :param rows:
+        :param col_names:
+        :param title:
+        :param prompt:
+        :param default_choice:
+        :param default_str:
+        :param default_action:
+        :param rows_per_page:
+        :param options: see below for a list of valid options
+
+        Options:
+
+        required            requires an entry if True, exits the menu on blank entry if False
+        add_exit            automatically adds a MenuItem to exit the menu (MENU_ADD_EXIT - default) or return to the
+                            parent menu (MENU_ADD_RETURN), or not to add a MenuItem at all (False)
+        action_dict         a dictionary of values to pass to action functions. Used to provide context to the action
+        case_sensitive      whether choosing menu items should be case sensitive (True) or not (False - default)
+        item_filter         a function used to determine which menu items to display. An item is display if the function returns True for the item.
+                                All items are displayed if item_filter is None (default)
+        refresh             refresh menu items each time the menu is shown (True - default), or just when created (False). Useful for dynamic menus
+        header              a format string to print before the table, can use any value from action_dict as well as pagination information
+        footer              a format string to print after the table, can use any values from action_dict as well as pagination information
+        """
+        try:
+            self.required = options['required']
+        except KeyError:
+            self.required = True
+
+        try:
+            add_exit = options['add_exit']
+            if add_exit in { False, TABLE_ADD_EXIT, TABLE_ADD_RETURN }:
+                self.add_exit = add_exit
+            else:
+                print('Table:__init__: ')
+                raise RuntimeError('Table: unexpected value for add_exit option ({})'.format(add_exit))
+        except KeyError:
+            self.add_exit = False
 
 
 class TableItem(object):
@@ -332,7 +456,8 @@ class Table(object):
         self.default_str= default_str
 
         if default_action is None:
-            self.default_action = return_row_action
+            #self.default_action = return_row_action
+            self.default_action = return_tag_action
         else:
             self.default_action = default_action
 
@@ -427,41 +552,59 @@ class Table(object):
 
         self.table.end = table_end
 
+    def refresh_buffer(self, buffer):
+        if buffer:
+            buffer.text = self.table.get_string()
+        else:
+            print(self.table.get_string())
+            print()
+            raise RefreshScreenInterrupt
+
+
     def page_up(self, buffer=None):
         # page up for the table
         self.show_rows(self.table.start - self.rows_per_page)
-        if buffer:
-            buffer.text = self.table.get_string()
+        # if buffer:
+        #     buffer.text = self.table.get_string()
+        self.refresh_buffer(buffer)
 
 
     def page_down(self, buffer=None):
         self.show_rows(self.table.start + self.rows_per_page)
-        if buffer:
-            buffer.text = self.table.get_string()
+        # if buffer:
+        #     buffer.text = self.table.get_string()
+        self.refresh_buffer(buffer)
+
 
     def goto_home(self, buffer=None):
         # page up for the table
-        buff = buffer if buffer is not None else self.buffers['TABLE']
+        # buff = buffer if buffer is not None else self.buffers['TABLE']
         self.show_rows(0)
-        buff.text = self.table.get_string()
+        # buff.text = self.table.get_string()
+        self.refresh_buffer(buffer)
 
     def goto_end(self, buffer=None):
         # page up for the table
-        buff = buffer if buffer is not None else self.buffers['TABLE']
+        # buff = buffer if buffer is not None else self.buffers['TABLE']
         self.show_rows(self.get_num_rows() - self.rows_per_page)
-        buff.text = self.table.get_string()
+        # buff.text = self.table.get_string()
+        self.refresh_buffer(buffer)
 
     def scroll_up_one_row(self, buffer=None):
         # go up one row
-        buff = buffer if buffer is not None else self.buffers['TABLE']
+        # buff = buffer if buffer is not None else self.buffers['TABLE']
         self.show_rows(self.table.start + 1)
-        buff.text = self.table.get_string()
+        # buff.text = self.table.get_string()
+        self.refresh_buffer(buffer)
+
 
     def scroll_down_one_row(self, buffer=None):
         # go down one row
         buff = buffer if buffer is not None else self.buffers['TABLE']
         self.show_rows(self.table.start - 1)
         buff.text = self.table.get_string()
+        self.refresh_buffer(buffer)
+
 
     def _prep_get_input(self):
         if self.refresh:
@@ -480,11 +623,71 @@ class Table(object):
         cleaners.append(ChoiceCleaner(choices))
 
         convertor = ChoiceConvertor(choices)
-        validators = RangeValidator(min_val=0, max_val=max(choices.values()))   # TODO - This is wrong... only works for integers? Should be ChoiceValidator?
+        #validators = RangeValidator(min_val=0, max_val=max(choices.values()))   # TODO - This is wrong... only works for integers? Should be ChoiceValidator?
+        validators = ChoiceValidator(choices.values())
 
         return choices, cleaners, convertor, validators
 
-    def _get_choice(self, table_choices, table_cleaners, table_convertor, table_validators, **options):
+    def screen_refresher(self, buffer=None):
+        # use a closure to set the values so the function can be called without without the self reference
+        header = self.header
+        action_dict = self.action_dict
+        title = self.title
+        table = self.table
+        field_names = self.field_names
+        footer = self.footer
+        buffer = buffer
+
+        def refresh_screen():
+            formatter = string.Formatter()
+
+            # print header
+            if header:
+                print(formatter.vformat(header, None, action_dict))
+
+            # print table
+            if title is not None:
+                print('{}'.format(title))
+
+            print(table.get_string(fields=field_names))  # don't show action
+
+            # print footer
+            if footer:
+                print(formatter.vformat(footer, None, action_dict))
+
+        return refresh_screen
+
+    # def refresh_screen(self):
+    #     formatter = string.Formatter()
+    #
+    #     # print header
+    #     if self.header:
+    #         print(formatter.vformat(self.header, None, self.action_dict))
+    #
+    #     # print table
+    #     if self.title is not None:
+    #         print('{}'.format(self.title))
+    #
+    #     print(self.table.get_string(fields=self.field_names))  # don't show action
+    #
+    #     # print footer
+    #     if self.footer:
+    #         print(formatter.vformat(self.footer, None, self.action_dict))
+    #
+    #     return self.screen_refresher()
+
+    def choice_refresher(self):
+        # use a closure to set the values so the function can be called without without the self reference
+        table = self
+
+        def refresh_choices():
+            return table._prep_get_input()
+
+        return refresh_choices
+
+
+    # def _get_choice(self, table_choices, table_cleaners, table_convertor, table_validators, **options):
+    def _get_choice(self, **options):
         gi_options = {}
         gi_options['prompt'] = self.prompt
         gi_options['required'] = self.required
@@ -493,21 +696,32 @@ class Table(object):
         for k,v in options.items():
             gi_options[k] = v
 
-        formatter = string.Formatter()
+        # formatter = string.Formatter()
+        #
+        # # print header
+        # if self.header:
+        #     print( formatter.vformat(self.header, None, self.action_dict) )
+        #
+        # # print table
+        # if self.title is not None:
+        #     print('{}'.format(self.title))
+        #
+        # print(self.table.get_string(fields=self.field_names))  # don't show action
+        #
+        # # print footer
+        # if self.footer:
+        #     print( formatter.vformat(self.footer, None, self.action_dict) )
+        screen_refresher = self.screen_refresher()
+        gi_options['screen_refresh_action'] = screen_refresher
+        # gi_options['refresh_action'] = screen_refresher
 
-        # print header
-        if self.header:
-            print( formatter.vformat(self.header, None, self.action_dict) )
+        choice_refresher = self.choice_refresher()
+        table_choices, table_cleaners, table_convertor, table_validators = choice_refresher()
+        gi_options['choice_refresh_action'] = choice_refresher
+        # table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
 
-        # print table
-        if self.title is not None:
-            print('{}'.format(self.title))
-
-        print(self.table.get_string(fields=self.field_names))  # don't show action
-
-        # print footer
-        if self.footer:
-            print( formatter.vformat(self.footer, None, self.action_dict) )
+        self.show_rows(0)
+        screen_refresher()  # need to refresh screen after choice refresh or dynamic tables won't show any rows
 
         result = get_input(cleaners=table_cleaners, convertor=table_convertor, validators=table_validators, **gi_options)
 
@@ -541,9 +755,10 @@ class Table(object):
 
         register_table_keys(use_key_registry, self, 'DEFAULT_BUFFER')
 
-        table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
-        self.show_rows(0)
-        row = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
+        # table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
+        # self.show_rows(0)
+        # row = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
+        row = self._get_choice(**options)
 
         if row is None:
             return 'exit'
@@ -583,6 +798,7 @@ class Table(object):
                     filtered_items.append(item)
 
         for item in filtered_items:
+        # for item in table_items:
             if item.tag is None:
                 tag_str = '{:3}'.format(table_idx)
                 tag = table_idx
@@ -595,20 +811,29 @@ class Table(object):
                 # a curly brace in the value causes a ValueError exception. Double it up to fix this.
                 item_values = []
                 for v in item.values:
-                    v2 = str(item.values).replace('}', '}}').replace('{', '{{')
+                    # v2 = str(item.values).replace('}', '}}').replace('{', '{{')
+                    v2 = str(v).replace('}', '}}').replace('{', '{{')
                     item_values.append(v2)
             row_entry = TableItem(item_values, tag, item.action, item_data=item.item_data, hidden=item.hidden, enabled=item.enabled)
 
-            if item.hidden is not True:
-                self.table.add_row([tag_str] + item_values + [item.action])
+            ###
+            # if item_filter is None or item_filter is True or (callable(item_filter) and item_filter(item, self.action_dict)):
+            #     if item.hidden is not True:
+            #         self.table.add_row([tag_str] + item_values + [item.action])
+            ###
+
+            # if item.hidden is not True:
+            #     self.table.add_row([tag_str] + item_values + [item.action])
 
             self._rows.append(row_entry)
             table_idx += 1
 
         if add_exit and self.add_exit:
             num_values = 1
-            if len(filtered_items):
-                num_values = len(filtered_items[0].values)
+            # if len(filtered_items):
+            if len(self._rows):
+                # num_values = len(filtered_items[0].values)
+                num_values = len(self._rows[0].values)
             row_values = ['' for i in range(num_values)]
             if self.add_exit == TABLE_ADD_EXIT:
                 row_tag, row_action = 'exit', TABLE_ACTION_EXIT
@@ -619,6 +844,20 @@ class Table(object):
 
             self.table.add_row([row_entry.tag] + row_entry.values + [row_entry.action])
             self._rows.append(row_entry)
+
+        # refresh table
+        self.table.clear_rows()
+        table_idx =1
+        for r in self._rows:
+            if item.hidden is not True:
+                # self.table.add_row([tag_str] + item_values + [item.action])
+                self.table.add_row([r.tag] + r.values + [r.action])
+            table_idx += 1
+
+        if self.table.start > self.get_num_rows():
+            # filtering can cause the table to not show any rows. If so, show last page of filtered table
+            start_row = max(self.get_num_rows() - self.rows_per_page, 0)
+            self.show_rows(start_row)
 
 
     def __call__(self, tag=None, action_dict={}, item_data={}):
@@ -643,7 +882,8 @@ class Table(object):
 
         while True:
             try:
-                choice = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
+                #choice = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
+                choice = self._get_choice(**options)
             except (GetInputInterrupt) as gii:
                 print('\n{}\n'.format(gii))
                 continue
@@ -688,6 +928,12 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
     default_str = default_choice
     default_idx = None
 
+    # return the tag for the menu item unless the user set a specific default action.
+    menu_options = dict(**kwargs)
+
+    if 'default_action' not in kwargs:
+        menu_options['default_action'] = return_tag_action
+
     if default_choice is not None:
         for i,mc in enumerate(menu_choices):
             try:
@@ -701,8 +947,10 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
             except ValueError:
                 pass
 
+    #menu = Table(menu_choices, title=title, prompt=prompt, default_choice=default_idx, default_str=default_str,
+    #            add_exit=add_exit, **kwargs)
     menu = Table(menu_choices, title=title, prompt=prompt, default_choice=default_idx, default_str=default_str,
-                add_exit=add_exit, **kwargs)
+                add_exit=add_exit, **menu_options)
     result = menu.get_table_choice()
 
     if result is None:

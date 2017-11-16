@@ -77,6 +77,7 @@ import win_unicode_console
 
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.key_binding.manager import Registry
+from prompt_toolkit.key_binding.manager import KeyBindingManager
 from cooked_input import default_key_registry
 
 
@@ -162,10 +163,12 @@ def make_table(start=32, end=0x007F, cat_filter='**', name_filter=''):
         except (UnicodeEncodeError) as err:
             print('UnicodeEncodeError: couldn\'t encode char {}'.format(i))
 
-    item_data = {'filter_proof': True}
-    ti = ci.TableItem(col_values=['', 'Show next page', ''], tag='next', hidden=False, action=next_page_action,
-                      item_data=item_data)
-    tis.append(ti)
+    # add 'next' item to the table
+    # item_data = {'filter_proof': True}
+    # ti = ci.TableItem(col_values=['', 'Show next page', ''], tag='next', hidden=False, action=next_page_action,
+    #                   item_data=item_data)
+    # tis.append(ti)
+
     ad = {'cat_filter': cat_filter, 'name_filter': name_filter}
     table = ci.Table(rows=tis, col_names=col_names, item_filter=unicode_item_filter, action_dict=ad, add_exit=False)
     ad['table'] = table
@@ -173,6 +176,7 @@ def make_table(start=32, end=0x007F, cat_filter='**', name_filter=''):
 
 def make_key_binding(registry, table, table_buffer='DEFAULT_BUFFER'):
     tbl = table
+    table_buffer = table_buffer
 
     @registry.add_binding(Keys.F2)
     def _(event):
@@ -181,23 +185,21 @@ def make_key_binding(registry, table, table_buffer='DEFAULT_BUFFER'):
         name_filter = ci.get_string(prompt="Name filter: ", required=False)
         tbl.action_dict['cat_filter'] = cat_filter
         tbl.action_dict['name_filter'] = name_filter
-        # tbl.refresh_items(rows=tbl.rows, add_exit=tbl.add_exit, item_filter=tbl.item_filter)
-        # tbl.refresh_items(rows=tbl._rows, add_exit=tbl.add_exit, item_filter=tbl.item_filter)
         tbl.refresh_items(rows=tbl._table_items, add_exit=tbl.add_exit, item_filter=tbl.item_filter)
         if table_buffer:
             buffer = event.cli.buffers[table_buffer]
             buffer.text = tbl.table.get_string()
+        raise ci.RefreshScreenInterrupt
 
     return registry
 
 if __name__ == '__main__':
-    #table = make_table(start=32, end=0x007F, cat_filter='**', name_filter='')
+    # table = make_table(start=32, end=0x007F, cat_filter='**', name_filter='')
     # table = make_table(0x20A0,0x20CF)   # currency
     table = make_table(0x00080, 0x007FF, cat_filter='Ll', name_filter='')
     # result = ci.get_table_input(table)
-    # kr = make_key_binding(Registry(), table)
-    # kr = default_key_registry
-    kr = make_key_binding(default_key_registry, table)
+    kr = make_key_binding(KeyBindingManager().registry, table)
+    # kr = make_key_binding(default_key_registry, table)
 
     result = ci.get_table_input(table, key_registry=kr)
     # result = ci.get_table_input(table)

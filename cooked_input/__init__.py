@@ -3,6 +3,7 @@
 from .get_input import get_input, get_table_input, process
 from .get_input import get_string, get_int, get_float, get_boolean, get_date, get_yes_no, get_list
 from .get_input import GetInputInterrupt
+from .get_input import RefreshScreenInterrupt
 from .get_input import default_key_registry
 from .get_menu import get_menu, Table, TableItem, DynamicTableItem
 from .get_menu import TABLE_ACTION_EXIT, TABLE_ACTION_RETURN, TABLE_DEFAULT_ACTION, TABLE_ADD_EXIT, TABLE_ADD_RETURN
