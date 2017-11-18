@@ -142,7 +142,8 @@ class GetInput(object):
         self.error_callback = print_error
         self.convertor_error_fmt = DEFAULT_CONVERTOR_ERROR
         self.validator_error_fmt = DEFAULT_VALIDATOR_ERROR
-        self.use_prompt_toolkit = True
+        # self.use_prompt_toolkit = True
+        self.use_prompt_toolkit = False
         self.key_registry = default_key_registry
         # refresh_action = None
         self.screen_refresh_action = None
@@ -729,7 +730,10 @@ def get_string(cleaners=(StripCleaner()), validators=None, **options):
     if 'prompt' not in options:
         new_options['prompt'] = 'Enter some text'
 
-    result = get_input(cleaners=cleaners, convertor=None, validators=validators, **new_options)
+    # result = get_input(cleaners=cleaners, convertor=None, validators=validators, **new_options)
+    # return result
+
+    result = GetInput(cleaners, None, validators, **new_options).get_input()
     return result
 
 
@@ -761,7 +765,8 @@ def get_int(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=No
         else:
             val_list = validators + [irv]
 
-    result = get_input(cleaners, convertor=IntConvertor(), validators=val_list, **new_options)
+    # result = get_input(cleaners, convertor=IntConvertor(), validators=val_list, **new_options)
+    result = GetInput(cleaners, IntConvertor(), val_list, **new_options).get_input()
     return result
 
 
@@ -793,7 +798,8 @@ def get_float(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=
         else:
             val_list = validators + [irv]
 
-    result = get_input(cleaners, convertor=FloatConvertor(), validators=val_list, **new_options)
+    # result = get_input(cleaners, convertor=FloatConvertor(), validators=val_list, **new_options)
+    result = GetInput(cleaners, FloatConvertor(), val_list, **new_options).get_input()
     return result
 
 
@@ -812,7 +818,8 @@ def get_boolean(cleaners=(StripCleaner()), validators=None, **options):
     if 'prompt' not in options:
         new_options['prompt'] = 'Enter true or false'
 
-    result = get_input(cleaners, convertor=BooleanConvertor(), validators=validators, **new_options)
+    # result = get_input(cleaners, convertor=BooleanConvertor(), validators=validators, **new_options)
+    result = GetInput(cleaners, BooleanConvertor(), validators, **new_options).get_input()
     return result
 
 
@@ -831,7 +838,8 @@ def get_date(cleaners=(StripCleaner()), validators=None, **options):
     if 'prompt' not in options:
         new_options['prompt'] = 'Enter a date'
 
-    result = get_input(cleaners, convertor=DateConvertor(), validators=validators, **new_options)
+    # result = get_input(cleaners, convertor=DateConvertor(), validators=validators, **new_options)
+    result = GetInput(cleaners, DateConvertor(), validators, **new_options).get_input()
     return result
 
 
@@ -850,7 +858,8 @@ def get_yes_no(cleaners=(StripCleaner()), validators=None, **options):
     if 'prompt' not in options:
         new_options['prompt'] = 'Enter yes or no'
 
-    result = get_input(cleaners, convertor=YesNoConvertor(), validators=validators, **new_options)
+    # result = get_input(cleaners, convertor=YesNoConvertor(), validators=validators, **new_options)
+    result = GetInput(cleaners, YesNoConvertor(), validators, **new_options).get_input()
     return result
 
 
@@ -889,14 +898,18 @@ def get_list(cleaners=(StripCleaner()), validators=None, value_error_str='list o
                 if isstring(v):
                     default_val = v
                 elif isinstance(v, collections.Iterable):
-                    default_val = (delimiter+' ').join(v)
+                    default_val = (delimiter + ' ').join(v)
                 else:
                     default_val = str(v)
             new_options['default'] = default_val
 
+    convertor = ListConvertor(value_error_str=value_error_str, delimiter=delimiter, elem_convertor=elem_convertor)
+    gi = GetInput(cleaners, convertor, validators, **new_options)
+
     while True:
-        result = get_input(cleaners, convertor=ListConvertor(value_error_str=value_error_str, delimiter=delimiter,
-                            elem_convertor=elem_convertor), validators=validators, **new_options)
+        # result = get_input(cleaners, convertor=ListConvertor(value_error_str=value_error_str, delimiter=delimiter,
+        #                     elem_convertor=elem_convertor), validators=validators, **new_options)
+        result = gi.get_input()
 
         if elem_validators is None:
             break
