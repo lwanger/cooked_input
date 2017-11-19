@@ -166,6 +166,18 @@ def register_table_keys(registry, ptable, table_buffer):
     # return registry
 
 
+def return_table_item_action(row, action_dict):
+    """
+    Default action function for Tables. This function returns the whole row of data.
+
+    :param row: the data associated with the selected row
+    :param action_dict: the dictionary of values associated with the action - ignored in this function
+
+    :return: A list containing all of the data for the selected row of the table.
+    """
+    return row
+
+
 def return_row_action(row, action_dict):
     """
     Default action function for Tables. This function returns the whole row of data.
@@ -372,7 +384,8 @@ class DynamicTableItem(TableItem):
 class Table(object):
     # TODO - document, including actions
 
-    def __init__(self, rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None,
+    # def __init__(self, rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None,
+    def __init__(self, rows, col_names, title=None, prompt=None, default_choice=None, default_str=None,
                  default_action=None, rows_per_page=20, **options):
         """
 
@@ -455,9 +468,12 @@ class Table(object):
         self.default_choice = default_choice
         self.default_str= default_str
 
-        if default_action is None:
-            #self.default_action = return_row_action
+        if default_action is None or default_action == 'tag':
             self.default_action = return_tag_action
+        elif default_action == 'row':
+            self.default_action = return_row_action
+        elif default_action == 'table_item':
+            self.default_action = return_table_item_action
         else:
             self.default_action = default_action
 
@@ -466,23 +482,42 @@ class Table(object):
         self._rows = []                     # the expanded, refreshed table items for the table used to create the pretty table
         self.table = pt.VeryPrettyTable()     # the pretty table to display
 
-        if col_names is None:
-            if isinstance(self._table_items[0], DynamicTableItem):
-                # Find the first DynamicTable with data to get the number of columns
-                # For dynamic tables, need to call the factory method to get a sample row so can determine the number of columns
-                first_item = None
-                for ti in self._table_items:
-                    for first_row in ti.query:
-                        first_item = self._table_items[0].table_item_factory(0, first_row, self._table_items[0].item_data)
-                if first_item is None:  # None of the table items had any data
-                    num_cols = 0
-                else:
-                    num_cols = len(first_item.values)
-            else:
-                num_cols = len(self._table_items[0].values)
-
-            field_names = ['col {}'.format(i) for i in range(1, num_cols+1)]
-        elif isstring(col_names):
+        # if col_names is None:
+        #     if isinstance(self._table_items[0], DynamicTableItem):
+        #         # Find the first DynamicTable with data to get the number of columns
+        #         # For dynamic tables, need to call the factory method to get a sample row so can determine the number of columns
+        #         first_item = None
+        #         num_cols = 0
+        #
+        #         #     for ti in self._table_items:
+        #         #         if first_item is None:
+        #         #             for first_row in ti.query:
+        #         #                 first_item = self._table_items[0].table_item_factory(0, first_row, self._table_items[0].item_data)
+        #         #                 if first_item is not None:
+        #         #                     num_cols = len(first_item.values)
+        #         #                     break
+        #         #     # if first_item is None:  # None of the table items had any data
+        #         #     #     num_cols = 0
+        #         #     # else:
+        #         #     #     num_cols = len(first_item.values)
+        #         # else:
+        #         #     num_cols = len(self._table_items[0].values)
+        #
+        #         for ti in self._table_items:
+        #             # r = ti.next()
+        #             r = next(ti.query)
+        #             first_item = ti.table_item_factory(0, r, self._table_items[0].item_data)
+        #             # if first_item is not None:
+        #             if first_item is not None:
+        #                 num_cols = len(first_item.values)
+        #                 break
+        #     else:
+        #         num_cols = len(self._table_items[0].values)
+        #     num_cols = len(self._table_items[0].values)
+        #
+        #     field_names = ['col {}'.format(i) for i in range(1, num_cols+1)]
+        # elif isstring(col_names):
+        if isstring(col_names):
             field_name_list = col_names.split()
             field_names = field_name_list
             num_cols = len(field_name_list)
@@ -761,7 +796,8 @@ class Table(object):
         row = self._get_choice(**options)
 
         if row is None:
-            return 'exit'
+            # return 'exit'
+            return None
         else:
             return self.do_action(row)
 
@@ -805,15 +841,26 @@ class Table(object):
             else:
                 tag = tag_str = item.tag
 
-            try:
-                item_values = [formatter.vformat(str(v), None, self.action_dict) for v in item.values]
-            except (ValueError):
-                # a curly brace in the value causes a ValueError exception. Double it up to fix this.
-                item_values = []
-                for v in item.values:
-                    # v2 = str(item.values).replace('}', '}}').replace('{', '{{')
+            # try:
+            #     item_values = [formatter.vformat(str(v), None, self.action_dict) for v in item.values]
+            # except (ValueError):
+            #     # a curly brace in the value causes a ValueError exception. Double it up to fix this.
+            #     item_values = []
+            #     for v in item.values:
+            #         # v2 = str(item.values).replace('}', '}}').replace('{', '{{')
+            #         v2 = str(v).replace('}', '}}').replace('{', '{{')
+            #         item_values.append(v2)
+
+            item_values = []
+            for v in item.values:
+                if isstring(v):
+                    # a curly brace in the value causes a ValueError exception. Double it up to fix this.
                     v2 = str(v).replace('}', '}}').replace('{', '{{')
-                    item_values.append(v2)
+                    formatted_val = formatter.vformat(str(v2), None, self.action_dict)
+                    item_values.append(formatted_val)
+                else:
+                    item_values.append(v)
+
             row_entry = TableItem(item_values, tag, item.action, item_data=item.item_data, hidden=item.hidden, enabled=item.enabled)
 
             ###
