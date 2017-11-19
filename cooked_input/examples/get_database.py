@@ -39,11 +39,6 @@ def create_db():
     return conn, c
 
 
-def table_item_factory(idx, row, item_data):
-    ti = ci.TableItem(row[1:])
-    return ti
-
-
 def build_a_burger_v1(conn):
     price = 0.0
     col_names = '# Type'
@@ -74,7 +69,7 @@ def build_a_burger_v1(conn):
     return price
 
 
-def table_item_factory2(idx, row, item_data):
+def table_item_factory(row):
     values = [row[1], '${:.2f}'.format(row[2])]
     ti = ci.TableItem(values, item_data={'price': row[2]})
     return ti
@@ -88,8 +83,12 @@ def build_a_burger_v2(conn):
     prompt_str = 'Which kind of bun do you want'
     def_choice = 'plain'
     cursor.execute('SELECT * FROM buns ORDER BY price')
-    dti = ci.DynamicTableItem(cursor, table_item_factory2, None)
-    tbl = ci.Table(dti, col_names=col_names.split(), title=None, prompt=prompt_str, default_choice=def_choice,
+    # dti = ci.DynamicTableItem(cursor, table_item_factory2, None)
+    tis = [table_item_factory(row) for row in cursor]
+
+    # tbl = ci.Table(dti, col_names=col_names.split(), title=None, prompt=prompt_str, default_choice=def_choice,
+
+    tbl = ci.Table(tis, col_names=col_names.split(), title=None, prompt=prompt_str, default_choice=def_choice,
                    add_exit=False, default_action='table_item')
     bun = tbl.get_table_choice()
     price += bun.item_data['price']
@@ -99,8 +98,11 @@ def build_a_burger_v2(conn):
     def_choice = 'hamburger'
     cursor.execute('SELECT * FROM patties ORDER BY price')
 
-    dti = ci.DynamicTableItem(cursor, table_item_factory2, None)
-    tbl = ci.Table(dti, col_names=col_names.split(), title=None, prompt=prompt_str, default_choice=def_choice,
+    # dti = ci.DynamicTableItem(cursor, table_item_factory2, None)
+    tis = [table_item_factory(row) for row in cursor]
+
+    # tbl = ci.Table(dti, col_names=col_names.split(), title=None, prompt=prompt_str, default_choice=def_choice,
+    tbl = ci.Table(tis, col_names=col_names.split(), title=None, prompt=prompt_str, default_choice=def_choice,
                    add_exit=False, default_action='table_item')
     patty = tbl.get_table_choice()
     price += patty.item_data['price']
@@ -109,8 +111,11 @@ def build_a_burger_v2(conn):
     prompt_str = 'Which kind of extra do you want (hit return when done choosing extras)'
     extras = []
     cursor.execute('SELECT * FROM extras')
-    dti = ci.DynamicTableItem(cursor, table_item_factory2, None)
-    tbl = ci.Table(dti, col_names=col_names.split(), title=None, prompt=prompt_str, add_exit=False,
+    # dti = ci.DynamicTableItem(cursor, table_item_factory2, None)
+    tis = [table_item_factory(row) for row in cursor]
+
+    # tbl = ci.Table(dti, col_names=col_names.split(), title=None, prompt=prompt_str, add_exit=False,
+    tbl = ci.Table(tis, col_names=col_names.split(), title=None, prompt=prompt_str, add_exit=False,
                    default_action='table_item', required=False, refresh=False)
 
     while True:

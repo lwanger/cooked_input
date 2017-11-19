@@ -13,9 +13,8 @@ from sqlalchemy import Sequence
 from sqlalchemy.orm import sessionmaker
 
 from cooked_input import get_menu, get_string, get_int, get_list, validate, Validator, ChoiceValidator
-# from cooked_input import Table, TableItem, DynamicTableItem, TABLE_DEFAULT_ACTION, TABLE_ACTION_EXIT, TABLE_ACTION_RETURN, TABLE_ADD_RETURN, TABLE_ADD_EXIT
 from cooked_input import Table
-from cooked_input import TableItem, DynamicTableItem, TABLE_DEFAULT_ACTION, TABLE_ACTION_EXIT, TABLE_ACTION_RETURN, TABLE_ADD_RETURN, TABLE_ADD_EXIT
+from cooked_input import TableItem, TABLE_DEFAULT_ACTION, TABLE_ACTION_EXIT, TABLE_ACTION_RETURN, TABLE_ADD_RETURN, TABLE_ADD_EXIT
 
 
 def test_get_menu_1():
@@ -32,7 +31,7 @@ def test_get_menu_2():
     # error_fmt = 'Not a valid menu choice'
     prompt_str = 'Enter a menu choice'
     result = get_menu(choices, title='My Menu', prompt=prompt_str, default_choice='red', add_exit=TABLE_ADD_EXIT,
-                      case_sensitive=True)
+                      case_sensitive=True, default_action='first_value')
     print('result={}'.format(result))
 
 
@@ -47,11 +46,7 @@ def action_1(row, action_dict):
 
 
 def show_choice(menu, choice):
-    # action = menu.get_action(choice.tag)
-    # print('choice={}, action={}'.format(choice, action))
     print('choice={}'.format(choice))
-    # menu.do_action(choice.tag)
-    # menu.do_action(choice)
 
 
 def test_action_Table():
@@ -127,6 +122,7 @@ def change_kwargs(row, action_dict):
 
     print(f'action_dict={action_dict}')
     return action_dict
+
 
 def test_args_Table():
     print('test sending args and kwargs to menus:\n')
@@ -206,13 +202,19 @@ class IntersectionValidator(Validator):
 def role_item_filter(row, action_dict):
     # check if the roles in action_dict for the current user matches any of the required roles for the menu item
     if row.item_data == None or row.action in {TABLE_ACTION_EXIT, TABLE_ACTION_RETURN}:
-        return True
+        return (False, True)
 
     try:
         role_validator = IntersectionValidator(row.item_data['roles'])
-        return validate(action_dict['roles'], role_validator, error_callback=None)
+        if validate(action_dict['roles'], role_validator, error_callback=None):
+            return (False, True)
+
     except (TypeError, KeyError):
-        return False
+        # return (True, False)
+        pass
+
+    return (True, False)
+
 
 def test_item_filter():
     all_roles = {'roles': {'admin', 'user'}}
@@ -233,18 +235,17 @@ def test_item_filter():
     print('done')
 
 #### Dynamic menu from DB stuff ####
-def menu_item_factory(i, row, item_data):
+def menu_item_factory(row, item_data):
     return TableItem(row.fullname, None, TABLE_DEFAULT_ACTION, item_data)
 
 
-def user_filter(row, action_dict):
+def user_filter(table_item, action_dict):
     # Only allow user names starting with W or E
-    # if row.text[0] in {'W', 'E'}:
-    name = row.values[0]
+    name = table_item.values[0]
     if name[0] in {'W', 'E'}:
-        return True
+        return (False, True)
     else:
-        return False
+        return (True, False)
 
 Base = declarative_base()
 
@@ -277,8 +278,9 @@ def test_dynamic_menu_from_db(filter_items=False):
     qry = session.query(User.name, User.fullname).order_by(User.fullname)
     # qry = session.query(User.name, User.fullname).filter(User.name=='ed')
     # dmi = DynamicTableItem(qry, menu_item_factory, item_data=None)
-    dmi = DynamicTableItem(qry, menu_item_factory, item_data={'min_len':3})
-    for row in dmi():
+    # dmi = DynamicTableItem(qry, menu_item_factory, item_data={'min_len':3})
+    tis = [menu_item_factory(row, item_data={'min_len': 3}) for row in qry]
+    for row in tis:
         print(row)
 
     print('adding foo')  # show that the stored query will update with data changes
@@ -286,31 +288,35 @@ def test_dynamic_menu_from_db(filter_items=False):
     session.commit()
 
     if filter_items:
-        menu = Table(rows=dmi, item_filter=user_filter)
+        menu = Table(rows=tis, item_filter=user_filter)
     else:
-        menu = Table(rows=dmi)
+        menu = Table(rows=tis)
 
-    # Table()
     menu()
 #### End of Dynamic menu from DB stuff ####
 
-def menu_item_factory(i, row, item_data):
-    # test item factory that sets the item to hidden if it's shorter than the minimum length set in the item_data dict
-    if len(row.name)> item_data['min_len']-1:
-        return TableItem(row.fullname, None, TABLE_DEFAULT_ACTION)
-    else:  # hide short names!
-        return TableItem(row.fullname, None, TABLE_DEFAULT_ACTION, hidden=True, enabled=False)
 
-def menu_item_factory2(i, row, item_data):
+def menu_item_factory2(row, min_len):
     # test item factory that sets the item to hidden if it's shorter than the minimum length set in the item_data dict
-    if len(row['name'])> item_data['min_len']-1:
+    if len(row['name']) > min_len-1:
         return TableItem(row['fullname'], None, TABLE_DEFAULT_ACTION)
     else:  # hide short names!
-        return TableItem(row['fullname'], None, TABLE_DEFAULT_ACTION, hidden=True, enabled=False)
+        return TableItem(row['fullname'], None, TABLE_DEFAULT_ACTION, hidden=True, enabled=True)
 
 def set_filter_len_action(row, action_dict):
     result = get_int(prompt='Enter the minimum user name length to show', minimum=0)
     action_dict['min_len'] = result
+
+def user_filter2(table_item, action_dict):
+    # Only allow user names whose length is >= the min length
+    if table_item.item_data and 'no_filter' in table_item.item_data:
+        return (False, True)
+
+    first_name = table_item.values[0].split()[0]
+    if len(first_name) >= action_dict['min_len']:
+        return (False, True)
+    else:
+        return (True, False)
 
 
 def test_dynamic_menu_from_list(filter_items=False):
@@ -320,30 +326,24 @@ def test_dynamic_menu_from_list(filter_items=False):
         { 'name':'mary', 'fullname': 'Mary Contrary', 'password': 'xxg527' },
         { 'name':'leonard', 'fullname': 'Leonard Nemoy', 'password': 'spock' },
         { 'name':'fred', 'fullname': 'Fred Flinstone', 'password': 'blah'  } ]
-        # ['ed', 'Ed Jones', 'edspassword'],
-        # ['wendy', 'Wendy Williams', 'foobar'],
-        # ['mary', 'Mary Contrary', 'xxg527'],
-        # ['leonard', 'Leonard Nemoy', 'spock'],
-        # ['fred', 'Fred Flinstone', 'blah']]
 
     action_dict = {'min_len': 4}
-    dmi = [ DynamicTableItem(users, menu_item_factory2, action_dict),
-            TableItem('Set minimum length ({min_len})', 'filter', set_filter_len_action, hidden=True)
-          ]
+    tis = [menu_item_factory2(user, 4) for user in users]
+    tis.append(TableItem('Set minimum length ({min_len})', 'filter', set_filter_len_action, hidden=True,
+                         item_data={'no_filter': True}))   # no_filter tells item_filter not to filter the item
 
     header = 'Showing users with user length > {min_len}\n'
     footer = 'type "filter" to change minimum length'
-    menu = Table(rows=dmi, action_dict=action_dict, header=header, footer=footer)
-    # Table()
+    menu = Table(rows=tis, action_dict=action_dict, header=header, footer=footer, item_filter=user_filter2)
     menu()
 
 
-#####
 if __name__ == '__main__':
     if False:
         pass
-        test_get_menu_1()
-        test_get_menu_2()
+
+    test_get_menu_1()
+    test_get_menu_2()
     test_action_Table()
     test_sub_Table()
     test_args_Table()

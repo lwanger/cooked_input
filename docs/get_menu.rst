@@ -8,11 +8,6 @@ TableItem:
 
 .. autofunction:: cooked_input.TableItem
 
-DynamicTableItem:
-=================
-
-.. autofunction:: cooked_input.DynamicTableItem
-
 Table:
 ======
 
