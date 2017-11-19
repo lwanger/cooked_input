@@ -7,21 +7,11 @@ Len Wanger, 2017
 
 TODO:
 
-# Table(rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None, default_action=None, **options):
-# show_table? sort_by_value?
-# navigation keys
-# return value from action (default - return tag)
-
-
-- Document and add to tutorial
+    - navigation keys
+    - Document and add to tutorial
 
 - Examples/scenarios:
     - menus:
-        - dynamic menu - from:
-            X list
-            X database
-            - Pandas
-        X test hidden commands. Test commands in header/footer
         - different display functions (i.e. function for displaying the table - silent_table for no display of menu or table)
         - set user profile - list users, add profile, edit profile
         - different borders
@@ -41,7 +31,7 @@ TODO:
     - port prettytable-extras to veryprettytable?
     - add color for title and header
     - add setting fore and back colors on rows? (int or slice?)
-    - curses ability - use get_string?
+    - curses ability - use get_string? use prompt toolkit?
     - pagination - add paginator? - paginate in veryprettytable isn't quite right... need like flask paginate
         Pagination()
             __init__(page, per_page, total_count)   <-- can add search (and search col?)
@@ -83,7 +73,6 @@ from cooked_input import default_key_registry
 from .input_utils import put_in_a_list, isstring
 from .cleaners import CapitalizationCleaner, StripCleaner, ChoiceCleaner
 from .convertors import ChoiceConvertor
-# from .validators import RangeValidator
 from .validators import ChoiceValidator
 
 
@@ -272,119 +261,6 @@ class DynamicTableItem(TableItem):
 class Table(object):
     # TODO - document, including actions
 
-    def __init__(self, rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None,
-                 default_action=None, rows_per_page=20, **options):
-        """
-
-        :param rows:
-        :param col_names:
-        :param title:
-        :param prompt:
-        :param default_choice:
-        :param default_str:
-        :param default_action:
-        :param rows_per_page:
-        :param options: see below for a list of valid options
-
-        Options:
-
-        required            requires an entry if True, exits the menu on blank entry if False
-        add_exit            automatically adds a MenuItem to exit the menu (MENU_ADD_EXIT - default) or return to the
-                            parent menu (MENU_ADD_RETURN), or not to add a MenuItem at all (False)
-        action_dict         a dictionary of values to pass to action functions. Used to provide context to the action
-        case_sensitive      whether choosing menu items should be case sensitive (True) or not (False - default)
-        item_filter         a function used to determine which menu items to display. An item is display if the function returns True for the item.
-                                All items are displayed if item_filter is None (default)
-        refresh             refresh menu items each time the menu is shown (True - default), or just when created (False). Useful for dynamic menus
-        header              a format string to print before the table, can use any value from action_dict as well as pagination information
-        footer              a format string to print after the table, can use any values from action_dict as well as pagination information
-        """
-        try:
-            self.required = options['required']
-        except KeyError:
-            self.required = True
-
-        try:
-            add_exit = options['add_exit']
-            if add_exit in { False, TABLE_ADD_EXIT, TABLE_ADD_RETURN }:
-                self.add_exit = add_exit
-            else:
-                print('Table:__init__: ')
-                raise RuntimeError('Table: unexpected value for add_exit option ({})'.format(add_exit))
-        except KeyError:
-            self.add_exit = False
-
-
-class TableItem(object):
-    def __init__(self, col_values, tag=None, action=TABLE_DEFAULT_ACTION, item_data=None, hidden=False, enabled=True):
-        """
-        # TODO - flesh out documentation - for instance parameters to action calls
-
-        TableItem is used to represent individual rows in a table. Can also be used for menu items.
-
-        :param col_values: A list of values the row's columns
-        :param tag:  a value that can be used to choose the item. If None, a default tag will be assigned by the Table
-            The tag is often an integer of the row number, a database ID, or a textual tag.
-        :param action:  the action to take when the item is selected. By default the tag value is returned.
-        :param item_data:  a dictionary containing data for the table row. Can be used for database ID's. Also
-            used for item filters
-        :param hidden:  Table row will not be shown if True (but will still be selectable), the table row is shown
-            if False (default). Useful for filtering tables
-        :param enabled:  Table row is shown and selectable if True (default), shown and not selectable if False
-
-        TableItem actions:
-
-        +----------------------+--------------------------------------------------------------------------+
-        | value                | action                                                                   |
-        +----------------------+--------------------------------------------------------------------------+
-        | TABLE_DEFAULT_ACTION |  use default method to handle the table item (e.g. call                  |
-        |                      |  default_action handler function)                                        |
-        +----------------------+--------------------------------------------------------------------------+
-        | TABLE_ACTION_EXIT    |  selecting the table row should exit (ie exit the menu)                  |
-        +----------------------+--------------------------------------------------------------------------+
-        | TABLE_ACTION_RETURN  |  selecting the table row should return (ie return from the menu)         |
-        +----------------------+--------------------------------------------------------------------------+
-
-        """
-        self.values = put_in_a_list(col_values)
-        self.tag = tag
-        self.action = action
-        self.item_data = item_data
-        self.hidden = hidden
-        self.enabled = enabled
-
-    def __repr__(self):
-        return 'TableItem(col_values={}, tag={}, action={}, item_data={}, hidden={}, enabled={})'.format(self.values, self.tag,
-                                                                                                         self.action, self.item_data, self.hidden, self.enabled)
-
-
-class DynamicTableItem(TableItem):
-    # TODO - document - dynamically create table items from an iterable (query). Each iteration calls the table item
-    # factory to add that row to the table. Document factory calls - get row #, row data, and item_data. Returns a
-    # Table item. Row # is 1 based (not zero based).
-    def __init__(self, query, table_item_factory, item_data=None):
-        self.query = query
-        self.table_item_factory = table_item_factory
-        self.item_data = item_data
-        # no call to super... sub-class is so isinstance works to detect subclass.
-
-    def __repr__(self):
-        return 'DynamicTableItem(query={}, table_item_factory={}, item_data={})'.format(self.query, self.table_item_factory, self.item_data)
-
-    def __call__(self, *args, **kwargs):
-        table_items = []
-
-        for i, row in enumerate(self.query):
-            table_item = self.table_item_factory(i + 1, row, self.item_data)
-            table_items.append(table_item)
-
-        return table_items
-
-
-class Table(object):
-    # TODO - document, including actions
-
-    # def __init__(self, rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None,
     def __init__(self, rows, col_names, title=None, prompt=None, default_choice=None, default_str=None,
                  default_action=None, rows_per_page=20, **options):
         """
@@ -412,6 +288,7 @@ class Table(object):
         header              a format string to print before the table, can use any value from action_dict as well as pagination information
         footer              a format string to print after the table, can use any values from action_dict as well as pagination information
         """
+        # Note: It's annoying you have to pass in column names. Unfortunately come dynamic table queries can't be re-run so can't scan for them.
         try:
             self.required = options['required']
         except KeyError:
@@ -483,39 +360,38 @@ class Table(object):
         self.table = pt.VeryPrettyTable()     # the pretty table to display
 
         # if col_names is None:
-        #     if isinstance(self._table_items[0], DynamicTableItem):
-        #         # Find the first DynamicTable with data to get the number of columns
-        #         # For dynamic tables, need to call the factory method to get a sample row so can determine the number of columns
-        #         first_item = None
-        #         num_cols = 0
-        #
-        #         #     for ti in self._table_items:
-        #         #         if first_item is None:
-        #         #             for first_row in ti.query:
-        #         #                 first_item = self._table_items[0].table_item_factory(0, first_row, self._table_items[0].item_data)
-        #         #                 if first_item is not None:
-        #         #                     num_cols = len(first_item.values)
-        #         #                     break
-        #         #     # if first_item is None:  # None of the table items had any data
-        #         #     #     num_cols = 0
-        #         #     # else:
-        #         #     #     num_cols = len(first_item.values)
-        #         # else:
-        #         #     num_cols = len(self._table_items[0].values)
-        #
-        #         for ti in self._table_items:
-        #             # r = ti.next()
-        #             r = next(ti.query)
-        #             first_item = ti.table_item_factory(0, r, self._table_items[0].item_data)
-        #             # if first_item is not None:
-        #             if first_item is not None:
-        #                 num_cols = len(first_item.values)
-        #                 break
-        #     else:
-        #         num_cols = len(self._table_items[0].values)
-        #     num_cols = len(self._table_items[0].values)
-        #
-        #     field_names = ['col {}'.format(i) for i in range(1, num_cols+1)]
+            # if isinstance(self._table_items[0], DynamicTableItem):
+            #     # Find the first DynamicTable with data to get the number of columns
+            #     # For dynamic tables, need to call the factory method to get a sample row so can determine the number of columns
+            #     first_item = None
+            #     num_cols = 0
+            #
+            #     #     for ti in self._table_items:
+            #     #         if first_item is None:
+            #     #             for first_row in ti.query:
+            #     #                 first_item = self._table_items[0].table_item_factory(0, first_row, self._table_items[0].item_data)
+            #     #                 if first_item is not None:
+            #     #                     num_cols = len(first_item.values)
+            #     #                     break
+            #     #     # if first_item is None:  # None of the table items had any data
+            #     #     #     num_cols = 0
+            #     #     # else:
+            #     #     #     num_cols = len(first_item.values)
+            #     # else:
+            #     #     num_cols = len(self._table_items[0].values)
+            #
+            #     for ti in self._table_items:
+            #         # r = ti.next()
+            #         r = next(ti.query)
+            #         first_item = ti.table_item_factory(0, r, self._table_items[0].item_data)
+            #         # if first_item is not None:
+            #         if first_item is not None:
+            #             num_cols = len(first_item.values)
+            #             break
+            # else:
+            #     num_cols = len(self._table_items[0].values)
+            # # num_cols = len(self._table_items[0].values)
+            # field_names = ['col {}'.format(i) for i in range(1, num_cols+1)]
         # elif isstring(col_names):
         if isstring(col_names):
             field_name_list = col_names.split()
@@ -684,7 +560,8 @@ class Table(object):
             if title is not None:
                 print('{}'.format(title))
 
-            print(table.get_string(fields=field_names))  # don't show action
+            # print(table.get_string(fields=field_names))  # don't show action
+            print(table.get_string(fields=table.field_names[:-1]))  # don't show action
 
             # print footer
             if footer:
@@ -721,8 +598,8 @@ class Table(object):
         return refresh_choices
 
 
-    # def _get_choice(self, table_choices, table_cleaners, table_convertor, table_validators, **options):
-    def _get_choice(self, **options):
+    def _get_choice(self, table_choices, table_cleaners, table_convertor, table_validators, **options):
+    # def _get_choice(self, **options):
         gi_options = {}
         gi_options['prompt'] = self.prompt
         gi_options['required'] = self.required
@@ -750,9 +627,9 @@ class Table(object):
         gi_options['screen_refresh_action'] = screen_refresher
         # gi_options['refresh_action'] = screen_refresher
 
-        choice_refresher = self.choice_refresher()
-        table_choices, table_cleaners, table_convertor, table_validators = choice_refresher()
-        gi_options['choice_refresh_action'] = choice_refresher
+        # choice_refresher = self.choice_refresher()
+        # table_choices, table_cleaners, table_convertor, table_validators = choice_refresher()
+        # gi_options['choice_refresh_action'] = choice_refresher
         # table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
 
         self.show_rows(0)
@@ -790,10 +667,10 @@ class Table(object):
 
         register_table_keys(use_key_registry, self, 'DEFAULT_BUFFER')
 
-        # table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
+        table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
         # self.show_rows(0)
-        # row = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
-        row = self._get_choice(**options)
+        row = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
+        # row = self._get_choice(**options)
 
         if row is None:
             # return 'exit'
@@ -834,22 +711,11 @@ class Table(object):
                     filtered_items.append(item)
 
         for item in filtered_items:
-        # for item in table_items:
             if item.tag is None:
                 tag_str = '{:3}'.format(table_idx)
                 tag = table_idx
             else:
-                tag = tag_str = item.tag
-
-            # try:
-            #     item_values = [formatter.vformat(str(v), None, self.action_dict) for v in item.values]
-            # except (ValueError):
-            #     # a curly brace in the value causes a ValueError exception. Double it up to fix this.
-            #     item_values = []
-            #     for v in item.values:
-            #         # v2 = str(item.values).replace('}', '}}').replace('{', '{{')
-            #         v2 = str(v).replace('}', '}}').replace('{', '{{')
-            #         item_values.append(v2)
+                tag = item.tag
 
             item_values = []
             for v in item.values:
@@ -863,12 +729,6 @@ class Table(object):
 
             row_entry = TableItem(item_values, tag, item.action, item_data=item.item_data, hidden=item.hidden, enabled=item.enabled)
 
-            ###
-            # if item_filter is None or item_filter is True or (callable(item_filter) and item_filter(item, self.action_dict)):
-            #     if item.hidden is not True:
-            #         self.table.add_row([tag_str] + item_values + [item.action])
-            ###
-
             # if item.hidden is not True:
             #     self.table.add_row([tag_str] + item_values + [item.action])
 
@@ -877,9 +737,7 @@ class Table(object):
 
         if add_exit and self.add_exit:
             num_values = 1
-            # if len(filtered_items):
             if len(self._rows):
-                # num_values = len(filtered_items[0].values)
                 num_values = len(self._rows[0].values)
             row_values = ['' for i in range(num_values)]
             if self.add_exit == TABLE_ADD_EXIT:
@@ -918,7 +776,6 @@ class Table(object):
         :param kwargs: keyword arg dictionary the table was called with (used for submenus)
         :return: the status from run.
         """
-        # return self.run(**kwargs)
         return self.run()
 
     def run(self):
@@ -929,8 +786,8 @@ class Table(object):
 
         while True:
             try:
-                #choice = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
-                choice = self._get_choice(**options)
+                choice = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
+                # choice = self._get_choice(**options)
             except (GetInputInterrupt) as gii:
                 print('\n{}\n'.format(gii))
                 continue
