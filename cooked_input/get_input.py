@@ -121,7 +121,7 @@ class GetInput(object):
             required = True
 
         if not self.required and not self.default_val:
-            default_string = ' (enter to leave blank)'
+            self.default_string = ' (enter to leave b)'
         elif self.default_val:
             self.default_string = ' (enter for: %s)' % self.default_string
         else:
@@ -139,7 +139,7 @@ class GetInput(object):
         :return: the cleaned, converted, validated input
         """
         retries = 0
-        input_str = '{}: '.format(self.prompt_str)
+        input_str = '{}{}: '.format(self.prompt_str, self.default_string)
         print('')
 
         while (self.max_retries is None) or (retries < self.max_retries):

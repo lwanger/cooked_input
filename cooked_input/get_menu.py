@@ -253,7 +253,7 @@ class Table(object):
 
         if default_action is None or default_action == 'tag':
             self.default_action = return_tag_action
-        if default_action is None or default_action == 'first_value':
+        elif default_action is None or default_action == 'first_value':
             self.default_action = return_first_col_action
         elif default_action == 'row':
             self.default_action = return_row_action
@@ -476,7 +476,12 @@ class Table(object):
         elif callable(item_filter):
             filtered_items = []
             for item in table_items:
-                item.hidden, item.enabled = item_filter(item, self.action_dict)
+                # could set hidden and enabled directly, but it's easy to forget to return the tuple so warn the user...
+                filter_result = item_filter(item, self.action_dict)
+                try:
+                    item.hidden, item.enabled = filter_result[0], filter_result[1]
+                except TypeError:
+                    raise RuntimeError('get_menu: item_filter needs to return a tuple (hidden, enabled)')
                 if item.hidden is False:
                     filtered_items.append(item)
 
