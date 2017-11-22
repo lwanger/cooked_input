@@ -203,7 +203,7 @@ class Table(object):
 
         try:
             add_exit = options['add_exit']
-            if add_exit in { False, TABLE_ADD_EXIT, TABLE_ADD_RETURN }:
+            if add_exit in { True, False, TABLE_ADD_EXIT, TABLE_ADD_RETURN }:
                 self.add_exit = add_exit
             else:
                 print('Table:__init__: ')
@@ -518,7 +518,8 @@ class Table(object):
             if len(self._rows):
                 num_values = len(self._rows[0].values)
             row_values = ['' for i in range(num_values)]
-            if self.add_exit == TABLE_ADD_EXIT:
+           
+            if self.add_exit in (TABLE_ADD_EXIT, True):
                 row_tag, row_action = 'exit', TABLE_ACTION_EXIT
             elif self.add_exit == TABLE_ADD_RETURN:
                 row_tag, row_action = 'return', TABLE_ACTION_EXIT
