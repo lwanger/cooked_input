@@ -72,6 +72,11 @@ TABLE_ADD_EXIT = 'exit'
 TABLE_ADD_RETURN = 'return'
 TABLE_ADD_NONE = 'none'
 
+TABLE_DEFAULT_ACTION_TAG = 'tag'
+TABLE_DEFAULT_ACTION_FIRST_VAL = 'first_value'
+TABLE_DEFAULT_ACTION_ROW = 'row'
+TABLE_DEFAULT_ACTION_ITEM = 'table_item'
+
 
 def return_table_item_action(row, action_dict):
     """
@@ -168,6 +173,7 @@ class TableItem(object):
 
 class Table(object):
     # TODO - document, including actions
+    # TODO - std commands (pg up down etc)
 
     def __init__(self, rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None,
                  default_action=None, rows_per_page=20, **options):
@@ -190,6 +196,7 @@ class Table(object):
                             parent menu (MENU_ADD_RETURN), or not to add a MenuItem at all (False)
         action_dict         a dictionary of values to pass to action functions. Used to provide context to the action
         case_sensitive      whether choosing menu items should be case sensitive (True) or not (False - default)
+        commands            command list for the table
         item_filter         a function used to determine which menu items to display. An item is display if the function returns True for the item.
                                 All items are displayed if item_filter is None (default) -- TODO - returns a tuple of (hidden, enabled)
         refresh             refresh menu items each time the menu is shown (True - default), or just when created (False). Useful for dynamic menus
@@ -220,6 +227,11 @@ class Table(object):
             self.case_sensitive = options['case_sensitive']
         except KeyError:
             self.case_sensitive = False
+
+        try:
+            self.commands = options['commands']
+        except KeyError:
+            self.commands = None
 
         try:
             self.refresh = options['refresh']
@@ -425,6 +437,7 @@ class Table(object):
         gi_options['required'] = self.required
         gi_options['default'] = self.default_choice
         gi_options['default_str'] = self.default_str
+        gi_options['commands'] = self.commands
         for k,v in options.items():
             gi_options[k] = v
 

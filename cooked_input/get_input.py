@@ -36,6 +36,25 @@ if sys.version_info[0] > 2:  # For Python 3
         return input(prompt_msg)
 
 
+
+# Named tuple and action types for GetInput commands:
+CommandResponse = collections.namedtuple('CommandResponse', 'action value')
+
+COMMAND_ACTION_USE_VALUE = 'enter_value_action'
+COMMAND_ACTION_CANCEL = 'cancel_input_action'
+COMMAND_ACTION_NOP = 'nop_action'
+# TODO - how to do an insert of a value? Would like to print help and get stdin primed with value before command called...
+
+class GetInputCommand():
+    def __init__(self, cmd_action, cmd_dict=None):
+        # self.cmd_str = cmd_str
+        self.cmd_action = cmd_action
+        self.cmd_dict = cmd_dict
+
+    def __call__(self):
+        return self.cmd_action(self.cmd_dict)
+
+
 class GetInput(object):
     def __init__(self, cleaners=None, convertor=None, validators=None, **options):
         """
@@ -71,6 +90,9 @@ class GetInput(object):
             validator_error_fmt: format string to use for validator errors. Defaults to DEFAULT_VALIDATOR_ERROR.
                 Format string receives two variables - {value} the value that failed conversion, and {error_content}
                 set by the validator.
+
+            commands: an optional dictionary of commands. Each command is a pair of test_string: action_function. When
+                the text string is entered, the action function is called. <TODO>
         """
         self.cleaners = cleaners
         self.convertor = convertor
@@ -85,6 +107,7 @@ class GetInput(object):
         self.error_callback = print_error
         self.convertor_error_fmt = DEFAULT_CONVERTOR_ERROR
         self.validator_error_fmt = DEFAULT_VALIDATOR_ERROR
+        self.commands = {}
 
         for k, v in options.items():
             if k == 'prompt':
@@ -108,11 +131,13 @@ class GetInput(object):
                 self.convertor_error_fmt = v
             elif k == 'validator_error_fmt':
                 self.validator_error_fmt = v
+            elif k == 'commands':
+                self.commands = v
             else:
                 logging.warning('Warning: get_input received unknown option (%s)' % k)
 
-        if self.default_val is not None and not self.default_string:
-            self.default_string = str(self.default_val)
+        #if self.default_val is not None and not self.default_string:
+        #    self.default_string = str(self.default_val)
 
         # if not required and default_val is not None:
         if self.default_val is not None:
@@ -120,12 +145,14 @@ class GetInput(object):
             # logging.warning('Warning: both required and a default value specified. Blank inputs will use default value.')
             required = True
 
-        if not self.required and not self.default_val:
-            self.default_string = ' (enter to leave b)'
-        elif self.default_val:
-            self.default_string = ' (enter for: %s)' % self.default_string
-        else:
-            self.default_string = ''
+        if not self.default_string:
+            if not self.required and not self.default_val:
+                self.default_string = ' (enter to leave blank)'
+            elif self.default_val:
+                #self.default_string = ' (enter for: %s)' % self.default_string
+                self.default_string = ' (enter for: %s)' % self.default_val
+            else:
+                self.default_string = ''
 
 
     def get_input(self):
@@ -147,6 +174,17 @@ class GetInput(object):
                 response = getpass.getpass(prompt=input_str)
             else:
                 response = raw_input(input_str)
+
+            if self.commands and response in self.commands:
+                command_action, command_value = self.commands[response]()
+                if command_action == COMMAND_ACTION_USE_VALUE:
+                    response = command_value
+                elif command_action == COMMAND_ACTION_NOP:
+                    continue
+                elif command_action == COMMAND_ACTION_CANCEL:
+                    raise GetInputInterrupt
+                else:
+                    raise RuntimeError('GetInput.get_input: Unknown command action specified ({})'.format(command_action))
 
             if not self.required and not response:
                 return None
