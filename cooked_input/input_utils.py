@@ -10,7 +10,7 @@ Copyright: Len Wanger, 2017
 
 import sys
 import collections
-import prettytable
+import veryprettytable
 
 
 def compose(value, funcs):
@@ -49,7 +49,8 @@ def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):
     :param sort_by_second_col: sort by the second column if True, otherwise leave in order from rows.
     :return: a prettytable for the table.
     """
-    x = prettytable.PrettyTable(['id', second_col_name])
+    #x = prettytable.PrettyTable(['id', second_col_name])
+    x = veryprettytable.PrettyTable(['id', second_col_name])
 
     for row in rows:
         x.add_row([row[0], row[1]])
