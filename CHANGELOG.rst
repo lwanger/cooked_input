@@ -12,7 +12,9 @@ see TODO.md for list of TODO items
 
 * v0.3.0:
 
-  * added get_menu and Menu classes (Menu, MenuItem, etc.)
+  * added GetInput class
+
+  * added get_menu and Table classes (Table, TableItem, etc.)
 
   * added ConvertorError exception. Changed Convertors to use it
 

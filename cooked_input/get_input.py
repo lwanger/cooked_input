@@ -23,6 +23,9 @@ from .input_utils import compose, isstring
 
 # Custom exceptions for get_input
 class GetInputInterrupt(KeyboardInterrupt):
+    """
+    GetInputInterrupt is raised on a cancellation command (COMMAND_ACTION_CANCEL)
+    """
     pass
 
 class RefreshScreenInterrupt(Exception):
@@ -46,7 +49,52 @@ COMMAND_ACTION_NOP = 'nop_action'
 # TODO - how to do an insert of a value? Would like to print help and get stdin primed with value before command called...
 
 class GetInputCommand():
+    """
+    Used to create commands that can be used in GetInput. Each command has an action and optional cmd_dict. The
+    cmd_dict dictionary can be used to pass data to the command. For instance, a database session or the name of the
+    user can be passed: cmd_dist = {'session': db_session, 'user': user }
+
+    The cmd_action is a callback funtion used for the command. It receives the cmd_dict as input and returns a tuple
+     containing (COMMAND_ACTION_TYPE, value), where the command action type is one of the followin:
+
+    +-------------------------------+-----------------------------------------------------------------+
+    | Action                        |    Result                                                       |
+    +-------------------------------+-----------------------------------------------------------------+
+    | COMMAND_ACTION_USE_VALUE      |  use the sectond value of the tuple as the input                |
+    +-------------------------------+-----------------------------------------------------------------+
+    | COMMAND_ACTION_CANCEL         |  camcel the current input (raise a GetInputInterrupt exception) |
+    +-------------------------------+-----------------------------------------------------------------+
+    | COMMAND_ACTION_NOP            |  do nothing - continues to ask for the input                    |
+    +-------------------------------+-----------------------------------------------------------------+
+
+    For example, the following input specifies one of each type of command::
+
+        def use_red_action(cmd_dict):
+            return (ci.COMMAND_ACTION_USE_VALUE, 'red')
+
+        def cancel_action(cmd_dict):
+            print('CANCELLING OPERATION')
+            return (ci.COMMAND_ACTION_CANCEL, None)
+
+        def show_help_action(cmd_dict):
+            print('Help Message:')
+            print('-------------')
+            print('/?  - show this message')
+            print('/cancel - cancel this operation')
+            print('/red    - use red as a value')
+            return (ci.COMMAND_ACTION_NOP, None)
+
+        cmds = { '/?': ci.GetInputCommand(show_help_action),
+                '/cancel': ci.GetInputCommand(cancel_action),
+                '/red': ci.GetInputCommand(use_red_action, {'color': 'red'}) }
+
+        try:
+            result = ci.get_string(prompt=prompt_str, commands=cmds)
+        except ci.GetInputInterrupt:
+            print('Got GetInputInterrupt')
+    """
     def __init__(self, cmd_action, cmd_dict=None):
+
         # self.cmd_str = cmd_str
         self.cmd_action = cmd_action
         self.cmd_dict = cmd_dict
@@ -56,44 +104,45 @@ class GetInputCommand():
 
 
 class GetInput(object):
+    """
+    Class to get cleaned, converted, validated input from the command line.
+
+    :param cleaners: list of cleaners to apply to clean the value
+    :param convertor: the convertor to apply to the cleaned value
+    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param options:
+
+    Options:
+
+        prompt: the string to use for the prompt. For example prompt="Enter your name"
+
+        required: True if a non-blank value is required, False if a blank response is OK.
+
+        default: the default value to use if a blank string is entered. This takes precedence over
+            required (i.e.  a blank response will return the default value.)
+
+        default_str: the string to use for the default value. In general just set the default option.
+            This is used by get_from_table to display a value but return a table id.
+
+        hidden: the input typed should not be displayed. This is useful for entering passwords.
+
+        retries: the maximum number of attempts to allow before raising a MaxRetriesError exception.
+
+        error_callback: a callback function to call when an error is encountered. Defaults to print_error
+
+        convertor_error_fmt: format string to use for convertor errors. Defaults to DEFAULT_CONVERTOR_ERROR.
+            Format string receives two variables - {value} the value that failed conversion, and {error_content}
+            set by the convertor.
+
+        validator_error_fmt: format string to use for validator errors. Defaults to DEFAULT_VALIDATOR_ERROR.
+            Format string receives two variables - {value} the value that failed conversion, and {error_content}
+            set by the validator.
+
+        commands: an optional dictionary of commands. Each command is a pair of test_string: action_function. When
+            the text string is entered, the action function is called. <TODO>
+    """
+
     def __init__(self, cleaners=None, convertor=None, validators=None, **options):
-        """
-        Class to get cleaned, converted, validated input from the command line.
-
-        :param cleaners: list of cleaners to apply to clean the value
-        :param convertor: the convertor to apply to the cleaned value
-        :param validators: list of validators to apply to validate the cleaned and converted value
-        :param options:
-
-        Options:
-
-            prompt: the string to use for the prompt. For example prompt="Enter your name"
-
-            required: True if a non-blank value is required, False if a blank response is OK.
-
-            default: the default value to use if a blank string is entered. This takes precedence over
-                required (i.e.  a blank response will return the default value.)
-
-            default_str: the string to use for the default value. In general just set the default option.
-                This is used by get_from_table to display a value but return a table id.
-
-            hidden: the input typed should not be displayed. This is useful for entering passwords.
-
-            retries: the maximum number of attempts to allow before raising a MaxRetriesError exception.
-
-            error_callback: a callback function to call when an error is encountered. Defaults to print_error
-
-            convertor_error_fmt: format string to use for convertor errors. Defaults to DEFAULT_CONVERTOR_ERROR.
-                Format string receives two variables - {value} the value that failed conversion, and {error_content}
-                set by the convertor.
-
-            validator_error_fmt: format string to use for validator errors. Defaults to DEFAULT_VALIDATOR_ERROR.
-                Format string receives two variables - {value} the value that failed conversion, and {error_content}
-                set by the validator.
-
-            commands: an optional dictionary of commands. Each command is a pair of test_string: action_function. When
-                the text string is entered, the action function is called. <TODO>
-        """
         self.cleaners = cleaners
         self.convertor = convertor
         self.validators = validators
@@ -162,7 +211,6 @@ class GetInput(object):
         get_input prompts the user for an input. The input is then cleaned, converted, and validated,
         and the validated response is returned.
 
-        :param options:  see above
         :return: the cleaned, converted, validated input
         """
         retries = 0
@@ -243,54 +291,67 @@ class GetInput(object):
             return (False, None)
 
 
-class GetTableInput(GetInput):
-    def __init__(self, table, cleaners=None, convertor=None, validators=None, **options):
-        # TODO - move to get_menu / get_table?
-        # TODO - clean up options and process GetTableInput specific options
-        # TODO - document
-        self.table = table
-        super(GetTableInput, self).__init__(cleaners, convertor, validators, **options)
+# class GetTableInput(GetInput):
+#     """
+#     Class to get cleaned, converted, validated input from a table of values. This can be used for data tables or menu.
+#
+#     :param table: a Table instance containing the data items
+#     :param cleaners: list of cleaners to apply to clean the value
+#     :param convertor: the convertor to apply to the cleaned value
+#     :param validators: list of validators to apply to validate the cleaned and converted value
+#     :param options:
+#
+#
+#     """
+#
+#     def __init__(self, table, cleaners=None, convertor=None, validators=None, **options):
+#
+#         # TODO - move to get_menu / get_table?
+#         # TODO - clean up options and process GetTableInput specific options
+#         # TODO - document
+#         self.table = table
+#         super(GetTableInput, self).__init__(cleaners, convertor, validators, **options)
 
 
-    def get_input(self):
-        retries = 0
-        input_str = '{}{}: '.format(self.prompt_str, self.default_string)
-        print('')
-
-        while (self.max_retries is None) or (retries < self.max_retries):
-            try:
-                response = use_prompt_toolkit_application(input_str, self.hidden, self.key_registry)
-
-                if not self.required and not response:
-                    return None
-                elif self.default_val and not response:
-                    valid_response, converted_response = self.process_value(self.default_val)
-
-                    if valid_response:
-                        return converted_response
-                    else:
-                        raise ValidationError('default value "{!r}" did not pass validation.'.format(self.default_val))
-                elif response:
-                    valid_response, converted_response = self.process_value(response)
-
-                    if valid_response:
-                        break
-                    else:
-                        retries += 1
-                        # print('TODO: get validation error messages')
-                        continue
-            except (RefreshScreenInterrupt):
-                # if refresh_action is not None:
-                #     refresh_action()
-                if self.screen_refresh_action is not None:
-                    self.screen_refresh_action()
-                if self.choice_refresh_action is not None:
-                    table_choices, cleaners, convertor, validators = self.choice_refresh_action()
-
-        if valid_response:
-            return converted_response
-        else:
-            raise MaxRetriesError('Maximum retries exceeded')
+    # def get_input(self):
+    #     retries = 0
+    #     input_str = '{}{}: '.format(self.prompt_str, self.default_string)
+    #     print('')
+    #
+    #     while (self.max_retries is None) or (retries < self.max_retries):
+    #         try:
+    #             response = use_prompt_toolkit_application(input_str, self.hidden, self.key_registry)
+    #
+    #             if not self.required and not response:
+    #                 return None
+    #             elif self.default_val and not response:
+    #                 valid_response, converted_response = self.process_value(self.default_val)
+    #
+    #                 if valid_response:
+    #                     return converted_response
+    #                 else:
+    #                     raise ValidationError('default value "{!r}" did not pass validation.'.format(self.default_val))
+    #             elif response:
+    #                 valid_response, converted_response = self.process_value(response)
+    #
+    #                 if valid_response:
+    #                     break
+    #                 else:
+    #                     retries += 1
+    #                     # print('TODO: get validation error messages')
+    #                     continue
+    #         except (RefreshScreenInterrupt):
+    #             # if refresh_action is not None:
+    #             #     refresh_action()
+    #             if self.screen_refresh_action is not None:
+    #                 self.screen_refresh_action()
+    #             if self.choice_refresh_action is not None:
+    #                 table_choices, cleaners, convertor, validators = self.choice_refresh_action()
+    #
+    #     if valid_response:
+    #         return converted_response
+    #     else:
+    #         raise MaxRetriesError('Maximum retries exceeded')
 
 
 def get_input(cleaners=None, convertor=None, validators=None, **options):
@@ -307,39 +368,6 @@ def process(value, cleaners=None, convertor=None, validators=None, error_callbac
 
     gi = GetInput(cleaners, convertor, validators, **options)
     return gi.process_value(value)
-
-
-def get_table_input(table=None, do_action=True, **options):
-    """
-    Get input value from a table of values. Allow to type in and return either the id or the value 
-    for the choice. Useful for entering values from database tables.
-
-    options:
-
-        input_value: TABLE_VALUE (or True) to input the value from the table row, TABLE_ID (or False) 
-            to enter the id. TABLE_ID_OR_VALUE  allows entering either and will give the preference
-            to entering the value.
-
-        return_value: TABLE_VALUE (or True) to return the value from the table row, TABLE_ID (or
-            False) to return the id.
-
-        show_table: will print the table before asking for the prompt
-            before asking for the input.
-
-        sort_by_value: whether to sort the table rows by value (True) or id (False). Defaults to sort by id.
-        default: the default value to use.
-
-        All additional get_input options are also supported (see above.)
-
-    :param table: list of tuples, with each tuple being: (id, value) for the items in the table.
-    :param cleaners: list of cleaners to apply to the inputted value.
-    :param convertor: the convertor to apply to the cleaned input value.
-    :param validators: list of validators to apply to the cleaned, converted input value.
-    :param options: all get_input options supported, see get_input documentation for details.
-
-    :return: the cleaned, converted, validated input value. This is an id or value from the table depending on input_value.
-    """
-    return table.get_table_choice(do_action, **options)
 
 
 #############################

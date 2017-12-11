@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 """
-get_menu - menu system for cooked_input
+get_table - table/menu system for cooked_input
 
 Len Wanger, 2017
 
@@ -104,7 +104,7 @@ def return_row_action(row, action_dict):
 
 def return_tag_action(row, action_dict):
     """
-    Default action function for menus. This function returns the tag for the
+    Default action function for tables. This function returns the tag for the
     row of data.
 
     :param row: the data associated with the selected row
@@ -116,7 +116,7 @@ def return_tag_action(row, action_dict):
 
 def return_first_col_action(row, action_dict):
     """
-    Default action function for menus. This function returns the first data column value for the
+    Default action function for tables. This function returns the first data column value for the
     row of data.
 
     :param row: the data associated with the selected row
@@ -128,36 +128,37 @@ def return_first_col_action(row, action_dict):
 
 
 class TableItem(object):
+    """
+    # TODO - flesh out documentation - for instance parameters to action calls
+
+    TableItem is used to represent individual rows in a table. Can also be used for menu items.
+
+    :param col_values: A list of values the row's columns
+    :param tag:  a value that can be used to choose the item. If None, a default tag will be assigned by the Table
+        The tag is often an integer of the row number, a database ID, or a textual tag.
+    :param action:  the action to take when the item is selected. By default the tag value is returned.
+    :param item_data:  a dictionary containing data for the table row. Can be used for database ID's. Also
+        used for item filters
+    :param hidden:  Table row will not be shown if True (but will still be selectable), the table row is shown
+        if False (default). Useful for filtering tables
+    :param enabled:  Table row is shown and selectable if True (default), shown and not selectable if False
+
+    TableItem actions:
+
+    +----------------------+--------------------------------------------------------------------------+
+    | value                | action                                                                   |
+    +----------------------+--------------------------------------------------------------------------+
+    | TABLE_DEFAULT_ACTION |  use default method to handle the table item (e.g. call                  |
+    |                      |  default_action handler function)                                        |
+    +----------------------+--------------------------------------------------------------------------+
+    | TABLE_ACTION_EXIT    |  selecting the table row should exit (ie exit the menu)                  |
+    +----------------------+--------------------------------------------------------------------------+
+    | TABLE_ACTION_RETURN  |  selecting the table row should return (ie return from the menu)         |
+    +----------------------+--------------------------------------------------------------------------+
+
+    """
     def __init__(self, col_values, tag=None, action=TABLE_DEFAULT_ACTION, item_data=None, hidden=False, enabled=True):
-        """
-        # TODO - flesh out documentation - for instance parameters to action calls
 
-        TableItem is used to represent individual rows in a table. Can also be used for menu items.
-
-        :param col_values: A list of values the row's columns
-        :param tag:  a value that can be used to choose the item. If None, a default tag will be assigned by the Table
-            The tag is often an integer of the row number, a database ID, or a textual tag.
-        :param action:  the action to take when the item is selected. By default the tag value is returned.
-        :param item_data:  a dictionary containing data for the table row. Can be used for database ID's. Also
-            used for item filters
-        :param hidden:  Table row will not be shown if True (but will still be selectable), the table row is shown
-            if False (default). Useful for filtering tables
-        :param enabled:  Table row is shown and selectable if True (default), shown and not selectable if False
-
-        TableItem actions:
-
-        +----------------------+--------------------------------------------------------------------------+
-        | value                | action                                                                   |
-        +----------------------+--------------------------------------------------------------------------+
-        | TABLE_DEFAULT_ACTION |  use default method to handle the table item (e.g. call                  |
-        |                      |  default_action handler function)                                        |
-        +----------------------+--------------------------------------------------------------------------+
-        | TABLE_ACTION_EXIT    |  selecting the table row should exit (ie exit the menu)                  |
-        +----------------------+--------------------------------------------------------------------------+
-        | TABLE_ACTION_RETURN  |  selecting the table row should return (ie return from the menu)         |
-        +----------------------+--------------------------------------------------------------------------+
-
-        """
         self.values = put_in_a_list(col_values)
         self.tag = tag
         self.action = action
@@ -172,37 +173,43 @@ class TableItem(object):
 
 
 class Table(object):
+    """
     # TODO - document, including actions
     # TODO - std commands (pg up down etc)
 
+    :param rows:
+    :param col_names:
+    :param title:
+    :param prompt:
+    :param default_choice:
+    :param default_str:
+    :param default_action:
+    :param rows_per_page:
+    :param options: see below for a list of valid options
+
+    default actions:
+
+        TABLE_DEFAULT_ACTION_TAG = 'tag'
+        TABLE_DEFAULT_ACTION_FIRST_VAL = 'first_value'
+        TABLE_DEFAULT_ACTION_ROW = 'row'
+        TABLE_DEFAULT_ACTION_ITEM = 'table_item'
+
+    Options:
+
+    required            requires an entry if True, exits the table on blank entry if False
+    add_exit            automatically adds a TableItem to exit the menu (MENU_ADD_EXIT - default) or return to the parent table/menu (MENU_ADD_RETURN), or not to add a TableItem at all (False)
+    action_dict         a dictionary of values to pass to action functions. Used to provide context to the action
+    case_sensitive      whether choosing table items should be case sensitive (True) or not (False - default)
+    commands            command list for the table
+    item_filter         a function used to determine which table items to display. An item is display if the function returns True for the item. All items are displayed if item_filter is None (default) -- TODO - returns a tuple of (hidden, enabled)
+    refresh             refresh table items each time the table is shown (True - default), or just when created (False). Useful for dynamic tables
+    header              a format string to print before the table, can use any value from action_dict as well as pagination information
+    footer              a format string to print after the table, can use any values from action_dict as well as pagination information
+    """
+
     def __init__(self, rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None,
                  default_action=None, rows_per_page=20, **options):
-        """
 
-        :param rows:
-        :param col_names:
-        :param title:
-        :param prompt:
-        :param default_choice:
-        :param default_str:
-        :param default_action:
-        :param rows_per_page:
-        :param options: see below for a list of valid options
-
-        Options:
-
-        required            requires an entry if True, exits the menu on blank entry if False
-        add_exit            automatically adds a MenuItem to exit the menu (MENU_ADD_EXIT - default) or return to the
-                            parent menu (MENU_ADD_RETURN), or not to add a MenuItem at all (False)
-        action_dict         a dictionary of values to pass to action functions. Used to provide context to the action
-        case_sensitive      whether choosing menu items should be case sensitive (True) or not (False - default)
-        commands            command list for the table
-        item_filter         a function used to determine which menu items to display. An item is display if the function returns True for the item.
-                                All items are displayed if item_filter is None (default) -- TODO - returns a tuple of (hidden, enabled)
-        refresh             refresh menu items each time the menu is shown (True - default), or just when created (False). Useful for dynamic menus
-        header              a format string to print before the table, can use any value from action_dict as well as pagination information
-        footer              a format string to print after the table, can use any values from action_dict as well as pagination information
-        """
         try:
             self.required = options['required']
         except KeyError:
@@ -265,7 +272,7 @@ class Table(object):
 
         if default_action is None or default_action == 'tag':
             self.default_action = return_tag_action
-        elif default_action is None or default_action == 'first_value':
+        elif default_action == 'first_value':
             self.default_action = return_first_col_action
         elif default_action == 'row':
             self.default_action = return_row_action
@@ -315,19 +322,43 @@ class Table(object):
                                             self.field_names, self.title, self.prompt, self.default_choice, self.action_dict)
 
     def get_num_rows(self):
+        """
+
+        :return: the number of rows in the table
+        """
         return len(self._rows)
 
     def get_row(self, tag):
+        """
+        Return the first row matching the specified tag.
+
+        :param tag: the tag to search for
+
+        :return: the first row containing the tag. Raises ValueError if the tag is not found/
+        """
         for row in self._rows:
             if row.tag == tag:
                 return row
         raise ValueError('Table.get_row: tag ({}) not in the table'.format(tag))
 
     def get_action(self, tag):
+        """
+        Return the action callback function for the first row matching the specified tag.
+
+        :param tag: the tag to search for
+        :return: the action for the first row containing the tag. Raises ValueError if the tag is not found/
+        """
         row = self.get_row(tag)
         return row.action
 
     def do_action(self, row):
+        """
+        Call the action function for the specified row
+
+        :param row: the row (TableItem) of the table to call the action on
+
+        :return:  returns the return value for the action. Returns the original row if no action is defined for the tow.
+        """
         action = row.action
         if callable(action):
             return action(row, self.action_dict)
@@ -337,6 +368,14 @@ class Table(object):
             return row
 
     def show_rows(self, start_row):
+        """
+        Set the starting row for to display in the table. Last row shown is the start_row plus the number of rows per
+        page (or the last row if start_row is withing rows_per_page of the end of the table).
+
+        :param start_row:
+
+        :return: None
+        """
         # set the starting and ending rows to show
         table_max_rows = self.get_num_rows()
         if start_row > table_max_rows - self.rows_per_page:
@@ -362,41 +401,72 @@ class Table(object):
     #         raise RefreshScreenInterrupt
 
 
-    def page_up(self, buffer=None):
-        # page up for the table
+    def page_up(self):
+        """
+        Display the previous page of the table (if available)
+
+        :return: None
+        """
         self.show_rows(self.table.start - self.rows_per_page)
         print(self.table.get_string())
 
-    def page_down(self, buffer=None):
+    def page_down(self):
+        """
+        Display the next page of the table (if available)
+
+        :return: None
+        """
         self.show_rows(self.table.start + self.rows_per_page)
         print(self.table.get_string())
 
-    def goto_home(self, buffer=None):
-        # page up for the table
+    def goto_home(self):
+        """
+        Display the first page of the table
+
+        :return: None
+        """
         self.show_rows(0)
         print(self.table.get_string())
 
-    def goto_end(self, buffer=None):
-        # page up for the table
+    def goto_end(self):
+        """
+        Display the last page of the table
+
+        :return: None
+        """
         self.show_rows(self.get_num_rows() - self.rows_per_page)
         print(self.table.get_string())
 
-    def scroll_up_one_row(self, buffer=None):
-        # go up one row
+    def scroll_up_one_row(self):
+        """
+        Display the one row earlier in the table (if available)
+
+        :return: None
+        """
         self.show_rows(self.table.start + 1)
         print(self.table.get_string())
 
-    def scroll_down_one_row(self, buffer=None):
-        # go down one row
+    def scroll_down_one_row(self):
+        """
+        Display the one row later in the table (if available)
+
+        :return: None
+        """
         self.show_rows(self.table.start - 1)
         print(self.table.get_string())
 
 
     def _prep_get_input(self):
+        """
+        Internal function to prepare the table for getting input. Refreshes the tabl (for dynamic tables) and prepares
+        the choices, cleaners, covertor and validators.
+
+        :return: a tuple of (choices, cleaners, convertor, validator) to use for getting input from the table.
+        """
         if self.refresh:
             self.refresh_items(self._table_items, self.add_exit, self.item_filter)
         if len(self._rows) == 0:
-            raise RuntimeError('get_menu::_prep_get_input: Table has no rows of data ({}).'.format(self))
+            raise RuntimeError('get_table::_prep_get_input: Table has no rows of data ({}).'.format(self))
 
         if self.case_sensitive:
             choices = {str(item.tag): i for i, item in enumerate(self._rows) if item.enabled is True}
@@ -414,6 +484,10 @@ class Table(object):
         return choices, cleaners, convertor, validators
 
     def refresh_screen(self):
+        """
+        Display the current page of the table (including any header or footer)
+        :return: None
+        """
         formatter = string.Formatter()
 
         # print header
@@ -432,6 +506,16 @@ class Table(object):
 
 
     def _get_choice(self, table_choices, table_cleaners, table_convertor, table_validators, **options):
+        """
+        Internal function to get the input for the table choice.
+
+        :param table_cleaners:
+        :param table_convertor:
+        :param table_validators:
+        :param options:
+
+        :return:  the table row for the choice picked
+        """
         gi_options = {}
         gi_options['prompt'] = self.prompt
         gi_options['required'] = self.required
@@ -449,8 +533,21 @@ class Table(object):
         else:
             return self._rows[result]
 
-    def get_table_choice(self, do_action=True, **options):
-        # TODO - document - get the choice from the table - does not run the action...
+    # def get_table_choice(self, do_action=True, **options):
+    def get_table_choice(self, **options):
+        """
+        Pick a value from the table. This is the main method used to choose a value from a table.
+
+        :param options:
+
+            prompt
+            required
+            default
+            default_str
+            commands
+
+        :return: the result of performing the action (specified by the table or row) on the row. Returns None if no row picked.
+        """
         # TODO - can raise GetInputInterrupt... handle here or not?
 
         table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
@@ -464,8 +561,19 @@ class Table(object):
             return self.do_action(row)
 
     def refresh_items(self, rows=None, add_exit=False, item_filter=None):
+        """
+        TODO - document this....
+        Refresh which rows of the table are enabled and shown/
         # Used to update rows in the table. Adds tags if necessary. formatter is used so
         # values can be substituted in format strings from action_dict using vformat.
+
+        :param rows:
+        :param add_exit:
+        :param item_filter:
+
+        :return: None
+        """
+
         formatter = string.Formatter()
 
         if rows is None:
@@ -494,7 +602,7 @@ class Table(object):
                 try:
                     item.hidden, item.enabled = filter_result[0], filter_result[1]
                 except TypeError:
-                    raise RuntimeError('get_menu: item_filter needs to return a tuple (hidden, enabled)')
+                    raise RuntimeError('get_table: item_filter needs to return a tuple (hidden, enabled)')
                 if item.hidden is False:
                     filtered_items.append(item)
 
@@ -571,6 +679,12 @@ class Table(object):
         return self.run()
 
     def run(self):
+        """
+        Continue to get input from the table until a blank row is returned, or a GetInputInterrupt is received. This is
+        primarily used to use tables as menus. Choosing exit or return in a menu is the same as returning no row.
+
+        :return: True if exited without an error, or False if a GetInputInterrupt was received.
+        """
         table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
         self.show_rows(0)
 
@@ -617,8 +731,57 @@ class Table(object):
         return True
 
 
+# def get_table_input(table, do_action=True, **options):
+def get_table_input(table, **options):
+    """
+    # TODO - this documentation is wrong! Depends on action now...
+    Get input value from a table of values. Allow to type in and return either the id or the value
+    for the choice. Useful for entering values from database tables.
+
+    options:
+
+        input_value: TABLE_VALUE (or True) to input the value from the table row, TABLE_ID (or False)
+            to enter the id. TABLE_ID_OR_VALUE  allows entering either and will give the preference
+            to entering the value.
+
+        return_value: TABLE_VALUE (or True) to return the value from the table row, TABLE_ID (or
+            False) to return the id.
+
+        show_table: will print the table before asking for the prompt
+            before asking for the input.
+
+        sort_by_value: whether to sort the table rows by value (True) or id (False). Defaults to sort by id.
+        default: the default value to use.
+
+        All additional get_input options are also supported (see above.)
+
+    :param table: list of tuples, with each tuple being: (id, value) for the items in the table.
+    :param cleaners: list of cleaners to apply to the inputted value.
+    :param convertor: the convertor to apply to the cleaned input value.
+    :param validators: list of validators to apply to the cleaned, converted input value.
+    :param options: all get_input options supported, see get_input documentation for details.
+
+    :return: the cleaned, converted, validated input value. This is an id or value from the table depending on input_value.
+    """
+    # return table.get_table_choice(do_action, **options)
+    return table.get_table_choice(**options)
+
+
 def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=False, **kwargs):
+    """
     # TODO - document!
+    The `get_menu` convenience function is provided to simplify creating a basic menu. `get_menu` takes a list of text strings
+    to use for the menu items, and returns the text string of the item picked. `get_menu` is just syntactic sugar for calls to
+    the Table class, but simpler to use.
+
+    :param choices:
+    :param title:
+    :param prompt:
+    :param default_choice:
+    :param add_exit:
+    :param kwargs:
+    :return:
+    """
     menu_choices = [TableItem(choice) for choice in choices]
     default_str = default_choice
     default_idx = None
