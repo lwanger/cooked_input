@@ -6,6 +6,7 @@ see: https://github.com/lwanger/cooked_input for more information.
 Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
+
 from __future__ import unicode_literals
 
 import sys
@@ -21,6 +22,7 @@ from .convertors import YesNoConvertor, ListConvertor
 from .cleaners import StripCleaner
 from .input_utils import compose, isstring
 
+
 # Custom exceptions for get_input
 class GetInputInterrupt(KeyboardInterrupt):
     """
@@ -28,49 +30,49 @@ class GetInputInterrupt(KeyboardInterrupt):
     """
     pass
 
+
 class RefreshScreenInterrupt(Exception):
     pass
 
 
 # Python 2/3 compatibility
 if sys.version_info[0] > 2:  # For Python 3
-    # from abc import ABCMeta, abstractmethod
     def raw_input(prompt_msg):
         return input(prompt_msg)
-
 
 
 # Named tuple and action types for GetInput commands:
 CommandResponse = collections.namedtuple('CommandResponse', 'action value')
 
+# Command action constants
 COMMAND_ACTION_USE_VALUE = 'enter_value_action'
 COMMAND_ACTION_CANCEL = 'cancel_input_action'
 COMMAND_ACTION_NOP = 'nop_action'
-# TODO - how to do an insert of a value? Would like to print help and get stdin primed with value before command called...
+
 
 class GetInputCommand():
     """
-    Used to create commands that can be used in GetInput. Each command has an action and optional cmd_dict. The
-    cmd_dict dictionary can be used to pass data to the command. For instance, a database session or the name of the
-    user can be passed: cmd_dist = {'session': db_session, 'user': user }
+    Used to create commands that can be used in GetInput. Each command has an action and optional data dictionary
+    (cmd_dict). The cmd_dict dictionary can be used to pass data to the command. For instance, a database session or
+    the name of the user can be passed: cmd_dist = {'session': db_session, 'user': user }
 
     The cmd_action is a callback funtion used for the command. It receives the cmd_dict as input and returns a tuple
-     containing (COMMAND_ACTION_TYPE, value), where the command action type is one of the followin:
+     containing (COMMAND_ACTION_TYPE, value), where the command action type is one of the following:
 
     +-------------------------------+-----------------------------------------------------------------+
     | Action                        |    Result                                                       |
     +-------------------------------+-----------------------------------------------------------------+
-    | COMMAND_ACTION_USE_VALUE      |  use the sectond value of the tuple as the input                |
+    | COMMAND_ACTION_USE_VALUE      |  use the second value of the tuple as the input                 |
     +-------------------------------+-----------------------------------------------------------------+
-    | COMMAND_ACTION_CANCEL         |  camcel the current input (raise a GetInputInterrupt exception) |
+    | COMMAND_ACTION_CANCEL         |  cancel the current input (raise a GetInputInterrupt exception) |
     +-------------------------------+-----------------------------------------------------------------+
     | COMMAND_ACTION_NOP            |  do nothing - continues to ask for the input                    |
     +-------------------------------+-----------------------------------------------------------------+
 
     For example, the following input specifies one of each type of command::
 
-        def use_red_action(cmd_dict):
-            return (ci.COMMAND_ACTION_USE_VALUE, 'red')
+        def use_color_action(cmd_dict):
+            return (ci.COMMAND_ACTION_USE_VALUE, cmd_dict['color'])
 
         def cancel_action(cmd_dict):
             print('CANCELLING OPERATION')
@@ -85,8 +87,8 @@ class GetInputCommand():
             return (ci.COMMAND_ACTION_NOP, None)
 
         cmds = { '/?': ci.GetInputCommand(show_help_action),
-                '/cancel': ci.GetInputCommand(cancel_action),
-                '/red': ci.GetInputCommand(use_red_action, {'color': 'red'}) }
+                 '/cancel': ci.GetInputCommand(cancel_action),
+                 '/red': ci.GetInputCommand(use_color_action, {'color': 'red'}) }
 
         try:
             result = ci.get_string(prompt=prompt_str, commands=cmds)
@@ -94,13 +96,14 @@ class GetInputCommand():
             print('Got GetInputInterrupt')
     """
     def __init__(self, cmd_action, cmd_dict=None):
-
-        # self.cmd_str = cmd_str
         self.cmd_action = cmd_action
         self.cmd_dict = cmd_dict
 
     def __call__(self):
         return self.cmd_action(self.cmd_dict)
+
+    def __repr__(self):
+        return 'GetInputCommand(cmd_action={}, cmd_dict={})'.format(self.cmd_action, self.cmd_dict)
 
 
 class GetInput(object):
@@ -119,10 +122,9 @@ class GetInput(object):
         required: True if a non-blank value is required, False if a blank response is OK.
 
         default: the default value to use if a blank string is entered. This takes precedence over
-            required (i.e.  a blank response will return the default value.)
+            required (i.e. a blank response will return the default value.)
 
         default_str: the string to use for the default value. In general just set the default option.
-            This is used by get_from_table to display a value but return a table id.
 
         hidden: the input typed should not be displayed. This is useful for entering passwords.
 
@@ -138,10 +140,10 @@ class GetInput(object):
             Format string receives two variables - {value} the value that failed conversion, and {error_content}
             set by the validator.
 
-        commands: an optional dictionary of commands. Each command is a pair of test_string: action_function. When
-            the text string is entered, the action function is called. <TODO>
+        commands: a dictionary containing commands that can be run from the input prompt. The key for each command
+            is the string used to call the command and the value is an instance of the GetInputCommand class for
+             the command (e.g. "/help": GetInputCommand(show_help_action)).
     """
-
     def __init__(self, cleaners=None, convertor=None, validators=None, **options):
         self.cleaners = cleaners
         self.convertor = convertor
