@@ -101,7 +101,7 @@ class GetInputCommand():
         self.cmd_dict = cmd_dict
 
     def __call__(self, cmd_str, cmd_vars):
-9        return self.cmd_action(cmd_str, cmd_vars, self.cmd_dict)
+        return self.cmd_action(cmd_str, cmd_vars, self.cmd_dict)
 
     def __repr__(self):
         return 'GetInputCommand(cmd_action={}, cmd_dict={})'.format(self.cmd_action, self.cmd_dict)
