@@ -56,7 +56,8 @@ class GetInputCommand():
     (cmd_dict). The cmd_dict dictionary can be used to pass data to the command. For instance, a database session or
     the name of the user can be passed: cmd_dist = {'session': db_session, 'user': user }
 
-    The cmd_action is a callback funtion used for the command. It receives the cmd_dict as input and returns a tuple
+    The cmd_action is a callback funtion used for the command. It receives the string for the command, the
+    arguments (the rest of the command input), and cmd_dict as input and returns a tuple
      containing (COMMAND_ACTION_TYPE, value), where the command action type is one of the following:
 
     +-------------------------------+-----------------------------------------------------------------+
@@ -71,14 +72,14 @@ class GetInputCommand():
 
     For example, the following input specifies one of each type of command::
 
-        def use_color_action(cmd_dict):
+        def use_color_action(cmd_str, cmd_vars, cmd_dict):
             return (ci.COMMAND_ACTION_USE_VALUE, cmd_dict['color'])
 
-        def cancel_action(cmd_dict):
+        def cancel_action(cmd_str, cmd_vars, cmd_dict):
             print('CANCELLING OPERATION')
             return (ci.COMMAND_ACTION_CANCEL, None)
 
-        def show_help_action(cmd_dict):
+        def show_help_action(cmd_str, cmd_vars, cmd_dict):
             print('Help Message:')
             print('-------------')
             print('/?  - show this message')
@@ -99,8 +100,8 @@ class GetInputCommand():
         self.cmd_action = cmd_action
         self.cmd_dict = cmd_dict
 
-    def __call__(self):
-        return self.cmd_action(self.cmd_dict)
+    def __call__(self, cmd_str, cmd_vars):
+9        return self.cmd_action(cmd_str, cmd_vars, self.cmd_dict)
 
     def __repr__(self):
         return 'GetInputCommand(cmd_action={}, cmd_dict={})'.format(self.cmd_action, self.cmd_dict)
@@ -225,8 +226,16 @@ class GetInput(object):
             else:
                 response = raw_input(input_str)
 
-            if self.commands and response in self.commands:
-                command_action, command_value = self.commands[response]()
+            command_action = None
+            for cmd in self.commands:
+                if response.lstrip().startswith(cmd):
+                    idx = response.find(cmd)
+                    cmd_str = response[:idx+len(cmd)].strip()
+                    cmd_vars = response[idx+len(cmd):].strip()
+                    command_action, command_value = self.commands[cmd](cmd_str, cmd_vars)
+                    break
+
+            if command_action:
                 if command_action == COMMAND_ACTION_USE_VALUE:
                     response = command_value
                 elif command_action == COMMAND_ACTION_NOP:
