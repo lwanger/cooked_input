@@ -226,24 +226,25 @@ class GetInput(object):
             else:
                 response = raw_input(input_str)
 
-            command_action = None
-            for cmd in self.commands:
-                if response.lstrip().startswith(cmd):
-                    idx = response.find(cmd)
-                    cmd_str = response[:idx+len(cmd)].strip()
-                    cmd_vars = response[idx+len(cmd):].strip()
-                    command_action, command_value = self.commands[cmd](cmd_str, cmd_vars)
-                    break
+            if self.commands:
+                command_action = None
+                for cmd in self.commands:
+                    if response.lstrip().startswith(cmd):
+                        idx = response.find(cmd)
+                        cmd_str = response[:idx+len(cmd)].strip()
+                        cmd_vars = response[idx+len(cmd):].strip()
+                        command_action, command_value = self.commands[cmd](cmd_str, cmd_vars)
+                        break
 
-            if command_action:
-                if command_action == COMMAND_ACTION_USE_VALUE:
-                    response = command_value
-                elif command_action == COMMAND_ACTION_NOP:
-                    continue
-                elif command_action == COMMAND_ACTION_CANCEL:
-                    raise GetInputInterrupt
-                else:
-                    raise RuntimeError('GetInput.get_input: Unknown command action specified ({})'.format(command_action))
+                if command_action:
+                    if command_action == COMMAND_ACTION_USE_VALUE:
+                        response = command_value
+                    elif command_action == COMMAND_ACTION_NOP:
+                        continue
+                    elif command_action == COMMAND_ACTION_CANCEL:
+                        raise GetInputInterrupt
+                    else:
+                        raise RuntimeError('GetInput.get_input: Unknown command action specified ({})'.format(command_action))
 
             if not self.required and not response:
                 return None
