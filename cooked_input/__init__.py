@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from .get_input import GetInput, get_input, process
+from .get_input import GetInput, get_input, process_value
 from .get_input import get_string, get_int, get_float, get_boolean, get_date, get_yes_no, get_list
 from .get_input import GetInputInterrupt
 from .get_input import RefreshScreenInterrupt
 from .get_input import GetInputCommand, CommandResponse, COMMAND_ACTION_USE_VALUE, COMMAND_ACTION_CANCEL, COMMAND_ACTION_NOP
 
 from .get_table import get_table_input, get_menu, Table, TableItem
-from .get_table import TABLE_ACTION_EXIT, TABLE_ACTION_RETURN, TABLE_DEFAULT_ACTION, TABLE_ADD_EXIT, TABLE_ADD_RETURN
-from .get_table import TABLE_DEFAULT_ACTION_TAG, TABLE_DEFAULT_ACTION_FIRST_VAL, TABLE_DEFAULT_ACTION_ROW, TABLE_DEFAULT_ACTION_ITEM
+from .get_table import TABLE_ITEM_EXIT, TABLE_ITEM_RETURN, TABLE_ITEM_DEFAULT, TABLE_ADD_EXIT, TABLE_ADD_RETURN
+from .get_table import TABLE_RETURN_TAG, TABLE_RETURN_FIRST_VAL, TABLE_RETURN_ROW, TABLE_RETURN_TABLE_ITEM
 
 from .error_callbacks import MaxRetriesError, ConvertorError, ValidationError
 from .error_callbacks import print_error, log_error, silent_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR

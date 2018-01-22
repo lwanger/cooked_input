@@ -4,55 +4,10 @@ from __future__ import print_function
 get_table - table/menu system for cooked_input
 
 Len Wanger, 2017
-
-TODO:
-
-    - navigation keys
-    - Document and add to tutorial
-
-- Examples/scenarios:
-    - menus:
-        - different display functions (i.e. function for displaying the table - silent_table for no display of menu or table)
-        - set user profile - list users, add profile, edit profile
-        - different borders
-        - example runner
-        - change Menus to tables - extend table to multiple columns with first as tag
-        - How to deal with non unique tags? Unique option and keep set of tags? Or pick first, or pick from current paginated page
-        X Header and footer to print. So can have commands listed per page as hidden menu items (e.g. Search or filter)
-        - Dynamic function - for long tables, lookup entered value instead of showing as rows. Maybe lazy evaluation? A lookup cleaner?
 """
-
-"""
-TODO:
-    - Look at veryprettytable? https://github.com/smeggingsmegger/VeryPrettyTable/blob/master/veryprettytable.py
-    - Look at: https://github.com/moul/prettytable-extras
-        adds color_styles: 'bold','italic','underline','inverse', white,gray,black,blue,cyan,green,magenta,red,yellow
-        new PrettyTable kwarg options - auto_width, header_color
-    - port prettytable-extras to veryprettytable?
-    - add color for title and header
-    - add setting fore and back colors on rows? (int or slice?)
-    - curses ability - use get_string? use prompt toolkit?
-    - pagination - add paginator? - paginate in veryprettytable isn't quite right... need like flask paginate
-        Pagination()
-            __init__(page, per_page, total_count)   <-- can add search (and search col?)
-                cur_page
-                found   - when searching
-                per_page
-                search - None or value? or callable function (key)
-                total - total records for pagination
-                display_msg - fmt string for all these things (gets variables for cur_page, found, total_pages, etc.)
-                search_msg
-            has_prev()
-            has_next()
-            iter_pages()
-            render(page_num='first'|'last'|'current'|'next'|'last'|#) - renders with stop/end and navigation (page x of y) or 'found' with search
-navigation buttons (selected line and up/down, pageup/pagedown, home,end
-"""
-
 
 import sys
 import string
-import logging
 
 import veryprettytable as pt
 
@@ -64,23 +19,23 @@ from .convertors import ChoiceConvertor
 from .validators import ChoiceValidator
 
 
-TABLE_DEFAULT_ACTION = 'default'
-TABLE_ACTION_EXIT = 'exit'
-TABLE_ACTION_RETURN = 'return'
+TABLE_ITEM_DEFAULT = 'default'
+TABLE_ITEM_EXIT = 'exit'
+TABLE_ITEM_RETURN = 'return'
 
 TABLE_ADD_EXIT = 'exit'
 TABLE_ADD_RETURN = 'return'
 TABLE_ADD_NONE = 'none'
 
-TABLE_DEFAULT_ACTION_TAG = 'tag'
-TABLE_DEFAULT_ACTION_FIRST_VAL = 'first_value'
-TABLE_DEFAULT_ACTION_ROW = 'row'
-TABLE_DEFAULT_ACTION_ITEM = 'table_item'
+TABLE_RETURN_TAG = 'tag'
+TABLE_RETURN_FIRST_VAL = 'first_value'
+TABLE_RETURN_ROW = 'row'
+TABLE_RETURN_TABLE_ITEM = 'table_item'
 
 
 def return_table_item_action(row, action_dict):
     """
-    Default action function for Tables. This function returns the whole row of data.
+    Action function for Tables. This function returns the TableItem instance.
 
     :param row: the data associated with the selected row
     :param action_dict: the dictionary of values associated with the action - ignored in this function
@@ -92,7 +47,7 @@ def return_table_item_action(row, action_dict):
 
 def return_row_action(row, action_dict):
     """
-    Default action function for Tables. This function returns the whole row of data.
+    Action function for Tables. This function returns the whole row of data.
 
     :param row: the data associated with the selected row
     :param action_dict: the dictionary of values associated with the action - ignored in this function
@@ -104,8 +59,7 @@ def return_row_action(row, action_dict):
 
 def return_tag_action(row, action_dict):
     """
-    Default action function for tables. This function returns the tag for the
-    row of data.
+    Action function for tables. This function returns the TableItem tag.
 
     :param row: the data associated with the selected row
     :param action_dict: the dictionary of values associated with the action - ignored in this function
@@ -114,10 +68,10 @@ def return_tag_action(row, action_dict):
     """
     return row.tag
 
+
 def return_first_col_action(row, action_dict):
     """
-    Default action function for tables. This function returns the first data column value for the
-    row of data.
+    Action function for tables. This function returns the first data column value for the item's data row.
 
     :param row: the data associated with the selected row
     :param action_dict: the dictionary of values associated with the action - ignored in this function
@@ -133,31 +87,32 @@ class TableItem(object):
 
     TableItem is used to represent individual rows in a table. Can also be used for menu items.
 
-    :param col_values: A list of values the row's columns
+    :param col_values: list of values for the row's columns
     :param tag:  a value that can be used to choose the item. If None, a default tag will be assigned by the Table
         The tag is often an integer of the row number, a database ID, or a textual tag.
-    :param action:  the action to take when the item is selected. By default the tag value is returned.
-    :param item_data:  a dictionary containing data for the table row. Can be used for database ID's. Also
-        used for item filters
+    :param action:  the action to take when the item is selected. By default the tag value is returned. See below for
+        a list of available table item actions.
+    :param item_data:  a dictionary containing additional data associated with the table item. This is useful to pass
+        data into action routines (e.g. database ID's.) Also used for item filters
     :param hidden:  Table row will not be shown if True (but will still be selectable), the table row is shown
         if False (default). Useful for filtering tables
-    :param enabled:  Table row is shown and selectable if True (default), shown and not selectable if False
+    :param enabled:  Table row is selectable if True (default), or not selectable if False
 
     TableItem actions:
 
-    +----------------------+--------------------------------------------------------------------------+
-    | value                | action                                                                   |
-    +----------------------+--------------------------------------------------------------------------+
-    | TABLE_DEFAULT_ACTION |  use default method to handle the table item (e.g. call                  |
-    |                      |  default_action handler function)                                        |
-    +----------------------+--------------------------------------------------------------------------+
-    | TABLE_ACTION_EXIT    |  selecting the table row should exit (ie exit the menu)                  |
-    +----------------------+--------------------------------------------------------------------------+
-    | TABLE_ACTION_RETURN  |  selecting the table row should return (ie return from the menu)         |
-    +----------------------+--------------------------------------------------------------------------+
+    +--------------------+--------------------------------------------------------------------------+
+    | value              | action                                                                   |
+    +--------------------+--------------------------------------------------------------------------+
+    | TABLE_ITEM_DEFAULT |  use default method to handle the table item (e.g. call                  |
+    |                    |  default_action handler function)                                        |
+    +--------------------+--------------------------------------------------------------------------+
+    | TABLE_ITEM__EXIT   |  selecting the table row should exit (ie exit the menu)                  |
+    +--------------------+--------------------------------------------------------------------------+
+    | TABLE_ITEM__RETURN |  selecting the table row should return (ie return from the menu)         |
+    +--------------------+--------------------------------------------------------------------------+
 
     """
-    def __init__(self, col_values, tag=None, action=TABLE_DEFAULT_ACTION, item_data=None, hidden=False, enabled=True):
+    def __init__(self, col_values, tag=None, action=TABLE_ITEM_DEFAULT, item_data=None, hidden=False, enabled=True):
 
         self.values = put_in_a_list(col_values)
         self.tag = tag
@@ -169,7 +124,6 @@ class TableItem(object):
     def __repr__(self):
         return 'TableItem(col_values={}, tag={}, action={}, item_data={}, hidden={}, enabled={})'.format(self.values, self.tag,
                                                                                                          self.action, self.item_data, self.hidden, self.enabled)
-
 
 
 class Table(object):
@@ -641,9 +595,9 @@ class Table(object):
             row_values = ['' for i in range(num_values)]
            
             if self.add_exit in (TABLE_ADD_EXIT, True):
-                row_tag, row_action = 'exit', TABLE_ACTION_EXIT
+                row_tag, row_action = 'exit', TABLE_ITEM_EXIT
             elif self.add_exit == TABLE_ADD_RETURN:
-                row_tag, row_action = 'return', TABLE_ACTION_EXIT
+                row_tag, row_action = 'return', TABLE_ITEM_EXIT
 
             row_entry = TableItem(row_values, row_tag, row_action)
 
@@ -698,15 +652,15 @@ class Table(object):
                 continue
 
             if choice is None:
-                action - TABLE_ACTION_EXIT
+                action - TABLE_ITEM_EXIT
             else:
                 action = choice.action
 
-            if action == TABLE_ACTION_EXIT:
+            if action == TABLE_ITEM_EXIT:
                 break
-            elif action == TABLE_ACTION_RETURN:
+            elif action == TABLE_ITEM_RETURN:
                 break
-            elif action == TABLE_DEFAULT_ACTION:
+            elif action == TABLE_ITEM_DEFAULT:
                 if callable(self.default_action):
                     try:
                         self.default_action(choice, self.action_dict)

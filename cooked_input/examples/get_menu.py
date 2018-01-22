@@ -14,7 +14,7 @@ from sqlalchemy.orm import sessionmaker
 
 from cooked_input import get_menu, get_string, get_int, get_list, validate, Validator, ChoiceValidator
 from cooked_input import Table
-from cooked_input import TableItem, TABLE_DEFAULT_ACTION, TABLE_ACTION_EXIT, TABLE_ACTION_RETURN, TABLE_ADD_RETURN, TABLE_ADD_EXIT
+from cooked_input import TableItem, TABLE_ITEM_DEFAULT_ACTION, TABLE_ITEM_EXIT, TABLE_ITEM_RETURN, TABLE_ADD_RETURN, TABLE_ADD_EXIT
 
 
 def test_get_menu_1():
@@ -52,10 +52,10 @@ def show_choice(menu, choice):
 def test_action_Table():
     menu_choices = [
         TableItem("Choice 1 - no specified tag, no specified action", None, None),
-        TableItem("Choice 2 - default action", 2, TABLE_DEFAULT_ACTION),
+        TableItem("Choice 2 - default action", 2, TABLE_ITEM_DEFAULT_ACTION),
         TableItem("Choice 3 - text tag, lambda action", 'foo', lambda row,kwargs: print('lambda action: row={}, kwargs={}'.format(row,kwargs))),
         TableItem("Choice 4 - text tag, action handler function specified", 'bar', action_1),
-        TableItem("STOP the menu!", 'stop', TABLE_ACTION_EXIT),
+        TableItem("STOP the menu!", 'stop', TABLE_ITEM_EXIT),
     ]
 
     print('\nget_table_choice - add_exit=True\n')
@@ -82,8 +82,8 @@ def sub_menu_action(row, action_dict):
     print('sub_menu2: row={}, action_dict={}'.format(row, action_dict))
 
     sub_menu_choices = [
-        TableItem("sub menu 2: Choice 1", 1, TABLE_DEFAULT_ACTION),
-        TableItem("sub menu 2: Choice 2", 2, TABLE_DEFAULT_ACTION),
+        TableItem("sub menu 2: Choice 1", 1, TABLE_ITEM_DEFAULT_ACTION),
+        TableItem("sub menu 2: Choice 2", 2, TABLE_ITEM_DEFAULT_ACTION),
     ]
     sub_menu = Table(sub_menu_choices, title="Sub-Menu 2", add_exit=TABLE_ADD_RETURN)
     sub_menu.run()
@@ -91,15 +91,15 @@ def sub_menu_action(row, action_dict):
 
 def test_sub_Table():
     sub_menu_1_items = [
-        TableItem("sub menu 1: Choice 1", 1, TABLE_DEFAULT_ACTION),
-        TableItem("sub menu 1: Choice 2", 2, TABLE_DEFAULT_ACTION),
+        TableItem("sub menu 1: Choice 1", 1, TABLE_ITEM_DEFAULT_ACTION),
+        TableItem("sub menu 1: Choice 2", 2, TABLE_ITEM_DEFAULT_ACTION),
     ]
     sub_menu_1 = Table(sub_menu_1_items, title="Sub-Menu 2", add_exit=TABLE_ADD_RETURN)
 
     # call submenus two different ways. First by using it as a callable, which calls run on the sub_menu, and second
     # with an explicit action handler
     menu_choices = [
-        TableItem("Choice 1", None, TABLE_DEFAULT_ACTION),
+        TableItem("Choice 1", None, TABLE_ITEM_DEFAULT_ACTION),
         TableItem("sub_menu 1", None, sub_menu_1),
         TableItem("sub_menu 2", None, sub_menu_action),
     ]
@@ -131,7 +131,7 @@ def test_args_Table():
         TableItem("Change kwargs to Ron McGee", None, change_kwargs),
         TableItem("Change kwargs to Len Wanger", None, change_kwargs),
         TableItem("Change kwargs to Dick Ellis with lambda", None, lambda tag, ad: ad.update({'first':'Dick', 'last': 'Ellis'})),
-        TableItem("call default action (print args and kwargs)", None, TABLE_DEFAULT_ACTION),
+        TableItem("call default action (print args and kwargs)", None, TABLE_ITEM_DEFAULT_ACTION),
         TableItem("call action_1 (print args and kwargs)", None, action_1),
     ]
 
@@ -159,7 +159,7 @@ def test_refresh_Table():
         TableItem("Change first name from: {first}", None, change_first_name),
         TableItem("Change last name from: {last}", None, change_last_name),
         TableItem("Change kwargs to Dick Ellis with lambda", None, lambda tag, ad: ad.update({'first':'Dick', 'last': 'Ellis'})),
-        TableItem("call default action (print args and kwargs)", None, TABLE_DEFAULT_ACTION),
+        TableItem("call default action (print args and kwargs)", None, TABLE_ITEM_DEFAULT_ACTION),
         TableItem("call action_1 (print args and kwargs)", None, action_1),
     ]
 
@@ -201,7 +201,7 @@ class IntersectionValidator(Validator):
 
 def role_item_filter(row, action_dict):
     # check if the roles in action_dict for the current user matches any of the required roles for the menu item
-    if row.item_data == None or row.action in {TABLE_ACTION_EXIT, TABLE_ACTION_RETURN}:
+    if row.item_data == None or row.action in {TABLE_ITEM_EXIT, TABLE_ITEM_RETURN}:
         return (False, True)
 
     try:
@@ -236,7 +236,7 @@ def test_item_filter():
 
 #### Dynamic menu from DB stuff ####
 def menu_item_factory(row, item_data):
-    return TableItem(row.fullname, None, TABLE_DEFAULT_ACTION, item_data)
+    return TableItem(row.fullname, None, TABLE_ITEM_DEFAULT_ACTION, item_data)
 
 
 def user_filter(table_item, action_dict):
@@ -299,9 +299,9 @@ def test_dynamic_menu_from_db(filter_items=False):
 def menu_item_factory2(row, min_len):
     # test item factory that sets the item to hidden if it's shorter than the minimum length set in the item_data dict
     if len(row['name']) > min_len-1:
-        return TableItem(row['fullname'], None, TABLE_DEFAULT_ACTION)
+        return TableItem(row['fullname'], None, TABLE_ITEM_DEFAULT_ACTION)
     else:  # hide short names!
-        return TableItem(row['fullname'], None, TABLE_DEFAULT_ACTION, hidden=True, enabled=True)
+        return TableItem(row['fullname'], None, TABLE_ITEM_DEFAULT_ACTION, hidden=True, enabled=True)
 
 def set_filter_len_action(row, action_dict):
     result = get_int(prompt='Enter the minimum user name length to show', minimum=0)

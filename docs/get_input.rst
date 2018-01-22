@@ -15,6 +15,12 @@ Exceptions:
 .. autoclass:: GetInputInterrupt
 
 
+GetInputCommand:
+================
+
+.. autoclass:: GetInputCommand
+
+
 GetInput:
 =========
 
@@ -23,12 +29,6 @@ GetInput:
 .. automethod:: GetInput.get_input
 
 .. automethod:: GetInput.process_value
-
-
-GetInputCommand:
-================
-
-.. autoclass:: GetInputCommand
 
 
 convenience functions:
@@ -60,10 +60,10 @@ validate
 
 .. autofunction:: validate
 
-process
--------
+process_value
+-------------
 
-.. autofunction:: process
+.. autofunction:: process_value
 
 get_string
 ----------
@@ -99,5 +99,3 @@ get_list
 --------
 
 .. autofunction:: get_list
-
-

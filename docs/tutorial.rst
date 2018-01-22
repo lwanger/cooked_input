@@ -245,3 +245,15 @@ More Examples
 Cooked_input has a lot more of functionality for getting input of different types (floats, Booleans, Dates, lists,
 passwords, etc.), as well as lots of validators and cleaners. It also has a number of features for getting input from
 tables (which is nice for working with values in database tables). There are a lot of examples in the examples directory.
+
+TODO
+----
+
+- error callback, convertor_error_fmt and validator_error_fmt
+- Menus
+- Actions/callbacks/action_dicts
+- TableItems/Tables
+- item filters, enabled, hidden items
+- pagination
+- Commands
+- Exceptions

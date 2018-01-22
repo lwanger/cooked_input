@@ -16,7 +16,7 @@ else: # For Python 2
     import Tkinter.ttk as ttk
     from Tkinter import tkMessageBox as messagebox
 
-from cooked_input import process, IntConvertor, RangeValidator, StripCleaner
+from cooked_input import process_value, IntConvertor, RangeValidator, StripCleaner
 
 
 def tk_msg_box_error(fmt_str, value, error_content):
@@ -26,7 +26,7 @@ def tk_msg_box_error(fmt_str, value, error_content):
 
 def on_button():
     value = entry1.get()
-    valid, processed_value = process(value, cleaners=StripCleaner(), convertor=IntConvertor(),
+    valid, processed_value = process_value(value, cleaners=StripCleaner(), convertor=IntConvertor(),
                                      validators=RangeValidator(min_val=1, max_val=10), error_callback=tk_msg_box_error)
 
     if valid:

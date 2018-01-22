@@ -56,14 +56,14 @@ if __name__ == '__main__':
 
     try:
         # tbl = ci.Table(rows, col_names=['Color'], prompt=prompt_str, default_action=ci.TABLE_DEFAULT_ACTION_FIRST_VAL)
-        tbl = ci.Table(rows, col_names=['Color'], prompt=prompt_str, add_exit=False, default_action=ci.TABLE_DEFAULT_ACTION_FIRST_VAL, commands=cmds)
+        tbl = ci.Table(rows, col_names=['Color'], prompt=prompt_str, add_exit=False, default_action=ci.TABLE_RETURN_FIRST_VAL, commands=cmds)
         result = ci.get_table_input(tbl)
         print('result={}'.format(result))
     except ci.GetInputInterrupt:
         print('Got GetInputInterrupt')
 
     try:
-        tbl = ci.Table(rows, col_names=['Color'], prompt=prompt_str, default_action=ci.TABLE_DEFAULT_ACTION_FIRST_VAL, commands=cmds)
+        tbl = ci.Table(rows, col_names=['Color'], prompt=prompt_str, default_action=ci.TABLE_RETURN_FIRST_VAL, commands=cmds)
         tbl.run()
     except ci.GetInputInterrupt:
         print('Got GetInputInterrupt')

@@ -54,11 +54,11 @@ class GetInputCommand():
     """
     Used to create commands that can be used in GetInput. Each command has an action and optional data dictionary
     (cmd_dict). The cmd_dict dictionary can be used to pass data to the command. For instance, a database session or
-    the name of the user can be passed: cmd_dist = {'session': db_session, 'user': user }
+    the name of the user can be passed with: cmd_dist = {'session': db_session, 'user': user }
 
     The cmd_action is a callback funtion used for the command. It receives the string for the command, the
     arguments (the rest of the command input), and cmd_dict as input and returns a tuple
-     containing (COMMAND_ACTION_TYPE, value), where the command action type is one of the following:
+    containing (COMMAND_ACTION_TYPE, value), where the command action type is one of the following:
 
     +-------------------------------+-----------------------------------------------------------------+
     | Action                        |    Result                                                       |
@@ -73,15 +73,15 @@ class GetInputCommand():
     For example, the following input specifies one of each type of command::
 
         def use_color_action(cmd_str, cmd_vars, cmd_dict):
+            print('Using "red" as the input value)
             return (ci.COMMAND_ACTION_USE_VALUE, cmd_dict['color'])
 
         def cancel_action(cmd_str, cmd_vars, cmd_dict):
-            print('CANCELLING OPERATION')
             return (ci.COMMAND_ACTION_CANCEL, None)
 
         def show_help_action(cmd_str, cmd_vars, cmd_dict):
-            print('Help Message:')
-            print('-------------')
+            print('Commands:')
+            print('---------')
             print('/?  - show this message')
             print('/cancel - cancel this operation')
             print('/red    - use red as a value')
@@ -94,7 +94,7 @@ class GetInputCommand():
         try:
             result = ci.get_string(prompt=prompt_str, commands=cmds)
         except ci.GetInputInterrupt:
-            print('Got GetInputInterrupt')
+            print('Operation cancelled (received GetInputInterrupt)')
     """
     def __init__(self, cmd_action, cmd_dict=None):
         self.cmd_action = cmd_action
@@ -201,7 +201,6 @@ class GetInput(object):
             if not self.required and not self.default_val:
                 self.default_string = ' (enter to leave blank)'
             elif self.default_val:
-                #self.default_string = ' (enter for: %s)' % self.default_string
                 self.default_string = ' (enter for: %s)' % self.default_val
             else:
                 self.default_string = ''
@@ -273,14 +272,14 @@ class GetInput(object):
 
     def process_value(self, value):
         """
-            runs a value through cleaning, conversion, and validation. This allows the same processing used
-            in get_input to be performed on a value. For instance, the same processing used for getting
-            keyboard input can be applied to the value from a gui or web form input.
+        Run a value through cleaning, conversion, and validation. This allows the same processing used
+        in get_input to be performed on a value. For instance, the same processing used for getting
+        keyboard input can be applied to the value from a gui or web form input.
 
-            :param value: the value to process
+        :param value: the value to process
 
-            :return: Return of tuple (valid, converted_value), if the values was cleaned, converted and validated successfully,
-                valid is True and converted value is the converted and cleaned value. If not, valid is False, and value is None.
+        :return: Return a tuple of (valid, converted_value), if the values was cleaned, converted and validated successfully,
+            valid is True and converted value is the converted and cleaned value. If not, valid is False, and value is None.
             """
         if self.cleaners:
             cleaned_response = compose(value, self.cleaners)
@@ -303,75 +302,25 @@ class GetInput(object):
             return (False, None)
 
 
-# class GetTableInput(GetInput):
-#     """
-#     Class to get cleaned, converted, validated input from a table of values. This can be used for data tables or menu.
-#
-#     :param table: a Table instance containing the data items
-#     :param cleaners: list of cleaners to apply to clean the value
-#     :param convertor: the convertor to apply to the cleaned value
-#     :param validators: list of validators to apply to validate the cleaned and converted value
-#     :param options:
-#
-#
-#     """
-#
-#     def __init__(self, table, cleaners=None, convertor=None, validators=None, **options):
-#
-#         # TODO - move to get_menu / get_table?
-#         # TODO - clean up options and process GetTableInput specific options
-#         # TODO - document
-#         self.table = table
-#         super(GetTableInput, self).__init__(cleaners, convertor, validators, **options)
-
-
-    # def get_input(self):
-    #     retries = 0
-    #     input_str = '{}{}: '.format(self.prompt_str, self.default_string)
-    #     print('')
-    #
-    #     while (self.max_retries is None) or (retries < self.max_retries):
-    #         try:
-    #             response = use_prompt_toolkit_application(input_str, self.hidden, self.key_registry)
-    #
-    #             if not self.required and not response:
-    #                 return None
-    #             elif self.default_val and not response:
-    #                 valid_response, converted_response = self.process_value(self.default_val)
-    #
-    #                 if valid_response:
-    #                     return converted_response
-    #                 else:
-    #                     raise ValidationError('default value "{!r}" did not pass validation.'.format(self.default_val))
-    #             elif response:
-    #                 valid_response, converted_response = self.process_value(response)
-    #
-    #                 if valid_response:
-    #                     break
-    #                 else:
-    #                     retries += 1
-    #                     # print('TODO: get validation error messages')
-    #                     continue
-    #         except (RefreshScreenInterrupt):
-    #             # if refresh_action is not None:
-    #             #     refresh_action()
-    #             if self.screen_refresh_action is not None:
-    #                 self.screen_refresh_action()
-    #             if self.choice_refresh_action is not None:
-    #                 table_choices, cleaners, convertor, validators = self.choice_refresh_action()
-    #
-    #     if valid_response:
-    #         return converted_response
-    #     else:
-    #         raise MaxRetriesError('Maximum retries exceeded')
-
+#############################
+### Convenience Functions ###
+#############################
 
 def get_input(cleaners=None, convertor=None, validators=None, **options):
+    """
+    Convenience function to get a value.
+
+    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
+    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param options: all get_input options supported, see get_input documentation for details.
+
+    :return: the cleaned, converted, validated string
+    """
     gi = GetInput(cleaners, convertor, validators, **options)
     return gi.get_input()
 
 
-def process(value, cleaners=None, convertor=None, validators=None, error_callback=print_error,
+def process_value(value, cleaners=None, convertor=None, validators=None, error_callback=print_error,
             convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
     options = {}
     options['error_callback'] = error_callback
@@ -381,10 +330,6 @@ def process(value, cleaners=None, convertor=None, validators=None, error_callbac
     gi = GetInput(cleaners, convertor, validators, **options)
     return gi.process_value(value)
 
-
-#############################
-### Convenience Functions ###
-#############################
 
 def get_string(cleaners=(StripCleaner()), validators=None, **options):
     """
