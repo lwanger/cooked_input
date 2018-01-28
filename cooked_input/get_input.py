@@ -41,7 +41,7 @@ if sys.version_info[0] > 2:  # For Python 3
         return input(prompt_msg)
 
 
-# Named tuple and action types for GetInput commands:
+# Named tuple and action types for GetInput commands
 CommandResponse = collections.namedtuple('CommandResponse', 'action value')
 
 # Command action constants
@@ -74,10 +74,10 @@ class GetInputCommand():
 
         def use_color_action(cmd_str, cmd_vars, cmd_dict):
             print('Using "red" as the input value)
-            return (ci.COMMAND_ACTION_USE_VALUE, cmd_dict['color'])
+            return (COMMAND_ACTION_USE_VALUE, cmd_dict['color'])
 
         def cancel_action(cmd_str, cmd_vars, cmd_dict):
-            return (ci.COMMAND_ACTION_CANCEL, None)
+            return (COMMAND_ACTION_CANCEL, None)
 
         def show_help_action(cmd_str, cmd_vars, cmd_dict):
             print('Commands:')
@@ -85,15 +85,15 @@ class GetInputCommand():
             print('/?  - show this message')
             print('/cancel - cancel this operation')
             print('/red    - use red as a value')
-            return (ci.COMMAND_ACTION_NOP, None)
+            return (COMMAND_ACTION_NOP, None)
 
-        cmds = { '/?': ci.GetInputCommand(show_help_action),
-                 '/cancel': ci.GetInputCommand(cancel_action),
-                 '/red': ci.GetInputCommand(use_color_action, {'color': 'red'}) }
+        cmds = { '/?': GetInputCommand(show_help_action),
+                 '/cancel': GetInputCommand(cancel_action),
+                 '/red': GetInputCommand(use_color_action, {'color': 'red'}) }
 
         try:
-            result = ci.get_string(prompt=prompt_str, commands=cmds)
-        except ci.GetInputInterrupt:
+            result = get_string(prompt=prompt_str, commands=cmds)
+        except GetInputInterrupt:
             print('Operation cancelled (received GetInputInterrupt)')
     """
     def __init__(self, cmd_action, cmd_dict=None):
@@ -114,7 +114,7 @@ class GetInput(object):
     :param cleaners: list of cleaners to apply to clean the value
     :param convertor: the convertor to apply to the cleaned value
     :param validators: list of validators to apply to validate the cleaned and converted value
-    :param options:
+    :param options: see below
 
     Options:
 
@@ -122,8 +122,8 @@ class GetInput(object):
 
         required: True if a non-blank value is required, False if a blank response is OK.
 
-        default: the default value to use if a blank string is entered. This takes precedence over
-            required (i.e. a blank response will return the default value.)
+        default: the default value to use if a blank string is entered. This takes precedence over required (i.e. a
+         blank response will return the default value.)
 
         default_str: the string to use for the default value. In general just set the default option.
 
@@ -141,9 +141,36 @@ class GetInput(object):
             Format string receives two variables - {value} the value that failed conversion, and {error_content}
             set by the validator.
 
-        commands: a dictionary containing commands that can be run from the input prompt. The key for each command
-            is the string used to call the command and the value is an instance of the GetInputCommand class for
-             the command (e.g. "/help": GetInputCommand(show_help_action)).
+        commands: an optional dictionary of commands. See below for more details.
+
+        Commands:
+
+        GetInput optionally takes a dictionary containing commands that can be run from the input prompt. The key for
+        each command is the string used to call the command and the value is an instance of the GetInputCommand class
+        for the command (e.g. "/help": GetInputCommand(show_help_action)).
+
+        For instance the following defines a set of commands (help, convert to millimeters, and cancel) to the input::
+
+            def help_cmd_action(cmd_str, cmd_vars, cmd_dict):
+                print('Commands:')
+                print('\t/?, /h\tDisplay this help message')
+                print('\t/mm <inches>\tConvert from inches to mm and return the value as the input')
+                print('\t/cancel\tCancel the current operation')
+
+            def cancel_cmd_action(cmd_str, cmd_vars, cmd_dict):
+                print_warning('Command cancelled...')
+                return (COMMAND_ACTION_CANCEL, None)
+
+            def to_mm_cmd_action(cmd_str, cmd_vars, cmd_dict):
+                # Convert a value from inches to mm and use the resulting value for the input
+                try:
+                    inches = float(cmd_vars)
+                    return (COMMAND_ACTION_USE_VALUE, str(inches * 25.4))
+                except(ValueError):
+                    print(f'Invalid number of inches provided to {} command.'.format(cmd_str)
+                    return (COMMAND_ACTION_NOP, None)
+
+            cmds = { '/?': help_cmd, '/h': help_cmd, '/cancel': cancel_cmd, '/mm': to_mm_cmd }
     """
     def __init__(self, cleaners=None, convertor=None, validators=None, **options):
         self.cleaners = cleaners
@@ -188,14 +215,10 @@ class GetInput(object):
             else:
                 logging.warning('Warning: get_input received unknown option (%s)' % k)
 
-        #if self.default_val is not None and not self.default_string:
-        #    self.default_string = str(self.default_val)
-
-        # if not required and default_val is not None:
         if self.default_val is not None:
             # TODO - have a way to set blank if there is a default_val... a command like 'blank' or 'erase'?
             # logging.warning('Warning: both required and a default value specified. Blank inputs will use default value.')
-            required = True
+            self.required = True
 
         if not self.default_string:
             if not self.required and not self.default_val:
@@ -261,7 +284,7 @@ class GetInput(object):
                     break
                 else:
                     retries += 1
-                    # print('TODO: get validation error messages')
+                    # TODO: show validation error messages
                     continue
 
         if valid_response:
@@ -280,7 +303,7 @@ class GetInput(object):
 
         :return: Return a tuple of (valid, converted_value), if the values was cleaned, converted and validated successfully,
             valid is True and converted value is the converted and cleaned value. If not, valid is False, and value is None.
-            """
+        """
         if self.cleaners:
             cleaned_response = compose(value, self.cleaners)
         else:
@@ -308,11 +331,13 @@ class GetInput(object):
 
 def get_input(cleaners=None, convertor=None, validators=None, **options):
     """
-    Convenience function to get a value.
+    Convenience function to create a GetInput instance and call its get_input function. See
+    GetInput.get_input for more details.
 
     :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
+    :param convertor: the convertor to apply to the cleaned value
     :param validators: list of validators to apply to validate the cleaned and converted value
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param options: see GetInput for a list of value options
 
     :return: the cleaned, converted, validated string
     """
@@ -322,6 +347,21 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
 
 def process_value(value, cleaners=None, convertor=None, validators=None, error_callback=print_error,
             convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
+    """
+    Convenience function to create a GetInput instance and call its process_value function. See
+    GetInput.process_value for more details.
+
+    :param value: the value to process
+    :param cleaners: list of cleaners to apply to clean the value
+    :param convertor: the convertor to apply to the cleaned value
+    :param validators: list of validators to apply to validate the cleaned and converted value
+
+    :param error_callback: see GetInput for more details
+    :param convertor_error_fmt: see GetInput for more details
+    :param validator_error_fmt: see GetInput for more details
+
+    :return: the cleaned, converted validated input value.
+    """
     options = {}
     options['error_callback'] = error_callback
     options['convertor_error_fmt'] = convertor_error_fmt

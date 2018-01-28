@@ -31,7 +31,7 @@ GetInput:
 .. automethod:: GetInput.process_value
 
 
-convenience functions:
+Convenience Functions:
 ======================
 
 
@@ -54,11 +54,6 @@ get_input
 
 .. autofunction:: get_input
 
-
-validate
---------
-
-.. autofunction:: validate
 
 process_value
 -------------

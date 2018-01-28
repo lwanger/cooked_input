@@ -27,18 +27,27 @@ Table:
 .. automethod:: Table.get_action
 
 .. automethod:: Table.do_action
+
 .. automethod:: Table.show_rows
+
 .. automethod:: Table.page_up
+
 .. automethod:: Table.page_down
+
 .. automethod:: Table.goto_home
+
 .. automethod:: Table.goto_end
+
 .. automethod:: Table.scroll_up_one_row
+
 .. automethod:: Table.scroll_down_one_row
+
 .. automethod:: Table.refresh_screen
+
 .. automethod:: Table.refresh_items
 
 
-convenience functions:
+Convenience Functions:
 ======================
 
 
