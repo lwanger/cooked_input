@@ -2,4 +2,3 @@ future
 veryprettytable
 dateparser
 validus
-prompt-toolkit
