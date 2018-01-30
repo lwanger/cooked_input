@@ -7,7 +7,6 @@ Len Wanger, 2017
 import sqlite3
 from collections import Counter
 import cooked_input as ci
-from cooked_input import get_table_input
 
 def create_db():
     # Create an in memory sqlite database of hamburger options
@@ -30,43 +29,13 @@ def create_db():
     c.execute("INSERT INTO extras VALUES (1, 'bacon', 1.00)")
     c.execute("INSERT INTO extras VALUES (2, 'cheese', 1.00)")
     c.execute("INSERT INTO extras VALUES (3, 'special sauce', 0.0)")
-    c.execute("INSERT INTO extras VALUES (4, 'tomatoes', 0.0)")
-    c.execute("INSERT INTO extras VALUES (5, 'grilled onions', 0.50)")
+    c.execute("INSERT INTO extras VALUES (4, 'tomatoes', 0.50)")
+    c.execute("INSERT INTO extras VALUES (5, 'grilled onions', 0.75)")
     c.execute("INSERT INTO extras VALUES (6, 'lettuce', 0.0)")
     c.execute("INSERT INTO extras VALUES (7, 'pickles', 0.0)")
 
     conn.commit()
     return conn, c
-
-
-def build_a_burger_v1(conn):
-    price = 0.0
-    col_names = '# Type'
-
-    # Get the bun type
-    prompt_str = 'Which kind of bun do you want'
-    def_choice = 'plain'
-    cursor.execute('SELECT * FROM buns ORDER BY price')
-
-    tis = [ci.TableItem(row[1:]) for row in cursor]
-    tbl = ci.Table(tis, col_names=col_names.split(), prompt=prompt_str, default_choice=def_choice,
-                   add_exit=False, default_action='row')
-    bun = tbl.get_table_choice()
-    price += bun[1]
-
-    # Get the patty type
-    prompt_str = 'Which kind of patty do you want'
-    def_choice = 'hamburger'
-    cursor.execute('SELECT * FROM patties ORDER BY price')
-
-    tis = [ci.TableItem(row[1:]) for row in cursor]
-    tbl = ci.Table(tis, col_names=col_names.split(), prompt=prompt_str, default_choice=def_choice,
-                    add_exit=False, default_action='row')
-
-    patty = tbl.get_table_choice()
-    price += patty[1]
-
-    return price
 
 
 def table_item_factory(row):
@@ -81,29 +50,22 @@ def build_a_burger_v2(conn):
 
     # Get the bun type
     prompt_str = 'Which kind of bun do you want'
-    def_choice = 'plain'
+    def_choice_str = ' (plain)'
     cursor.execute('SELECT * FROM buns ORDER BY price')
-    # dti = ci.DynamicTableItem(cursor, table_item_factory2, None)
     tis = [table_item_factory(row) for row in cursor]
-
-    # tbl = ci.Table(dti, col_names=col_names.split(), title=None, prompt=prompt_str, default_choice=def_choice,
-
-    tbl = ci.Table(tis, col_names=col_names.split(), title=None, prompt=prompt_str, default_choice=def_choice,
-                   add_exit=False, default_action='table_item')
+    tbl = ci.Table(tis, col_names=col_names.split(), title=None, prompt=prompt_str, default_choice=1,
+                   default_str=def_choice_str, add_exit=False, default_action='table_item')
     bun = tbl.get_table_choice()
     price += bun.item_data['price']
 
     # Get the patty type
     prompt_str = 'Which kind of patty do you want'
-    def_choice = 'hamburger'
+    def_choice_str = ' (hamburger)'
+
     cursor.execute('SELECT * FROM patties ORDER BY price')
-
-    # dti = ci.DynamicTableItem(cursor, table_item_factory2, None)
     tis = [table_item_factory(row) for row in cursor]
-
-    # tbl = ci.Table(dti, col_names=col_names.split(), title=None, prompt=prompt_str, default_choice=def_choice,
-    tbl = ci.Table(tis, col_names=col_names.split(), title=None, prompt=prompt_str, default_choice=def_choice,
-                   add_exit=False, default_action='table_item')
+    tbl = ci.Table(tis, col_names=col_names.split(), title=None, prompt=prompt_str, default_choice=1,
+                   default_str=def_choice_str, add_exit=False, default_action='table_item')
     patty = tbl.get_table_choice()
     price += patty.item_data['price']
 
@@ -111,10 +73,7 @@ def build_a_burger_v2(conn):
     prompt_str = 'Which kind of extra do you want (hit return when done choosing extras)'
     extras = []
     cursor.execute('SELECT * FROM extras')
-    # dti = ci.DynamicTableItem(cursor, table_item_factory2, None)
     tis = [table_item_factory(row) for row in cursor]
-
-    # tbl = ci.Table(dti, col_names=col_names.split(), title=None, prompt=prompt_str, add_exit=False,
     tbl = ci.Table(tis, col_names=col_names.split(), title=None, prompt=prompt_str, add_exit=False,
                    default_action='table_item', required=False, refresh=False)
 
@@ -149,11 +108,6 @@ def build_a_burger_v2(conn):
 
 if __name__ == '__main__':
     conn, cursor = create_db()
-
-    print('\nBuild your burger!')
-    print('==================\n')
-    price = build_a_burger_v1(conn)
-    print('\ntotal price: \t${:.2f}'.format(price))
 
     print('\nBuild your burger!')
     print('==================\n')
