@@ -698,9 +698,17 @@ class Table(object):
             self.show_rows(start_row)
 
 
-    def __call__(self):
+    # def __call__(self):
+    def __call__(self, choice=None, action_dict=None):
         """
         Call the run method on the table.
+
+        Note: choice and action_dict parameters are placeholders (ignored) so Tables can be used as action items
+        in TableItems. This allows a Table instance to be used as a sub-menu by adding it as the action in a menu
+        item.
+
+        :param choice:
+        :param action_dict:
 
         :return: the status from run.
         """
@@ -789,7 +797,7 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
         selected, unless a different default action is provided in the options.
     """
     menu_choices = [TableItem(choice) for choice in choices]
-    default_str = default_choice
+    default_str = ' (return for {})'.format(default_choice)
     default_idx = None
 
     # return the tag for the menu item unless the user set a specific default action.
