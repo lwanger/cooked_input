@@ -14,6 +14,18 @@ Exceptions:
 
 .. autoclass:: GetInputInterrupt
 
+.. autoclass:: PageUpRequest
+
+.. autoclass:: PageDownRequest
+
+.. autoclass:: FirstPageRequest
+
+.. autoclass:: LastPageRequest
+
+.. autoclass:: UpOneRowRequest
+
+.. autoclass:: DownOneRowRequest
+
 
 GetInputCommand:
 ================

@@ -493,7 +493,7 @@ class PasswordValidator(Validator):
             return False
 
         if self.min_puncts and len([c for c in value if c in string.punctuation]) < self.min_puncts:
-            error_callback(validator_fmt_str, 'password', 'too few punctuation characters (minimum is {} from)'.format(self.min_puncts,
+            error_callback(validator_fmt_str, 'password', 'too few punctuation characters (minimum is {})'.format(self.min_puncts,
                            set(string.punctuation) - self.disallowed))
             return False
 

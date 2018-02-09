@@ -32,6 +32,37 @@ class GetInputInterrupt(KeyboardInterrupt):
 
 
 class RefreshScreenInterrupt(Exception):
+    # Primiarily used to refresh table items
+    pass
+
+
+class PageUpRequest(Exception):
+    # Used to signal a request to go to the previous page in paginated tables
+    pass
+
+
+class PageDownRequest(Exception):
+    # Used to signal a request to go to the next page in paginated tables
+    pass
+
+
+class FirstPageRequest(Exception):
+    # Used to signal a request to go to the first page in paginated tables
+    pass
+
+
+class LastPageRequest(Exception):
+    # Used to signal a request to go to the last page in paginated tables
+    pass
+
+
+class UpOneRowRequest(Exception):
+    # Used to signal a request to scroll up one row in paginated tables
+    pass
+
+
+class DownOneRowRequest(Exception):
+    # Used to signal a request to scroll down one row in paginated tables
     pass
 
 

@@ -63,9 +63,11 @@ unicode information:
     In windows console type: chcp 65001 to display unicode
 
 TODO:
+    - add GetInputCommands for next and previous
+    - add headers
     - display and pick from table
     - do paged table and navigation cmds/keys
-    - do filtering by name, cleass, bidirectional, combining, text search...
+    - do filtering by name, class, bidirectional, combining, text search...
         - util to create a set of all of the categories and properties?
     - do it as emoji picker vs others... (range of code points for table?)
 
@@ -129,14 +131,23 @@ def unicode_item_filter(item, action_dict):
     return (True, False)
 
 
-def next_page_action(row, action_dict):
-    table = action_dict['table']
-    table.page_down()
+def help_cmd_action(cmd_str, cmd_vars, cmd_dict):
+    print('HELP SCREEN....')
+    return (ci.COMMAND_ACTION_NOP, None)
 
 
-def prev_page_action(row, action_dict):
-    table = action_dict['table']
-    table.page_up()
+# def next_page_action(row, action_dict):
+# def next_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
+#     table = cmd_dict['table']
+#     table.page_down()
+#     return (ci.COMMAND_ACTION_NOP, None)
+
+
+# def prev_page_action(row, action_dict):
+# def prev_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
+#     table = cmd_dict['table']
+#     table.page_up()
+#     return (ci.COMMAND_ACTION_NOP, None)
 
 
 def make_table(start=32, end=0x007F, cat_filter='**', name_filter=''):
@@ -148,6 +159,8 @@ def make_table(start=32, end=0x007F, cat_filter='**', name_filter=''):
 
      Navigation keys...
     """
+    # TODO - add commands - /prev, /next, /home, /end, /filter, /?
+
     tis = []
     col_names = "Character Category Name".split()
     for i in range(start,end):
@@ -165,20 +178,36 @@ def make_table(start=32, end=0x007F, cat_filter='**', name_filter=''):
 
     # add 'next' and 'prev' items to the table
     item_data = {'no_filter': True}
-    ti = ci.TableItem(col_values=['', 'Show next page', ''], tag='next', hidden=False, action=next_page_action,
-                      item_data=item_data)
-    tis.append(ti)
-
-    ti = ci.TableItem(col_values=['', 'Show prev page', ''], tag='prev', hidden=False, action=prev_page_action,
-                      item_data=item_data)
-    tis.append(ti)
+    # ti = ci.TableItem(col_values=['', 'Show next page', ''], tag='next', hidden=False, action=next_page_action,
+    #                   item_data=item_data)
+    # tis.append(ti)
+    #
+    # ti = ci.TableItem(col_values=['', 'Show prev page', ''], tag='prev', hidden=False, action=prev_page_action,
+    #                   item_data=item_data)
+    # tis.append(ti)
+    #
 
     ad = {'cat_filter': cat_filter, 'name_filter': name_filter}
-    table = ci.Table(rows=tis, col_names=col_names, item_filter=unicode_item_filter, action_dict=ad, add_exit=False)
+
+    help_cmd = ci.GetInputCommand(help_cmd_action)
+    # next_page_cmd = ci.GetInputCommand(next_page_cmd_action, cmd_dict=ad)
+    # from .get_table import first_page_cmd_action, last_page_cmd_action, next_page_cmd_action, prev_page_cmd_action
+    next_page_cmd = ci.GetInputCommand(ci.next_page_cmd_action)
+    prev_page_cmd = ci.GetInputCommand(ci.prev_page_cmd_action)
+    first_page_cmd = ci.GetInputCommand(ci.first_page_cmd_action)
+    last_page_cmd = ci.GetInputCommand(ci.last_page_cmd_action)
+    cmds = {'?': help_cmd,
+            'next': next_page_cmd,
+            'prev': prev_page_cmd,
+            'home': first_page_cmd,
+            'end': last_page_cmd,
+            }
+
+    table = ci.Table(rows=tis, col_names=col_names, default_action=ci.TABLE_RETURN_FIRST_VAL,
+                     item_filter=unicode_item_filter, action_dict=ad, add_exit=False, commands=cmds)
     ad['table'] = table
+
     return table
-
-
 
 
 if __name__ == '__main__':

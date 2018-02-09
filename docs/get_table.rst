@@ -63,3 +63,7 @@ get_table_input
 .. autofunction:: get_table_input
 
 
+first_page_cmd_action
+---------------------
+
+.. autofunction:: first_page_cmd_action

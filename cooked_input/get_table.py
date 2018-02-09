@@ -18,6 +18,8 @@ import veryprettytable as pt
 
 from cooked_input import get_input
 from cooked_input import GetInputInterrupt, RefreshScreenInterrupt
+from cooked_input import PageUpRequest, PageDownRequest, FirstPageRequest, LastPageRequest, UpOneRowRequest, DownOneRowRequest
+
 from .input_utils import put_in_a_list, isstring
 from .cleaners import CapitalizationCleaner, StripCleaner, ChoiceCleaner
 from .convertors import ChoiceConvertor
@@ -88,6 +90,82 @@ def return_first_col_action(row, action_dict):
     return row.values[0]
 
 
+# command actions for supporting table pagination
+def first_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
+    """
+    Command action to show the first (home) page in a paginated table.
+
+    :param cmd_str:  ignored
+    :param cmd_vars: ignored
+    :param cmd_dict: ignored
+    :return: None
+    """
+    raise FirstPageRequest
+
+
+def last_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
+    """
+    Command action to show the last (end) page in a paginated table.
+
+    :param cmd_str:  ignored
+    :param cmd_vars: ignored
+    :param cmd_dict: ignored
+    :return: None
+    """
+    raise LastPageRequest
+
+
+def next_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
+    """
+    Command action to show the next page in a paginated table.
+
+    :param cmd_str:  ignored
+    :param cmd_vars: ignored
+    :param cmd_dict: ignored
+    :return: None
+    """
+    raise PageDownRequest
+
+
+def prev_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
+    """
+    Command action to show the previous page in a paginated table.
+
+    :param cmd_str:  ignored
+    :param cmd_vars: ignored
+    :param cmd_dict: ignored
+    :return: None
+    """
+    raise PageUpRequest
+
+
+def scroll_up_one_row_cmd_action(cmd_str, cmd_vars, cmd_dict):
+    """
+    Command action to scroll up one row in a paginated table.
+
+    :param cmd_str:  ignored
+    :param cmd_vars: ignored
+    :param cmd_dict: ignored
+    :return: None
+    """
+    raise UpOneRowRequest
+
+
+def scroll_down_one_row_cmd_action(cmd_str, cmd_vars, cmd_dict):
+    """
+    Command action to scroll down one row in a paginated table.
+
+    :param cmd_str:  ignored
+    :param cmd_vars: ignored
+    :param cmd_dict: ignored
+    :return: None
+    """
+    raise DownOneRowRequest
+
+
+#
+# Class definitions for tables
+#
 class TableItem(object):
     """
     TableItem is used to represent individual rows in a table. This is also often used for menu items.
@@ -562,13 +640,27 @@ class Table(object):
         for k,v in options.items():
             gi_options[k] = v
 
-        self.refresh_screen()
-        result = get_input(cleaners=table_cleaners, convertor=table_convertor, validators=table_validators, **gi_options)
+        while True:
+            try:
+                self.refresh_screen()
+                result = get_input(cleaners=table_cleaners, convertor=table_convertor, validators=table_validators, **gi_options)
 
-        if result is None:
-            return None
-        else:
-            return self._rows[result]
+                if result is None:
+                    return None
+                else:
+                    return self._rows[result]
+            except (FirstPageRequest):
+                self.goto_home()
+            except (LastPageRequest):
+                self.goto_end()
+            except (PageUpRequest):
+                self.page_up()
+            except (PageDownRequest):
+                self.page_down()
+            except (UpOneRowRequest):
+                self.scroll_up_one_row()
+            except (DownOneRowRequest):
+                self.scroll_down_one_row()
 
 
     def get_table_choice(self, **options):

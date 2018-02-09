@@ -22,6 +22,8 @@ from cooked_input import Table
 from cooked_input import TableItem, TABLE_ITEM_DEFAULT, TABLE_ITEM_EXIT, TABLE_ITEM_RETURN, TABLE_ADD_RETURN, TABLE_ADD_EXIT
 
 
+# TODO - actions are wrong!
+
 def test_get_menu_1():
     choices = ['red', 'blue', 'green']
     print('test_get_menu:\n')
