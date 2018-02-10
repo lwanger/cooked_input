@@ -661,7 +661,8 @@ class Table(object):
                 self.scroll_up_one_row()
             except (DownOneRowRequest):
                 self.scroll_down_one_row()
-
+            except (RefreshScreenInterrupt):
+                self.refresh_items(self._table_items, self.add_exit, self.item_filter)
 
     def get_table_choice(self, **options):
         """
@@ -790,7 +791,6 @@ class Table(object):
             self.show_rows(start_row)
 
 
-    # def __call__(self):
     def __call__(self, choice=None, action_dict=None):
         """
         Call the run method on the table.

@@ -14,6 +14,8 @@ Exceptions:
 
 .. autoclass:: GetInputInterrupt
 
+.. autoclass:: RefreshScreenInterrupt
+
 .. autoclass:: PageUpRequest
 
 .. autoclass:: PageDownRequest

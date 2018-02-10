@@ -32,7 +32,7 @@ class GetInputInterrupt(KeyboardInterrupt):
 
 
 class RefreshScreenInterrupt(Exception):
-    # Primiarily used to refresh table items
+    # Primarily used to refresh table items
     pass
 
 
