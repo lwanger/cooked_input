@@ -570,17 +570,15 @@ class Table(object):
         print(self.table.get_string())
 
 
-    def _prep_get_input(self):
+    def _prep_get_input(self, force_refresh=False):
         """
         Internal function to prepare the table for getting input. Refreshes the tabl (for dynamic tables) and prepares
         the choices, cleaners, covertor and validators.
 
         :return: a tuple of (choices, cleaners, convertor, validator) to use for getting input from the table.
         """
-        if self.refresh:
+        if self.refresh or force_refresh:
             self.refresh_items(self._table_items, self.add_exit, self.item_filter)
-        if len(self._rows) == 0:
-            raise RuntimeError('get_table::_prep_get_input: Table has no rows of data ({}).'.format(self))
 
         if self.case_sensitive:
             choices = {str(item.tag): i for i, item in enumerate(self._rows) if item.enabled is True}
@@ -662,7 +660,8 @@ class Table(object):
             except (DownOneRowRequest):
                 self.scroll_down_one_row()
             except (RefreshScreenInterrupt):
-                self.refresh_items(self._table_items, self.add_exit, self.item_filter)
+                table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input(force_refresh=True)
+                self.show_rows(0)
 
     def get_table_choice(self, **options):
         """

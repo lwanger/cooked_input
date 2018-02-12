@@ -2,48 +2,10 @@
 # coding: latin-1
 
 """
-Test cooked_input table to create a Unicode character picker
+Use cooked_input tables to create a Unicode character picker. This demonstrates how to use cooked input with large,
+mult-column table. It also shows how to used commands for table control.
 
 Len Wanger, 2017
-
-unicode data information:
-    https://docs.python.org/3.1/library/unicodedata.html
-
-    methods:
-
-        unicodedata.category(chr)
-        unicodedata.bidirectional(chr)
-        unicodedata.combining(chr)
-        unicodedata.east_asian_width(chr)
-        unicodedata.mirrored(chr)
-        unicodedata.decomposition(chr)
-        unicodedata.normalize(form, unistr) - Valid values for form are ‘NFC’, ‘NFKC’, ‘NFD’, and ‘NFKD’
-        ...
-
-unicode information:
-    http://www.unicode.org/Public/5.1.0/ucd/UCD.html
-    emoji's: https://www.unicode.org/emoji/charts/full-emoji-list.html
-
-    modifiers:
-        Lu - letter, u - uppercase, l - lowercase, t - titlecase, m - modifier, 0 - other
-        Mn - mark, n - non-spacing, c - spacing combining, e - enclosing
-        Nd - number, d - decimal digit, l - letter, o - other
-        Pc - punctuation, c - connector, d - dash, s - open, e - close, i - initial quote, f- final quote, 0 - other
-        Sm - symbol, m - math, c - currency, k - modifier, o - other
-        Zd - separator, s - space, l - line, p - paragraph
-        Cc - other, c - control, f - format, s- surrogate, o - private use, n - not assinged
-
-    In windows console type: chcp 65001 to display unicode
-
-TODO:
-    - add headers
-    - display and pick from table
-    - do filtering by name, class, bidirectional, combining, text search...
-        - util to create a set of all of the categories and properties?
-    - do it as emoji picker vs others... (range of code points for table?)
-    - add normslization cmd?
-
-show table with - character, digit, u\ form, category, name/description?
 """
 
 import unicodedata
@@ -51,24 +13,15 @@ import unicodedata
 import cooked_input as ci
 
 
-def print_chars(start=32, end=0x007F):
-    for i in range(start,end):
-        ch = chr(i)
-        try:
-            name = unicodedata.name(ch)
-            s = '{}\t{}\t{}\t{}'.format(i, ch, unicodedata.category(ch), name)
-            print(s)
-        except (ValueError) as err:
-            name = 'n/a'
-        except (UnicodeEncodeError) as err:
-            print('UnicodeEncodeError: couldn\'t encode char {}'.format(i))
-
-
 def unicode_item_filter(item, action_dict):
-    # filter values in action_dict:
-    #   cat_filter - filter for the category. if None ignore filter. 'L*' filters any Letter category
-    #   name_filter is a keyword to find the the char name, None for no filter
-    #   item_data ['no_filter'] True then passes filter automatically
+    """
+    Filter table items by category and search string
+
+    action_dict has the following entries controlling filtering:
+        cat_filter - filter for the category. if None ignore filter. 'L*' filters any Letter category
+        name_filter is a keyword to find the the char name, None for no filter
+        item_data ['no_filter'] True then passes filter automatically
+    """
     try:
         if item.item_data and item.item_data['no_filter'] is True:
             return (False, True)
@@ -100,7 +53,14 @@ def unicode_item_filter(item, action_dict):
 
 
 def help_cmd_action(cmd_str, cmd_vars, cmd_dict):
-    print('HELP SCREEN....')
+    print('Unicode picker commands:\n')
+    print('?\tshow this help information')
+    print('filter\tfilter table rows by category and/or key words')
+    print('next\tpage table forward')
+    print('prev\tpage table backward')
+    print('home\tgo to first row of the table')
+    print('end\tgo to last row of the table')
+    print_filter_usage('')
     return (ci.COMMAND_ACTION_NOP, None)
 
 
@@ -119,9 +79,24 @@ def print_filter_usage(cmd_str):
 
 
 def filter_cmd_action(cmd_str, cmd_vars, cmd_dict):
-    # filter command filter category name
+    """
+    filter command filter category name
+    modifiers:
+        Lu - letter, u - uppercase, l - lowercase, t - titlecase, m - modifier, 0 - other
+        Mn - mark, n - non-spacing, c - spacing combining, e - enclosing
+        Nd - number, d - decimal digit, l - letter, o - other
+        Pc - punctuation, c - connector, d - dash, s - open, e - close, i - initial quote, f- final quote, 0 - other
+        Sm - symbol, m - math, c - currency, k - modifier, o - other
+        Zd - separator, s - space, l - line, p - paragraph
+        Cc - other, c - control, f - format, s- surrogate, o - private use, n - not assinged
+
+        This is summed up in regex:
+            \*\*|L[ultmo\*]|M[nce\*]|N[dlo\*]|P[cdseifo\*]|S[mcko\*]|Z[slp\*]|C[cfson\*]
+    """
     cat_arg = name_arg = None
     vars = cmd_vars.split(' ') if len(cmd_vars) else []
+    cat_regex = '\*\*|L[ultmo\*]|M[nce\*]|N[dlo\*]|P[cdseifo\*]|S[mcko\*]|Z[slp\*]|C[cfson\*]'
+    category_validator = ci.RegexValidator(pattern=cat_regex)
 
     if len(vars) > 2:
         print_filter_usage(cmd_str)
@@ -137,9 +112,13 @@ def filter_cmd_action(cmd_str, cmd_vars, cmd_dict):
         name_arg = vars[1] if len(vars) > 1 else None
 
     if cat_arg is None:
-        cat = ci.get_string(prompt='Enter filter value for category', default='**', validators=ci.LengthValidator(min_len=2, max_len=2))
+        cat = ci.get_string(prompt='Enter filter value for category', default='**', validators=category_validator)
     else:
-        cat = cat_arg
+        if ci.validate(cat_arg, validators=category_validator):
+            cat = cat_arg
+        else:
+            print_filter_usage(cmd_str)
+            return (ci.COMMAND_ACTION_NOP, None)
 
     if name_arg is None:
         name = ci.get_string(prompt='Enter description keyword filter value', default=name_arg, required=False)
@@ -186,7 +165,7 @@ def make_table(start=32, end=0x007F, cat_filter='**', name_filter=''):
             ch = chr(i)
             name = unicodedata.name(ch)
             cat = unicodedata.category(ch)
-            ti = ci.TableItem(col_values=[ch, name, cat], tag=i)
+            ti = ci.TableItem(col_values=[ch, name, cat], tag='{:X}'.format(i))  # use hex value as tag
             tis.append(ti)
         except (ValueError) as err:
             name = 'n/a'
@@ -212,9 +191,7 @@ def make_table(start=32, end=0x007F, cat_filter='**', name_filter=''):
 
 
 if __name__ == '__main__':
-    # table = make_table(start=32, end=0x007F, cat_filter='**', name_filter='')
-    # table = make_table(0x20A0,0x20CF)   # currency
-    # table = make_table(0x00080, 0x007FF, cat_filter='Ll', name_filter='')
+    print('\nUnicode Picker... type "?" for help\n')
     table = make_table(0x00080, 0x007FF, cat_filter='**', name_filter='')
     result = ci.get_table_input(table)
-    print('char={}, result={}'.format(result[0], result))
+    print('Unicode character={}'.format(result))
