@@ -242,20 +242,19 @@ class Table(object):
 
     Options:
 
-    required            requires an entry if True, exits the table on blank entry if False.
-    add_exit            automatically adds a TableItem to exit the menu (MENU_ADD_EXIT - default) or return to the
-                            parent table/menu (MENU_ADD_RETURN), or not to add a TableItem at all (False). Used to exit
-                            menus or return from sub-menus.
-    action_dict         a dictionary of values to pass to action functions. Used to provide context to the action.
+    - required:    requires an entry if True, exits the table on blank entry if False.
+    - add_exit:    automatically adds a TableItem to exit the menu (MENU_ADD_EXIT - default) or return to the
+                            parent table/menu (MENU_ADD_RETURN), or not to add a TableItem at all (False). Used to
+                            exit menus or return from sub-menus.
+    - action_dict: a dictionary of values to pass to action functions. Used to provide context to the action.
                             Helpful to provide items such as data base sessions, user credentials, etc.
-    case_sensitive      whether choosing table items should be case sensitive (True) or not (False - default)
-    commands            a dictionary of commands for the table. For each entry, the key is the command and the value the action
-                            to take for the command. See GetInput and GetInputCommand for further details
-    item_filter         a function used to determine which table items to display. Displays all items if None. See below for more details.
-    refresh             refresh table items each time the table is shown (True - default), or just when created (False). Useful for dynamic tables
-    header              a format string to print before the table, can use any value from action_dict as well as pagination information
-    footer              a format string to print after the table, can use any values from action_dict as well as pagination information
-
+    - case_sensitive:  whether choosing table items should be case sensitive (True) or not (False - default)
+    - commands:    a dictionary of commands for the table. For each entry, the key is the command and the value
+                            the action to take for the command. See GetInput and GetInputCommand for further details
+    - item_filter: a function used to determine which table items to display. Displays all items if None. See below for more details.
+    - refresh: refresh table items each time the table is shown (True - default), or just when created (False). Useful for dynamic tables
+    - header:  a format string to print before the table, can use any value from action_dict as well as pagination information
+    - footer:  a format string to print after the table, can use any values from action_dict as well as pagination information
 
     Table default actions:
 
@@ -299,7 +298,7 @@ class Table(object):
     and returns a tuple of (hidden, enabled) for the item (TableItems).
 
     For example, a menu can have choices that are visible and enabled only for user's who are part of the
-    administrator group:
+    administrator group::
 
         def user_role_filter(row, action_dict):
             if row.item_data is None:
@@ -673,11 +672,11 @@ class Table(object):
 
         Options:
 
-            prompt: the prompt for choosing a table value.
-            required: requires an entry if True, exits the table on blank entry if False.
-            default: the default value to use.
-            default_str: An optional string to display for the defailt table selection.
-            commands: a dictionary of commands for the table. For each entry, the key is the command and the value the action
+            - prompt: the prompt for choosing a table value.
+            - required: requires an entry if True, exits the table on blank entry if False.
+            - default: the default value to use.
+            - default_str: An optional string to display for the defailt table selection.
+            - commands: a dictionary of commands for the table. For each entry, the key is the command and the value the action
                         to take for the command. See GetInput and GetInputCommand for further details
         """
         table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
