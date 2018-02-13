@@ -21,7 +21,6 @@
     * send error messages to stderr?
     
 * get_menu:
-    * documment - include action_handlers (and their parameters)
     * add to tutorial - get_menu and Menu.run and setting parameters
     * add examples
     * add coverage tests
@@ -82,9 +81,6 @@
 
 * v0.3 and beyond:
     * Revamp tables and menus
-        * make it easier to make tables from query results
-        * allow showing multiple columns tables (with one column as value)
-        * allow value column to show longer description, but type in value
         * allow typing unique first characters of a choice input?
         * add render_table method to allow printing other than prettytable
         * and lots more...

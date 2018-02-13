@@ -63,6 +63,38 @@ get_table_input
 .. autofunction:: get_table_input
 
 
+Table Action Functions:
+=======================
+
+The following pre-defined action functions can be used for the action for :class:`Tables` and :class:`TableItem`:
+
+return_table_item_action
+------------------------
+
+.. autofunction:: return_table_item_action
+
+return_row_action
+-----------------
+
+.. autofunction:: return_row_action
+
+
+return_tag_action
+------------------
+
+.. autofunction:: return_tag_action
+
+return_first_col_action
+-----------------------
+
+.. autofunction:: return_first_col_action
+
+
+Command Action Functions:
+=========================
+
+The following pre-defined action functions can be used for commands (see :class:`GetInputCommand`):
+
 first_page_cmd_action
 ---------------------
 

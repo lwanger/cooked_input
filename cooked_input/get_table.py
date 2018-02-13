@@ -44,7 +44,7 @@ TABLE_RETURN_TABLE_ITEM = 'table_item'
 # Supplied table actions
 def return_table_item_action(row, action_dict):
     """
-    Action function for Tables. This function returns the TableItem instance.
+    Action function for Tables. This function returns the TableItem instance. Used by the *TABLE_RETURN_TABLE_ITEM* action.
 
     :param row: the data associated with the selected row
     :param action_dict: the dictionary of values associated with the action - ignored in this function
@@ -56,7 +56,7 @@ def return_table_item_action(row, action_dict):
 
 def return_row_action(row, action_dict):
     """
-    Default action function for Tables. This function returns the whole row of data.
+    Default action function for Tables. This function returns the whole row of data. Used by the *TABLE_RETURN_ROW* action.
 
     :param row: the data associated with the selected row
     :param action_dict: the dictionary of values associated with the action - ignored in this function
@@ -68,7 +68,7 @@ def return_row_action(row, action_dict):
 
 def return_tag_action(row, action_dict):
     """
-    Default action function for tables. This function returns the tag for the row of data.
+    Default action function for tables. This function returns the tag for the row of data. Used by the *TABLE_RETURN_TAG* action.
 
     :param row: the data associated with the selected row
     :param action_dict: the dictionary of values associated with the action - ignored in this function
@@ -80,7 +80,7 @@ def return_tag_action(row, action_dict):
 
 def return_first_col_action(row, action_dict):
     """
-    Default action function for tables. This function returns the first data column value for the row of data.
+    Default action function for tables. This function returns the first data column value for the row of data. Used by the *TABLE_RETURN_FIRST_VAL* action.
 
     :param row: the data associated with the selected row
     :param action_dict: the dictionary of values associated with the action - ignored in this function
@@ -183,31 +183,31 @@ class TableItem(object):
 
     TableItem actions:
 
-    The table item action specifies what to do when a table item is selected. By default the table item's tag value
-    is returned. The action can be one of the default actions listed in the following table or a custom action can
-    be provided:
+        The table item action specifies what to do when a table item is selected. By default the table item's tag value
+        is returned. The action can be one of the default actions listed in the following table or a custom action can
+        be provided:
 
-    +--------------------+--------------------------------------------------------------------------+
-    | value              | action                                                                   |
-    +--------------------+--------------------------------------------------------------------------+
-    | TABLE_ITEM_DEFAULT |  use default method to handle the table item (e.g. use the parent        |
-    |                    |  table's default_action handler function)                                |
-    +--------------------+--------------------------------------------------------------------------+
-    | TABLE_ITEM__EXIT   |  selecting the table row should exit (ie exit the menu)                  |
-    +--------------------+--------------------------------------------------------------------------+
-    | TABLE_ITEM__RETURN |  selecting the table row should return (used to return from a submenu)   |
-    +--------------------+--------------------------------------------------------------------------+
+        +--------------------+--------------------------------------------------------------------------+
+        | value              | action                                                                   |
+        +--------------------+--------------------------------------------------------------------------+
+        | TABLE_ITEM_DEFAULT |  use default method to handle the table item (e.g. use the parent        |
+        |                    |  table's default_action handler function)                                |
+        +--------------------+--------------------------------------------------------------------------+
+        | TABLE_ITEM__EXIT   |  selecting the table row should exit (ie exit the menu)                  |
+        +--------------------+--------------------------------------------------------------------------+
+        | TABLE_ITEM__RETURN |  selecting the table row should return (used to return from a submenu)   |
+        +--------------------+--------------------------------------------------------------------------+
 
-    In addition to the values in the table above, the action can be any callable that takes the following
-    parameters:
+        In addition to the values in the table above, the action can be any callable that takes the following
+        parameters:
 
-    :param row: The TableItem instance selected (i.e. this table item)
-    :param action_dict:  The parent table's action_dict.
+        :param row: The TableItem instance selected (i.e. this table item)
+        :param action_dict:  The parent table's action_dict.
 
-    For example,
+        For example::
 
-    def example_action(row, action_dict):
-        print('Example action called for item {}'.format(row.tag))
+            def example_action(row, action_dict):
+                print('Example action called for item {}'.format(row.tag))
     """
     def __init__(self, col_values, tag=None, action=TABLE_ITEM_DEFAULT, item_data=None, hidden=False, enabled=True):
 
@@ -242,79 +242,90 @@ class Table(object):
 
     Options:
 
-    - required:    requires an entry if True, exits the table on blank entry if False.
-    - add_exit:    automatically adds a TableItem to exit the menu (MENU_ADD_EXIT - default) or return to the
-                            parent table/menu (MENU_ADD_RETURN), or not to add a TableItem at all (False). Used to
-                            exit menus or return from sub-menus.
-    - action_dict: a dictionary of values to pass to action functions. Used to provide context to the action.
-                            Helpful to provide items such as data base sessions, user credentials, etc.
-    - case_sensitive:  whether choosing table items should be case sensitive (True) or not (False - default)
-    - commands:    a dictionary of commands for the table. For each entry, the key is the command and the value
-                            the action to take for the command. See GetInput and GetInputCommand for further details
-    - item_filter: a function used to determine which table items to display. Displays all items if None. See below for more details.
-    - refresh: refresh table items each time the table is shown (True - default), or just when created (False). Useful for dynamic tables
-    - header:  a format string to print before the table, can use any value from action_dict as well as pagination information
-    - footer:  a format string to print after the table, can use any values from action_dict as well as pagination information
+        **required**:    requires an entry if True, exits the table on blank entry if False.
+
+        **add_exit**:    automatically adds a TableItem to exit the menu (MENU_ADD_EXIT - default) or return to the
+                                parent table/menu (MENU_ADD_RETURN), or not to add a TableItem at all (False). Used to
+                                exit menus or return from sub-menus.
+
+        **action_dict**: a dictionary of values to pass to action functions. Used to provide context to the action.
+                                Helpful to provide items such as data base sessions, user credentials, etc.
+
+        **case_sensitive**:  whether choosing table items should be case sensitive (True) or not (False - default)
+
+        **commands**:    a dictionary of commands for the table. For each entry, the key is the command and the value
+                                the action to take for the command. See GetInput and GetInputCommand for further details
+
+        **item_filter**: a function used to determine which table items to display. Displays all items if None. See below for more details.
+
+        **refresh**: refresh table items each time the table is shown (True - default), or just when created (False). Useful for dynamic tables
+
+        **header**:  a format string to print before the table, can use any value from action_dict as well as pagination information
+
+        **footer**:  a format string to print after the table, can use any values from action_dict as well as pagination information
 
     Table default actions:
 
-    Each table has a default action to take when an item is selected. The action can be a callable or a value from
-    the table below. The Table's default action is called if the If the selected row (TableItem) has its action
-    set to TABLE_DEFAULT_ACTION, otherwise the action for the selected TableItem is called. Standard values for the
-    Table default action are:
+        Each table has a default action to take when an item is selected. The action can be a callable or a value from
+        the table below. The Table's default action is called if the If the selected row (TableItem) has its action
+        set to TABLE_DEFAULT_ACTION, otherwise the action for the selected TableItem is called. Standard values for the
+        Table default action are:
 
-    +--------------------------------+---------------------------------------------------------+
-    | value                          | action                                                  |
-    +--------------------------------+---------------------------------------------------------+
-    | TABLE_DEFAULT_ACTION_TAG       | return the selected row's tag.                          |
-    +--------------------------------+---------------------------------------------------------+
-    | TABLE_DEFAULT_ACTION_FIRST_VAL | return the first data column value of the selected row. |
-    +--------------------------------+---------------------------------------------------------+
-    | TABLE_DEFAULT_ACTION_ROW       | return the list of column values for the selected row.  |
-    +--------------------------------+---------------------------------------------------------+
-    | TABLE_DEFAULT_ACTION_ITEM      | return the TableItem instance for the selected row.     |
-    +--------------------------------+---------------------------------------------------------+
+        +--------------------------------+---------------------------------------------------------+
+        | value                          | action                                                  |
+        +--------------------------------+---------------------------------------------------------+
+        | TABLE_DEFAULT_ACTION_TAG       | return the selected row's tag.                          |
+        +--------------------------------+---------------------------------------------------------+
+        | TABLE_DEFAULT_ACTION_FIRST_VAL | return the first data column value of the selected row. |
+        +--------------------------------+---------------------------------------------------------+
+        | TABLE_DEFAULT_ACTION_ROW       | return the list of column values for the selected row.  |
+        +--------------------------------+---------------------------------------------------------+
+        | TABLE_DEFAULT_ACTION_ITEM      | return the TableItem instance for the selected row.     |
+        +--------------------------------+---------------------------------------------------------+
 
-    In addition to the values in the table above, the action can be any callable that takes the following
-    parameters:
+        In addition to the values in the table above, the action can be any callable that takes the following
+        parameters:
 
-    :param row: The TableItem instance selected (i.e. this table item)
-    :param action_dict:  The parent table's action_dict.
+            **row**: The TableItem instance selected (i.e. this table item)
 
-    For example,
+            **action_dict**:  The parent table's action_dict.
 
-    def example_action(row, action_dict):
-        print('Example action called for item {}'.format(row.tag))
+            For example::
+
+                def example_action(row, action_dict):
+                    print('Example action called for item {}'.format(row.tag))
 
 
     item filters:
 
-    The item filter provides a function that determines which table items are hidden and/or enabled in the table.
-    It is a callable that takes the following input parameters:
+        The item filter provides a function that determines which table items are hidden and/or enabled in the table.
+        It is a callable that takes the following input parameters:
 
-        item:   the TableItem instance
-        action_dict: the action_dict for the Table
+            **item**:   the TableItem instance
 
-    and returns a tuple of (hidden, enabled) for the item (TableItems).
+            **action_dict**: the action_dict for the Table
 
-    For example, a menu can have choices that are visible and enabled only for user's who are part of the
-    administrator group::
+        and returns a tuple of (hidden, enabled) for the item (TableItems).
 
-        def user_role_filter(row, action_dict):
-            if row.item_data is None:
-                return  (False, True)
+        For example, a menu can have choices that are visible and enabled only for user's who are part of the
+        administrator group::
 
-            for role in action_dict['user'].roles:
-                if role in row.item_data['roles']:
+            def user_role_filter(row, action_dict):
+                if row.item_data is None:
                     return  (False, True)
 
-            return (True, False)
+                for role in action_dict['user'].roles:
+                    if role in row.item_data['roles']:
+                        return  (False, True)
 
-        action_dict = {'user_roles': ['admin', 'users']}
-        admin_only = {'roles': {'admin'} }
-        menu_items = [ TableItem('Add a new user', action=user_add_action, item_data=admin_only),
-                       TableItem('list users', action=user_list_action) ]
-        menu = Table(menu_items, action_dict=action_dict, item_filter=user_role_filter)
+                return (True, False)
+
+            action_dict = {'user_roles': ['admin', 'users']}
+            admin_only = {'roles': {'admin'} }
+            mi1 = TableItem('Add a new user', action=user_add_action, item_data=admin_only)
+            mi2 = TableItem('list users', action=user_list_action)
+            menu_items = [mi1, mi2]
+            menu = Table(menu_items, action_dict=action_dict, item_filter=user_role_filter)
     """
 
     def __init__(self, rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None,

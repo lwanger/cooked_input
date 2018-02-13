@@ -11,6 +11,7 @@ from .get_table import get_table_input, get_menu, Table, TableItem
 from .get_table import TABLE_ITEM_EXIT, TABLE_ITEM_RETURN, TABLE_ITEM_DEFAULT, TABLE_ADD_EXIT, TABLE_ADD_RETURN
 from .get_table import TABLE_RETURN_TAG, TABLE_RETURN_FIRST_VAL, TABLE_RETURN_ROW, TABLE_RETURN_TABLE_ITEM
 
+from .get_table import return_table_item_action, return_row_action, return_tag_action, return_first_col_action
 from .get_table import first_page_cmd_action, last_page_cmd_action, next_page_cmd_action, prev_page_cmd_action
 from .get_table import scroll_up_one_row_cmd_action, scroll_down_one_row_cmd_action
 

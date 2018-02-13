@@ -256,4 +256,20 @@ TODO
 - item filters, enabled, hidden items
 - pagination
 - Commands
+
+example commands::
+
+    def user_reverse_action(cmd_str, cmd_vars, cmd_dict):
+            user = cmd_dict['user']
+            return (COMMAND_ACTION_USE_VALUE, user[::-1])
+
+    def to_mm_cmd_action(cmd_str, cmd_vars, cmd_dict):
+        # Convert a value from inches to mm and use the resulting value for the input
+        try:
+            inches = float(cmd_vars)
+            return (COMMAND_ACTION_USE_VALUE, str(inches * 25.4))
+        except(ValueError):
+            print(f'Invalid number of inches provided to {} command.'.format(cmd_str)
+            return (COMMAND_ACTION_NOP, None)
+
 - Exceptions

@@ -32,37 +32,51 @@ class GetInputInterrupt(KeyboardInterrupt):
 
 
 class RefreshScreenInterrupt(Exception):
-    # Primarily used to refresh table items
+    """
+    Primarily used to refresh table items
+    """
     pass
 
 
 class PageUpRequest(Exception):
-    # Used to signal a request to go to the previous page in paginated tables
+    """
+    Used to signal a request to go to the previous page in paginated tables
+    """
     pass
 
 
 class PageDownRequest(Exception):
-    # Used to signal a request to go to the next page in paginated tables
+    """
+    Used to signal a request to go to the next page in paginated tables
+    """
     pass
 
 
 class FirstPageRequest(Exception):
-    # Used to signal a request to go to the first page in paginated tables
+    """
+    Used to signal a request to go to the first page in paginated tables
+    """
     pass
 
 
 class LastPageRequest(Exception):
-    # Used to signal a request to go to the last page in paginated tables
+    """
+    Used to signal a request to go to the last page in paginated tables
+    """
     pass
 
 
 class UpOneRowRequest(Exception):
-    # Used to signal a request to scroll up one row in paginated tables
+    """
+    Used to signal a request to scroll up one row in paginated tables
+    """
     pass
 
 
 class DownOneRowRequest(Exception):
-    # Used to signal a request to scroll down one row in paginated tables
+    """
+    Used to signal a request to scroll down one row in paginated tables
+    """
     pass
 
 
@@ -87,7 +101,7 @@ class GetInputCommand():
     (cmd_dict). The cmd_dict dictionary can be used to pass data to the command. For instance, a database session or
     the name of the user can be passed with: cmd_dist = {'session': db_session, 'user': user }
 
-    The cmd_action is a callback funtion used for the command. It receives the string for the command, the
+    The cmd_action is a callback function used for the command. It receives the string for the command, the
     arguments (the rest of the command input), and cmd_dict as input and returns a tuple
     containing (COMMAND_ACTION_TYPE, value), where the command action type is one of the following:
 
@@ -101,11 +115,11 @@ class GetInputCommand():
     | COMMAND_ACTION_NOP            |  do nothing - continues to ask for the input                    |
     +-------------------------------+-----------------------------------------------------------------+
 
-    For example, the following input specifies one of each type of command::
+    For example, the following show examples of of each type of command::
 
         def use_color_action(cmd_str, cmd_vars, cmd_dict):
             print('Using "red" as the input value)
-            return (COMMAND_ACTION_USE_VALUE, cmd_dict['color'])
+            return (COMMAND_ACTION_USE_VALUE, 'red')
 
         def cancel_action(cmd_str, cmd_vars, cmd_dict):
             return (COMMAND_ACTION_CANCEL, None)
@@ -116,11 +130,13 @@ class GetInputCommand():
             print('/?  - show this message')
             print('/cancel - cancel this operation')
             print('/red    - use red as a value')
+            print('/reverse - return the user\'s name reversed')
             return (COMMAND_ACTION_NOP, None)
 
         cmds = { '/?': GetInputCommand(show_help_action),
                  '/cancel': GetInputCommand(cancel_action),
-                 '/red': GetInputCommand(use_color_action, {'color': 'red'}) }
+                 '/red': GetInputCommand(use_color_action, {'color': 'red'}),
+                 '/reverse': GetInputCommand(user_color_action, {'user': 'fred'}) }
 
         try:
             result = get_string(prompt=prompt_str, commands=cmds)
@@ -140,7 +156,8 @@ class GetInputCommand():
 
 class GetInput(object):
     """
-    Class to get cleaned, converted, validated input from the command line.
+    Class to get cleaned, converted, validated input from the command line. This is the central class used for
+    cooked_input.
 
     :param cleaners: list of cleaners to apply to clean the value
     :param convertor: the convertor to apply to the cleaned value
@@ -149,59 +166,36 @@ class GetInput(object):
 
     Options:
 
-        prompt: the string to use for the prompt. For example prompt="Enter your name"
+        **prompt**: the string to use for the prompt. For example prompt="Enter your name"
 
-        required: True if a non-blank value is required, False if a blank response is OK.
+        **required**: True if a non-blank value is required, False if a blank response is OK.
 
-        default: the default value to use if a blank string is entered. This takes precedence over required (i.e. a
-         blank response will return the default value.)
+        **default**: the default value to use if a blank string is entered. This takes precedence over required
+            (i.e. a blank response will return the default value.)
 
-        default_str: the string to use for the default value. In general just set the default option.
+        **default_str**: the string to use for the default value. In general just set the default option.
 
-        hidden: the input typed should not be displayed. This is useful for entering passwords.
+        **hidden**: the input typed should not be displayed. This is useful for entering passwords.
 
-        retries: the maximum number of attempts to allow before raising a MaxRetriesError exception.
+        **retries**: the maximum number of attempts to allow before raising a MaxRetriesError exception.
 
-        error_callback: a callback function to call when an error is encountered. Defaults to print_error
+        **error_callback**: a callback function to call when an error is encountered. Defaults to print_error
 
-        convertor_error_fmt: format string to use for convertor errors. Defaults to DEFAULT_CONVERTOR_ERROR.
+        **convertor_error_fmt**: format string to use for convertor errors. Defaults to DEFAULT_CONVERTOR_ERROR.
             Format string receives two variables - {value} the value that failed conversion, and {error_content}
             set by the convertor.
 
-        validator_error_fmt: format string to use for validator errors. Defaults to DEFAULT_VALIDATOR_ERROR.
+        **validator_error_fmt**: format string to use for validator errors. Defaults to DEFAULT_VALIDATOR_ERROR.
             Format string receives two variables - {value} the value that failed conversion, and {error_content}
             set by the validator.
 
-        commands: an optional dictionary of commands. See below for more details.
+        **commands**: an optional dictionary of commands. See below for more details.
 
-        Commands:
+    Commands:
 
         GetInput optionally takes a dictionary containing commands that can be run from the input prompt. The key for
         each command is the string used to call the command and the value is an instance of the GetInputCommand class
-        for the command (e.g. "/help": GetInputCommand(show_help_action)).
-
-        For instance the following defines a set of commands (help, convert to millimeters, and cancel) to the input::
-
-            def help_cmd_action(cmd_str, cmd_vars, cmd_dict):
-                print('Commands:')
-                print('\t/?, /h\tDisplay this help message')
-                print('\t/mm <inches>\tConvert from inches to mm and return the value as the input')
-                print('\t/cancel\tCancel the current operation')
-
-            def cancel_cmd_action(cmd_str, cmd_vars, cmd_dict):
-                print_warning('Command cancelled...')
-                return (COMMAND_ACTION_CANCEL, None)
-
-            def to_mm_cmd_action(cmd_str, cmd_vars, cmd_dict):
-                # Convert a value from inches to mm and use the resulting value for the input
-                try:
-                    inches = float(cmd_vars)
-                    return (COMMAND_ACTION_USE_VALUE, str(inches * 25.4))
-                except(ValueError):
-                    print(f'Invalid number of inches provided to {} command.'.format(cmd_str)
-                    return (COMMAND_ACTION_NOP, None)
-
-            cmds = { '/?': help_cmd, '/h': help_cmd, '/cancel': cancel_cmd, '/mm': to_mm_cmd }
+        for the command (e.g. "/help": GetInputCommand(show_help_action)). For more information see :class:`GetInputCommand`
     """
     def __init__(self, cleaners=None, convertor=None, validators=None, **options):
         self.cleaners = cleaners

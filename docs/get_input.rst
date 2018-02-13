@@ -3,9 +3,6 @@
 get_input
 *********
 
-github archive: https://github.com/lwanger/cooked_input
-
-
 cooked_input contains the top-level calls for the cooked_input library.
 
 
@@ -40,7 +37,9 @@ GetInput:
 
 .. autoclass:: GetInput
 
+
 .. automethod:: GetInput.get_input
+
 
 .. automethod:: GetInput.process_value
 
@@ -56,11 +55,11 @@ instance, the following two function calls do the same thing::
 
 
     # GetInput version:
-    gi = GetInput(prompt='Enter a whole (integer) number', convertor=IntConvertor())
+    gi = GetInput(prompt='Enter a whole number', convertor=IntConvertor())
     result = gi.get_input()
 
     # Convenience function:
-    result = get_int()
+    result = get_int(prompt='Enter a whole number')
 
 
 get_input

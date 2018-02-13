@@ -21,7 +21,6 @@ This is documentation for cooked_input |my_version|, generated |my_date|.
    convertors
    validators
    error_callbacks
-   input_utils
 
 
 Indices and tables
