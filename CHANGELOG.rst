@@ -35,6 +35,8 @@ see TODO.md for list of TODO items
 
   * renamed ChoicesValidator to ChoiceValidator
 
+  * added case_insentive flag to ChoicesCleaner
+
   * check AnyOf and NoneOf for list of values, not just list of validation functions. Allows
     saying: NoneOfValidator(['foo', 'bar'])
 
