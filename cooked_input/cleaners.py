@@ -151,20 +151,30 @@ class ChoiceCleaner(Cleaner):
 
     :param choices: a list of to detect
     """
-    def __init__(self, choices, **kwargs):
+    def __init__(self, choices, case_insensitive=False, **kwargs):
         """
         Return the choice starting with the value.
 
         :param choices: the list of choices to identify
+        :param case_insensitive: matching the choice is case sensitive if True (default) or insensitive if False.
         :param kwargs:
         """
 
+        self._case_insensitive = case_insensitive
+
         # create a dictionary as choices may not be strings
-        self._str_choices = {str(choice): choice for choice in choices}
+        if case_insensitive:
+            self._str_choices = {str(choice).lower(): choice for choice in choices}
+        else:
+            self._str_choices = {str(choice): choice for choice in choices}
+
         super(ChoiceCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
-        str_value = str(value)
+        if self._case_insensitive:
+            str_value = str(value).lower()
+        else:
+            str_value = str(value)
         matches = [v for k, v in self._str_choices.items() if k.startswith(str_value)]
 
         if len(matches) == 1:
