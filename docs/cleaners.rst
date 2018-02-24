@@ -9,7 +9,7 @@ Cleaner classes for cleaning input before conversion and validation.
 Creating Cleaners
 =================
 
-Cleaner classes inherit from the Cleaner metaclass. They must be callable, with the __call__ dunder
+Cleaner classes inherit from the :class:`Cleaner` base class. They must be callable, with the ``__call__`` dunder
 method taking one parameter, the value. An example of a cleaner to change the input value to lower
 case looks like::
 
@@ -30,6 +30,7 @@ CapitalizationCleaner
 ---------------------
 
 .. autoclass:: cooked_input.CapitalizationCleaner
+    :members:
 
 
 ChoiceCleaner

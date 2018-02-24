@@ -33,49 +33,49 @@ class GetInputInterrupt(KeyboardInterrupt):
 
 class RefreshScreenInterrupt(Exception):
     """
-    Primarily used to refresh table items
+    When raised, directs ``cooked_input`` to refresh the display. Used primarily to refresh table items.
     """
     pass
 
 
 class PageUpRequest(Exception):
     """
-    Used to signal a request to go to the previous page in paginated tables
+    When raised, directs ``cooked_input`` to go to the previous page in paginated tables
     """
     pass
 
 
 class PageDownRequest(Exception):
     """
-    Used to signal a request to go to the next page in paginated tables
+    When raised, directs ``cooked_input`` to go to the next page in paginated tables
     """
     pass
 
 
 class FirstPageRequest(Exception):
     """
-    Used to signal a request to go to the first page in paginated tables
+    When raised, directs ``cooked_input`` to go to the first page in paginated tables
     """
     pass
 
 
 class LastPageRequest(Exception):
     """
-    Used to signal a request to go to the last page in paginated tables
+    When raised, directs ``cooked_input`` to go to the last page in paginated tables
     """
     pass
 
 
 class UpOneRowRequest(Exception):
     """
-    Used to signal a request to scroll up one row in paginated tables
+    When raised, directs ``cooked_input`` to scroll up one row in paginated tables
     """
     pass
 
 
 class DownOneRowRequest(Exception):
     """
-    Used to signal a request to scroll down one row in paginated tables
+    When raised, directs ``cooked_input`` to scroll down one row in paginated tables
     """
     pass
 
@@ -97,32 +97,51 @@ COMMAND_ACTION_NOP = 'nop_action'
 
 class GetInputCommand():
     """
-    Used to create commands that can be used in GetInput. Each command has an action and optional data dictionary
-    (cmd_dict). The cmd_dict dictionary can be used to pass data to the command. For instance, a database session or
-    the name of the user can be passed with: cmd_dist = {'session': db_session, 'user': user }
+    :param cmd_action: callback function used to process the command
+    :param cmd_dict: a dictionary of data passed to the ``cmd_action`` callback function
 
-    The cmd_action is a callback function used for the command. It receives the string for the command, the
-    arguments (the rest of the command input), and cmd_dict as input and returns a tuple
-    containing (COMMAND_ACTION_TYPE, value), where the command action type is one of the following:
+    :class:`GetInputCommand` is used to create commands that can be used while getting input from GetInput.get_input. Each
+    command has an `action` (callback function) and optional data (cmd_dict).
 
-    +-------------------------------+-----------------------------------------------------------------+
-    | Action                        |    Result                                                       |
-    +-------------------------------+-----------------------------------------------------------------+
-    | COMMAND_ACTION_USE_VALUE      |  use the second value of the tuple as the input                 |
-    +-------------------------------+-----------------------------------------------------------------+
-    | COMMAND_ACTION_CANCEL         |  cancel the current input (raise a GetInputInterrupt exception) |
-    +-------------------------------+-----------------------------------------------------------------+
-    | COMMAND_ACTION_NOP            |  do nothing - continues to ask for the input                    |
-    +-------------------------------+-----------------------------------------------------------------+
+    The ``cmd_action`` is a callback function used for the command. The callback is called as follows::
 
-    For example, the following show examples of of each type of command::
+        def cmd_action(cmd_str, cmd_vars, cmd_dict):
+
+    :param cmd_str: the string used to call the command
+    :param cmd_vars: additional arguments for the command (i.e. the rest of the command input)
+    :param cmd_dict: a dictionary of additional data for processing the command
+
+    Command callback functions return a a tuple containing (`COMMAND_ACTION_TYPE`, value), where the command action
+    type is one of the following:
+
+    +-------------------------------+------------------------------------------------------+
+    | Action                        |    Result                                            |
+    +-------------------------------+------------------------------------------------------+
+    | **COMMAND_ACTION_USE_VALUE**  |  use the second value of the tuple as the input      |
+    +-------------------------------+------------------------------------------------------+
+    | **COMMAND_ACTION_CANCEL**     |  cancel the current input (raise GetInputInterrupt)  |
+    +-------------------------------+------------------------------------------------------+
+    | **COMMAND_ACTION_NOP**        |  do nothing - continues to ask for the input         |
+    +-------------------------------+------------------------------------------------------+
+
+    For convenience command action callbacks can return a CommandResponse namedtuple instance::
+
+         CommandResponse(action, value)
+
+    The ``cmd_dict`` dictionary can be used to pass data useful in processing the command. For instance, a database
+    session and the name of the user can be passed with::
+
+        cmd_dict = {'session': db_session, 'user_name': user_name }
+        lookup_user_cmd = GetInputCommand(lookup_user_action, cmd_dict)
+
+    The following show examples of of each type of command::
 
         def use_color_action(cmd_str, cmd_vars, cmd_dict):
-            print('Using "red" as the input value)
+            print('Use "red" as the input value')
             return (COMMAND_ACTION_USE_VALUE, 'red')
 
         def cancel_action(cmd_str, cmd_vars, cmd_dict):
-            return (COMMAND_ACTION_CANCEL, None)
+            return CommandResponse(COMMAND_ACTION_CANCEL, None)
 
         def show_help_action(cmd_str, cmd_vars, cmd_dict):
             print('Commands:')
@@ -131,7 +150,7 @@ class GetInputCommand():
             print('/cancel - cancel this operation')
             print('/red    - use red as a value')
             print('/reverse - return the user\'s name reversed')
-            return (COMMAND_ACTION_NOP, None)
+            return CommandResponse(COMMAND_ACTION_NOP, None)
 
         cmds = { '/?': GetInputCommand(show_help_action),
                  '/cancel': GetInputCommand(cancel_action),
@@ -142,6 +161,18 @@ class GetInputCommand():
             result = get_string(prompt=prompt_str, commands=cmds)
         except GetInputInterrupt:
             print('Operation cancelled (received GetInputInterrupt)')
+
+    Nothing stops you from using ``cooked_input`` to get additional input within a command action callback. For example,
+    the cancel command could be extended to confirm the user wants to cancel the current input::
+
+        def cancel_action(cmd_str, cmd_vars, cmd_dict):
+            response = get_yes_no(prompt="Are you sure you want to cancel?", default='no')
+
+            if response == 'yes':
+                print('operation cancelled!')
+                return CommandResponse(COMMAND_ACTION_CANCEL, None)
+            else:
+                return CommandResponse(COMMAND_ACTION_NOP, None)
     """
     def __init__(self, cmd_action, cmd_dict=None):
         self.cmd_action = cmd_action

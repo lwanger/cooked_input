@@ -46,27 +46,28 @@ class Cleaner(object):
 
 class CapitalizationCleaner(Cleaner):
     """
-    Capitalize the value using the specified style
-
     :param style: capitalization style to use: 'lower', 'upper', 'first_word', 'last_word'[#f1]_, 'all_words'.
+    :param kwargs: currently no keyword arguments are supported by :class:`CapitalizationCleaner`
+
+    Capitalize the value using the specified style
 
 .. [#f1] This parameter is dedicated to Colleen, who will be happy to finally get the last word.
 
 The styles are equivalent to the following:
 
-    +--------------+-----------------+----------------------------------------------------+
-    | style        | string function |                       Note                         |
-    +--------------+-----------------+----------------------------------------------------+
-    | 'lower'      | lower           |  can also use LOWER_CAP_STYLE                      |
-    +--------------+-----------------+----------------------------------------------------+
-    | 'upper'      | upper           |  can also use UPPER_CAP_STYLE                      |
-    +--------------+-----------------+----------------------------------------------------+
-    | 'first_word' | capitalize      |  can also use 'capitalize' or FIRST_WORD_CAP_STYLE |
-    +--------------+-----------------+----------------------------------------------------+
-    | 'last_word'  | --              |  can also use  LAST_WORD_CAP_STYLE                 |
-    +--------------+-----------------+----------------------------------------------------+
-    | 'all_words'  | capwords        |  can also use 'capwords' or ALL_WORDS_CAP_STYLE    |
-    +--------------+-----------------+----------------------------------------------------+
+    +--------------+-----------------+-------------------------------------------------------+
+    | style        | string function |                       Note                            |
+    +--------------+-----------------+-------------------------------------------------------+
+    | 'lower'      | lower           |  can also use ``LOWER_CAP_STYLE``                     |
+    +--------------+-----------------+-------------------------------------------------------+
+    | 'upper'      | upper           |  can also use ``UPPER_CAP_STYLE``                     |
+    +--------------+-----------------+-------------------------------------------------------+
+    | 'first_word' | capitalize      |  can also use 'capitalize' or ``FIRST_WORD_CAP_STYLE``|
+    +--------------+-----------------+-------------------------------------------------------+
+    | 'last_word'  | --              |  can also use  ``LAST_WORD_CAP_STYLE``                |
+    +--------------+-----------------+-------------------------------------------------------+
+    | 'all_words'  | capwords        |  can also use 'capwords' or ``ALL_WORDS_CAP_STYLE``   |
+    +--------------+-----------------+-------------------------------------------------------+
 
     """
     def __init__(self, style='lower', **kwargs):
@@ -101,11 +102,12 @@ The styles are equivalent to the following:
 
 class StripCleaner(Cleaner):
     """
-    Strips white space from the input value. Strips from the left side if lstrip=True, and from the
-    right side if rstrip=True. Both are True by default (i.e. strips from left and right).
-
     :param lstrip: strips white space from the left side of the value if True
     :param rstrip: strips white space from the right side of the value if True
+    :param kwargs: currently no keyword arguments are supported by :class:`StripCleaner`
+
+    Strips white space from the input value. Strips from the left side if lstrip=True, and from the
+    right side if rstrip=True. Both are True by default (i.e. strips from left and right).
     """
     def __init__(self, lstrip=True, rstrip=True, **kwargs):
         self._lstrip = lstrip
@@ -126,40 +128,39 @@ class StripCleaner(Cleaner):
 
 class ChoiceCleaner(Cleaner):
     """
+    :param choices: the list of choices to match
+    :param case_insensitive: if True (default) matching the choice is case insensitive, otherwise it's case sensitive
+    :param kwargs: currently no keyword arguments are supported by :class:`ChoiceCleaner`
+
+    .. note:: The cleaned output uses the same capitalization as the item matched from the choices list regardless of the
+        ``case_insensitive`` parameter.
+
     ChoiceCleaner tries to replace the input value with a single element from a list of choices by finding the unique
-    element starting with the input value. If not single element can be identified, the input value is returned (i.e. no
+    element starting with the input value. If no single element can be identified, the input value is returned (i.e. no
     cleaning is performed.) This is a complicated way of saying you can type in the first few letters of an input and
     the cleaner will return the choice that starts with those letters if it can determine which one it is.
 
     For example::
 
-        ChoiceCleaner(choices=['blue', 'black', 'brown', 'green'])
+        ChoiceCleaner(choices=['blue', 'brown', 'green'], case_insensitive=False)
 
     will with the following input values would return the following values:
 
         +-------+---------+-----------------------------------------------------------------+
-        | value | returns |                              Note                               |
-        +-------+---------+-----------------------------------------------------------------+
+        | value | returns | note                                                            |
+        +=======+=========+=================================================================+
         | 'g'   | 'green' |                                                                 |
         +-------+---------+-----------------------------------------------------------------+
         | 'br'  | 'brown' |                                                                 |
         +-------+---------+-----------------------------------------------------------------+
         | 'blu' | 'blue'  |                                                                 |
         +-------+---------+-----------------------------------------------------------------+
-        | 'bl'  | 'bl'    | original value returned as can't tell between 'black' and 'blue'|
+        | 'b'   | 'b'     | original value returned as can't tell between 'browm' and 'blue'|
         +-------+---------+-----------------------------------------------------------------+
-
-    :param choices: a list of to detect
+        | 'BR'  | 'BR'    | original value returned as case of the input does not match     |
+        +-------+---------+-----------------------------------------------------------------+
     """
     def __init__(self, choices, case_insensitive=False, **kwargs):
-        """
-        Return the choice starting with the value.
-
-        :param choices: the list of choices to identify
-        :param case_insensitive: matching the choice is case sensitive if True (default) or insensitive if False.
-        :param kwargs:
-        """
-
         self._case_insensitive = case_insensitive
 
         # create a dictionary as choices may not be strings
@@ -188,10 +189,10 @@ class ChoiceCleaner(Cleaner):
 
 class RemoveCleaner(Cleaner):
     """
-    Removes all occurrences of any of the strings in the patterns list.
+    :param patterns: a list of strings to remove
+    :param kwargs: currently no keyword arguments are supported by :class:`RemoveCleaner`
 
-    :param patterns: string to replace
-
+    Removes all occurrences of any of the strings in the patterns list from the input value.
     """
     def __init__(self, patterns, **kwargs):
         self._patterns = put_in_a_list(patterns)
@@ -210,14 +211,16 @@ class RemoveCleaner(Cleaner):
 
 class ReplaceCleaner(Cleaner):
     """
-    Replaces all occurrences of "old" string with "new" string white space from the input value
-
     :param old: string to replace
-    :param new: string to put in the place of all occurrences of old
+    :param new: string to substitute for occurrences of ``old``
+    :param kwargs: see below
 
-    options:
+    **kwargs**:
 
-    count: the maximum number of substitutions to perform to the value.
+    **count**: the maximum number of substitutions to perform to the value. If not specified all occurences are replaced
+
+    Replaces occurrences of ``old`` string with ``new`` string from the input value. If `count` is specified the first
+    ``count`` occurences, from left to right, are replaced.
     """
     def __init__(self, old, new, **kwargs):
         count = None
@@ -251,27 +254,29 @@ class ReplaceCleaner(Cleaner):
 
 class RegexCleaner(Cleaner):
     """
-    Return the result of substituting the sub value for the pattern using a regular expression on the value. For more
-    information on regular expressions and the meaning of count and flags.See the Python re module
-    in the standard library at:
-
-        https://docs.python.org/2/library/re.html
-
     :param pattern: regular expression to search for
-    :param sub: regular expression to substitute for the pattern
+    :param repl: string to substitute for occurences of ``pattern``
     :param count: count
     :param flags: flags
+    :param kwargs: currently no keyword arguments are supported by the :class:`RegexCleaner`
+
+    Return the string obtained by replacing the leftmost non-overlapping occurrences of `pattern` in the input value
+    by the replacement `repl`. If the pattern isn’t found in the input value, the value is returned unchanged.
+    For more information on regular expressions and the meaning of count and flags. See the Python `re.sub` function
+    in `re` module in the standard library at:
+
+        https://docs.python.org/2/library/re.html
     """
-    def __init__(self, pattern, sub, count=0, flags=0, **kwargs):
+    def __init__(self, pattern, repl, count=0, flags=0, **kwargs):
         self._pattern = pattern
-        self._sub = sub
+        self._repl = repl
         self._count = count
         self._flags = flags
         super(RegexCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
-        result = re.sub(self._pattern, self._sub, value, self._count, self._flags)
+        result = re.sub(self._pattern, self._repl, value, self._count, self._flags)
         return result
 
     def __repr__(self):
-        return 'RegexCleaner(pattern={}, sub={}, count={}, flags={})'.format(self._pattern, self._sub, self._count, self._flags)
+        return 'RegexCleaner(pattern={}, repl={}, count={}, flags={})'.format(self._pattern, self._repl, self._count, self._flags)
