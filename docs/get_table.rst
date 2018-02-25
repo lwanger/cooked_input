@@ -47,22 +47,6 @@ Table:
 .. automethod:: Table.refresh_items
 
 
-Convenience Functions:
-======================
-
-
-get_menu
---------
-
-.. autofunction:: get_menu
-
-
-get_table_input
----------------
-
-.. autofunction:: get_table_input
-
-
 Table Action Functions:
 =======================
 

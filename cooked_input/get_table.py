@@ -898,7 +898,12 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
         selected, unless a different default action is provided in the options.
     """
     menu_choices = [TableItem(choice) for choice in choices]
-    default_str = ' (return for {})'.format(default_choice)
+
+    if default_choice is None:
+        default_str = None
+    else:
+        default_str = ' (return for {})'.format(default_choice)
+
     default_idx = None
 
     # return the tag for the menu item unless the user set a specific default action.
