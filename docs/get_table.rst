@@ -1,9 +1,14 @@
 .. currentmodule:: cooked_input
 
-get_table
-*********
+Tables and Menus
+****************
 
-`get_table` contains classes and functions to support text-based table and menus in `cooked_input`.
+The :class:`TableItem` and :class:`Table` support text-based table and menus in `cooked_input`.
+
+.. note::
+
+ Using the :class:`Table` class is for more advanced users, Beginners can just use
+ the **get_menu** and **get_table_input** `convenience functions <get_input_convenience.html>`_.
 
 TableItem:
 ==========
@@ -73,43 +78,3 @@ return_first_col_action
 
 .. autofunction:: return_first_col_action
 
-
-Command Action Functions:
-=========================
-
-The following pre-defined action functions can be used for commands (see :class:`GetInputCommand`):
-
-first_page_cmd_action
----------------------
-
-.. autofunction:: first_page_cmd_action
-
-
-last_page_cmd_action
---------------------
-
-.. autofunction:: last_page_cmd_action
-
-
-prev_page_cmd_action
---------------------
-
-.. autofunction:: prev_page_cmd_action
-
-
-next_page_cmd_action
---------------------
-
-.. autofunction:: next_page_cmd_action
-
-
-scroll_up_one_row_cmd_action
-----------------------------
-
-.. autofunction:: scroll_up_one_row_cmd_action
-
-
-scroll_down_one_row_cmd_action
-------------------------------
-
-.. autofunction:: scroll_down_one_row_cmd_action

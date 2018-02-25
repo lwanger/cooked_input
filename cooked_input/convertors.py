@@ -91,6 +91,9 @@ class BooleanConvertor(Convertor):
 
     :param value_error_str: the error string to use when an improper value is input.
     :param kwargs: no kwargs are currently supported.
+
+    **BooleanConvertor** returns `True` for input values: 't', 'true', 'y', 'yes', and '1'. **BooleanConvertor** returns
+    `False` for input values: 'f', 'false', 'n', 'no', '0'.
     """
     def __init__(self, value_error_str='true or false', **kwargs):
         super(BooleanConvertor, self).__init__(value_error_str, **kwargs)
@@ -121,6 +124,12 @@ class ListConvertor(Convertor):
     :param elem_convertor: the convertor function to use for each element of the list (e.g. IntConvertor converts each
         element of the list to an integer.
     :param kwargs: no kwargs are currently supported.
+
+    For example, the accept a list of integers separated by colons (':') and return it as a Python list of ints::
+
+      prompt_str = 'Enter a list of integers (separated by ":")'
+      lc = ListConvertor(delimiter=':', elem_convertor=IntConvertor())
+      result = get_input(prompt=prompt_str, convertor=lc)
     """
     def __init__(self, value_error_str='list of values', delimiter=',', elem_convertor=None, **kwargs):
         self.delimeter = delimiter
@@ -156,12 +165,14 @@ class ListConvertor(Convertor):
 
 class DateConvertor(Convertor):
     """
-    convert to a datetime. Converts the cleaned input to an datetime value. Dateparser is used for the parsing, allowing
-    a lot of flexibility in how date input is entered (e.g. '12/12/12', 'October 1, 2015', 'today', or 'next Tuesday').
-    For more information about dateparser see: https://dateparser.readthedocs.io/en/latest/
+    convert to a datetime.
 
     :param value_error_str: the error string to use when an improper value is input.
     :param kwargs: no kwargs are currently supported.
+
+    Converts the cleaned input to an datetime value. Dateparser is used for the parsing, allowing
+    a lot of flexibility in how date input is entered (e.g. '12/12/12', 'October 1, 2015', 'today', or 'next Tuesday').
+    For more information about dateparser see: `<https://dateparser.readthedocs.io/en/latest/>`_
     """
     def __init__(self, value_error_str='a date', **kwargs):
         super(DateConvertor, self).__init__(value_error_str, **kwargs)
@@ -184,6 +195,10 @@ class YesNoConvertor(Convertor):
 
     :param value_error_str: the error string to use when an improper value is input.
     :param kwargs: no kwargs are currently supported.
+
+    **YesNoConvertor** returns `yes` for input values: 'y', 'yes', 'yeah', 'yup', 'aye', 'qui', 'si', 'ja', 'ken',
+    'hai', 'gee', 'da', 'tak', 'affirmative'. **YesNoConvertor** returns `no` for input values: 'n', 'no', 'nope',
+    'na', 'nae', 'non', 'negatory', 'nein', 'nie', 'nyet', 'lo'.
     """
     def __init__(self, value_error_str='yes or no', **kwargs):
         super(YesNoConvertor, self).__init__(value_error_str, **kwargs)
@@ -204,108 +219,22 @@ class YesNoConvertor(Convertor):
         return 'YesNoConvertor(%s)' % self.value_error_str
 
 
-class TableConvertor(Convertor):
-    """
-    convert to the id or value in the supplied table.
-
-    kwargs values:
-        value_error_str: the error string to use if the value cannot be converted
-
-        input_value: TABLE_VALUE, if a value from the table should be expected, TABLE_ID if an id is expected. TABLE_ID_OR_VALUE if the user can enter either.
-
-    :param table: the table of values. Table is a list of  tuples for each row. The tuples are (id, value) pairs.
-    :param convertor: the convertor to apply to the value entered
-    :param kwargs: see above
-    """
-    def __init__(self, table, convertor=None, **kwargs):
-        """
-        Convert to the id or value in a table
-
-        kwargs values:
-            value_error_str: the error string to use if the value cannot be converted
-            input_value: TABLE_VALUE, if a value from the table should be expected, TABLE_ID if an id is expected.
-                TABLE_ID_OR_VALUE if can enter either
-
-        :param table: the table of values. Table is a list of  tuples for each row. The tuples are (id, value) pairs.
-        :param convertor: the convertor to apply to the value entered
-        :param kwargs: see above
-        """
-        self._table = table
-        self._convertor = convertor
-        self._input_value = TABLE_VALUE
-        self.value_error_str = None
-
-        for k, v in kwargs.items():
-            if k == 'value_error':
-                self.value_error_str = v
-            elif k == 'input_value':
-                if v in (TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE):
-                    self._input_value = v
-
-        if self.value_error_str is None:
-            if self._input_value == TABLE_ID_OR_VALUE:
-                self.value_error_str = 'an id or value from the table'
-            elif self._input_value == TABLE_ID:
-                self.value_error_str = 'an id from the table'
-            else:
-                self.value_error_str = 'a value from the table'
-        else:
-            self.value_error_str = self.value_error_str
-
-        super_options_to_skip = {'value_error', 'input_value'}
-        super_kwargs = {k: v for k, v in kwargs.items() if k not in super_options_to_skip}
-        super(TableConvertor, self).__init__(self.value_error_str, **super_kwargs)
-
-    def __call__(self, value, error_callback, convertor_fmt_str):
-        if self._convertor:
-            result = self._convertor(value, error_callback, convertor_fmt_str)
-        else:
-            result = value
-
-        if self._input_value == TABLE_VALUE:
-            if result is not None and result in (item[1] for item in self._table):
-                return result
-            else:
-                error_callback(convertor_fmt_str, value, 'a valid table value')
-                raise ConvertorError('%s not a valid table value' % value)
-        elif self._input_value == TABLE_ID:
-            try:
-                result = int(value)
-            except ValueError:
-                result = None
-
-            if result is None or result not in (item[0] for item in self._table):
-                error_callback(convertor_fmt_str, value, 'a valid table id')
-                raise ConvertorError('%s not a valid table id' % value)
-        else:  # input_value == TABLE_ID_OR_VALUE
-            try:
-                if result in (item[1] for item in self._table):
-                    result = value
-                elif int(result) in (item[0] for item in self._table):
-                    result = int(result)
-                else:
-                    result = None
-            except ValueError:
-                result = None
-
-            if result is None:
-                error_callback(convertor_fmt_str, value, 'a valid table id')
-                raise ConvertorError('%s not a valid table id' % value)
-
-        return result
-
-    def __repr__(self):
-        return 'TableConvertor(%s)' % self.value_error_str
-
-
 class ChoiceConvertor(Convertor):
     """
-    convert a value to it's return value in a dictionary. Can be used to map the row index from a table of values or to
-    map multiple tags to a single choce
+    Convert a value to its mapped value in a dictionary.
 
     :param value_dict:  a dictionary containing keys to map from and values to map to
     :param value_error_str: the error string to use when an improper value is input.
     :param kwargs: no kwargs are currently supported.
+
+    convert a value to it's return value in a dictionary. Can be used to map the row index from a table of values or to
+    map multiple tags to a single choice.
+
+    For example, to use a number to pick from a list of colors::
+
+      value_map = {'1': 'red', '2': 'green', '3': 'blue'}
+      choice_convertor = ci.ChoiceConvertor(value_dict=value_map)
+      result = ci.get_input(convertor=choice_convertor, prompt='Pick a color (1 - red, 2 - green, 3 - blue)')
     """
     def __init__(self, value_dict=(), value_error_str='a valid row number', **kwargs):
         self._choices = value_dict

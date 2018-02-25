@@ -70,12 +70,6 @@ ListConvertor
 .. autoclass:: cooked_input.ListConvertor
 
 
-TableConvertor
---------------
-
-.. autoclass:: cooked_input.TableConvertor
-
-
 YesNoConvertor
 --------------
 

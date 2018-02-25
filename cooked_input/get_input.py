@@ -94,7 +94,6 @@ COMMAND_ACTION_USE_VALUE = 'enter_value_action'
 COMMAND_ACTION_CANCEL = 'cancel_input_action'
 COMMAND_ACTION_NOP = 'nop_action'
 
-
 class GetInputCommand():
     """
     :param cmd_action: callback function used to process the command
@@ -183,6 +182,10 @@ class GetInputCommand():
 
     def __repr__(self):
         return 'GetInputCommand(cmd_action={}, cmd_dict={})'.format(self.cmd_action, self.cmd_dict)
+
+
+# Named tuple for return values of GetInput.process_value
+ProcessValueResponse = collections.namedtuple('ProcessValueResponse', 'valid value')
 
 
 class GetInput(object):
@@ -291,8 +294,7 @@ class GetInput(object):
 
         :return: the cleaned, converted, validated input
 
-        get_input prompts the user for an input. The input is then cleaned, converted, and validated,
-        and the validated response is returned.
+        get_input prompts the user for an input. Return the cleaned, converted, and validated input.
         """
         retries = 0
         input_str = '{}{}: '.format(self.prompt_str, self.default_string)
@@ -353,12 +355,15 @@ class GetInput(object):
         """
         :param value: the value to process
 
-        :return: Return a tuple of (valid, converted_value), if the values was cleaned, converted and validated successfully,
-            valid is True and converted value is the converted and cleaned value. If not, valid is False, and value is None.
+        :return: Return a **ProcessValueResponse** namedtuple (valid, converted_value)
 
         Run a value through cleaning, conversion, and validation. This allows the same processing used
         in get_input to be performed on a value. For instance, the same processing used for getting
         keyboard input can be applied to the value from a gui or web form input.
+
+        The **ProcessValueResponse** namedtuple has elements **valid** and **value**. If the value was
+        successfully cleaned, converted and validated, **valid** is True and **value** is the converted and cleaned
+        value. If not, **valid** is `False`, and **value** is `None`.
         """
         if self.cleaners:
             cleaned_response = compose(value, self.cleaners)
@@ -376,9 +381,12 @@ class GetInput(object):
         valid_response = in_all(converted_response, self.validators, self.error_callback, self.validator_error_fmt)
 
         if valid_response:
-            return (True, converted_response)
+            # return (True, converted_response)
+            return ProcessValueResponse(True, converted_response)
+
         else:
-            return (False, None)
+            # return (False, None)
+            return ProcessValueResponse(False, None)
 
 
 #############################

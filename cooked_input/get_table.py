@@ -93,7 +93,8 @@ def return_first_col_action(row, action_dict):
 # command actions for supporting table pagination
 def first_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
     """
-    Command action to show the first (home) page in a paginated table.
+    Command action to show the first (home) page in a paginated table. This command raises a :class:`FirstPageRequest`
+    exception.
 
     :param cmd_str:  ignored
     :param cmd_vars: ignored
@@ -105,7 +106,8 @@ def first_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
 
 def last_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
     """
-    Command action to show the last (end) page in a paginated table.
+    Command action to show the last (end) page in a paginated table. This command raises a :class:`LastPageRequest`
+    exception.
 
     :param cmd_str:  ignored
     :param cmd_vars: ignored
@@ -117,7 +119,8 @@ def last_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
 
 def next_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
     """
-    Command action to show the next page in a paginated table.
+    Command action to show the next page in a paginated table. This command raises a :class:`PageDownRequest`
+    exception.
 
     :param cmd_str:  ignored
     :param cmd_vars: ignored
@@ -129,7 +132,8 @@ def next_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
 
 def prev_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
     """
-    Command action to show the previous page in a paginated table.
+    Command action to show the previous page in a paginated table. This command raises a :class:`PageUpRequest`
+    exception.
 
     :param cmd_str:  ignored
     :param cmd_vars: ignored
@@ -141,7 +145,8 @@ def prev_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
 
 def scroll_up_one_row_cmd_action(cmd_str, cmd_vars, cmd_dict):
     """
-    Command action to scroll up one row in a paginated table.
+    Command action to scroll up one row in a paginated table. This command raises a :class:`UpOneRowRequest`
+    exception.
 
     :param cmd_str:  ignored
     :param cmd_vars: ignored
@@ -153,7 +158,8 @@ def scroll_up_one_row_cmd_action(cmd_str, cmd_vars, cmd_dict):
 
 def scroll_down_one_row_cmd_action(cmd_str, cmd_vars, cmd_dict):
     """
-    Command action to scroll down one row in a paginated table.
+    Command action to scroll down one row in a paginated table. This command raises a :class:`DownOneRowRequest`
+    exception.
 
     :param cmd_str:  ignored
     :param cmd_vars: ignored
@@ -885,7 +891,7 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
     """
     This is a convenience function to create a Table that acts as a simple menu. It takes a list of text strings
     to use for the menu items, and returns the text string of the item picked. `get_menu` is just syntactic sugar
-    for calls to the Table class, but simpler to use.
+    for calls to the :class:`Table` class, but simpler to use.
 
     :param choices: the list of text strings to use for the menu items.
     :param title: a title to use for the menu.
@@ -895,7 +901,8 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
     :param options: see Table for details.
 
     :return: the result of calling get_table_choice on the table. Will return the index (one based) of the choice
-        selected, unless a different default action is provided in the options.
+        selected, unless a different default action is provided in the options. Returns 'exit' if the input value is
+        `None` or the menu was exited.
     """
     menu_choices = [TableItem(choice) for choice in choices]
 
@@ -932,7 +939,7 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
     if result is None:
         return 'exit'
 
-    if add_exit and result=='exit':
-        return result
+    if add_exit and result.action=='exit':
+        return 'exit'
 
     return result

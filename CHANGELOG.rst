@@ -30,6 +30,8 @@ see TODO.md for list of TODO items
 
   * changed parameter names on Regex cleaner to match re.sub parameter names
 
+  * removed TableConvertor. This functionality has been replaced by the Table class.
+
 * v0.2.12:
 
   * renamed ChoicesValidator to ChoiceValidator
