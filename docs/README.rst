@@ -38,16 +38,16 @@ Cooked Input Project
 If you think of input (raw_input in legacy Python) as raw input, then this is cooked input.
 
 ``cooked_input`` provides a simple and safe way to get validated command line input that ranges from the simplest
-of Python programs to sophisticated database driven applications. Beginner's can use the provided convenience classes
+of Python programs to complex command line applications. Beginner's can use the provided convenience classes
 to get simple inputs from the user. Following the `tutorial <http://cooked-input.readthedocs.io/en/latest/tutorial.html/>`_
 you can be up and running in minutes. More advanced users can easily create custom classes for sophisticated cleaning and
 validation of inputs.
 
 More complicated command line application (CLI) input can take advantage of ``cooked_input``'s ability to create commands,
-menus and data tables. The latter tutorials and examples show several examples of sophisticated usage.
+menus and data tables. The latter tutorials and examples show several examples of more advanced usage.
 
 ``Cooked_input`` also provides a pathway to use the same cleaning and validation logic used in the command line
-for validating web or GUI based inputs. This allows seamless transition from command line to GUI applications.
+for processing and validating web or GUI based inputs. This allows seamless transition from command line to GUI applications.
 
 
 Documentation

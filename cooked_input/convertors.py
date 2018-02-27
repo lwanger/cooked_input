@@ -118,12 +118,12 @@ class ListConvertor(Convertor):
     """
     convert to a list.
 
-    :param value_error_str: the error string to use when an improper value is input.
+    :param value_error_str: the error string for improper value inputs
     :param delimiter: the single character delimiter to use for parsing the list. If None, will sniff the value
         (ala CSV library.)
     :param elem_convertor: the convertor function to use for each element of the list (e.g. IntConvertor converts each
-        element of the list to an integer.
-    :param kwargs: no kwargs are currently supported.
+        element of the list to an integer
+    :param kwargs: no kwargs are currently supported
 
     For example, the accept a list of integers separated by colons (':') and return it as a Python list of ints::
 

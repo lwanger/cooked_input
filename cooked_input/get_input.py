@@ -395,15 +395,15 @@ class GetInput(object):
 
 def get_input(cleaners=None, convertor=None, validators=None, **options):
     """
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param convertor: the convertor to apply to the cleaned value
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param options: see GetInput for a list of value options
+    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
+    :param convertor: the `convertor <convertors.html>`_ to apply to the cleaned value
+    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated string
 
-    Convenience function to create a GetInput instance and call its get_input function. See
-    GetInput.get_input for more details.
+    Convenience function to create a :class:`GetInput` instance and call its `get_input` function. See
+    :func:`GetInput.get_input` for more details.
     """
     gi = GetInput(cleaners, convertor, validators, **options)
     return gi.get_input()
@@ -413,18 +413,19 @@ def process_value(value, cleaners=None, convertor=None, validators=None, error_c
             convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
     """
     :param value: the value to process
-    :param cleaners: list of cleaners to apply to clean the value
-    :param convertor: the convertor to apply to the cleaned value
-    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value
+    :param convertor: the `convertor <convertors.html>`_ to apply to the cleaned value
+    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
 
-    :param error_callback: see GetInput for more details
-    :param convertor_error_fmt: see GetInput for more details
-    :param validator_error_fmt: see GetInput for more details
+    :param error_callback: a callback function to call when an error is encountered. Defaults to :func:`print_error`
+    :param convertor_error_fmt: format string to use for convertor errors. Defaults to **DEFAULT_CONVERTOR_ERROR**
+    :param validator_error_fmt: format string to use for validator errors. Defaults to **DEFAULT_VALIDATOR_ERROR**
 
     :return: the cleaned, converted validated input value.
 
-    Convenience function to create a GetInput instance and call its process_value function. See
-    GetInput.process_value for more details.
+    Convenience function to create a :class:`GetInput` instance and call its process_value function. See
+    :func:`GetInput.process_value` for more details. See  :class:`GetInput` for more information on the
+    `error_callback`, `convertor_error_fmt`, and `validator_error_fmt` parameters.
     """
     options = {}
     options['error_callback'] = error_callback
@@ -437,9 +438,9 @@ def process_value(value, cleaners=None, convertor=None, validators=None, error_c
 
 def get_string(cleaners=(StripCleaner()), validators=None, **options):
     """
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
+    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated string
 
@@ -454,17 +455,20 @@ def get_string(cleaners=(StripCleaner()), validators=None, **options):
     return result
 
 
-def get_int(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=None, **options):
+def get_int(cleaners=None, validators=None, minimum=None, maximum=None, base=10, **options):
     """
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
+    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
     :param minimum: minimum value allowed. Use None (default) for no minimum value.
     :param maximum: maximum value allowed. Use None (default) for no maximum value.
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param base: Convert a string in radix base to an integer. Base defaults to 10.
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated int value
 
-    Convenience function to get an integer value.
+    Convenience function to get an integer value. See the documentation for the Python
+    `int <https://docs.python.org/3/library/functions.html#int>`_ builtin function for further description
+    of the `base` parameter.
     """
     new_options = dict(options)
 
@@ -482,17 +486,17 @@ def get_int(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=No
         else:
             val_list = validators + [irv]
 
-    result = GetInput(cleaners, IntConvertor(), val_list, **new_options).get_input()
+    result = GetInput(cleaners, IntConvertor(base=base), val_list, **new_options).get_input()
     return result
 
 
-def get_float(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=None, **options):
+def get_float(cleaners=None, validators=None, minimum=None, maximum=None, **options):
     """
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
+    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
     :param minimum: minimum value allowed. Use None (default) for no minimum value.
     :param maximum: maximum value allowed. Use None (default) for no maximum value.
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated float value
 
@@ -520,13 +524,14 @@ def get_float(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=
 
 def get_boolean(cleaners=(StripCleaner()), validators=None, **options):
     """
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
+    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated boolean value
 
-    Convenience function to get an Boolean value.
+    Convenience function to get a Boolean value. See :class:`BooleanConvertor` for a list of values accepted
+    for `True` and `False`.
     """
     new_options = dict(options)
 
@@ -539,13 +544,13 @@ def get_boolean(cleaners=(StripCleaner()), validators=None, **options):
 
 def get_date(cleaners=(StripCleaner()), validators=None, **options):
     """
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
+    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated date value
 
-    Convenience function to get an date value.
+    Convenience function to get a date value. See :class:`DateConvertor` for more information on converting dates.
     """
     new_options = dict(options)
 
@@ -558,13 +563,14 @@ def get_date(cleaners=(StripCleaner()), validators=None, **options):
 
 def get_yes_no(cleaners=(StripCleaner()), validators=None, **options):
     """
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
+    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated yes/no value
 
-    Convenience function to get an yes/no value.
+    Convenience function to get an yes/no value. See :class:`YesNoConvertor` for a list of values accepted
+    for `yes` and `no`.
     """
     new_options = dict(options)
 
@@ -578,15 +584,16 @@ def get_yes_no(cleaners=(StripCleaner()), validators=None, **options):
 def get_list(cleaners=(StripCleaner()), validators=None, value_error_str='list of values', delimiter=',',
              elem_convertor=None, elem_validators=None, **options):
     """
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param value_error_str: the format string for the value errors (see ListConvertor)
-    :param delimiter: the delimiter to use between values (see ListConvertor)
-    :param elem_convertor: the Convertor to use for each element (see ListConvertor)
+    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
+    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param value_error_str: the error string for improper value inputs
+    :param delimiter: the delimiter to use between values
+    :param elem_convertor: the Convertor to use for each element
     :param elem_validator: the Validator to use for each element
     :param options: all get_input options supported, see get_input documentation for details.
 
-    :return: the cleaned, converted, validated list of values
+    :return: the cleaned, converted, validated list of values. For more information on the `value_error_str`,
+      `delimeter`, `elem_convertor`, and elem_valudator` parameters see :class:`ListConvertor`.
 
     Convenience function to get a list of values.
     """

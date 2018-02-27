@@ -3,16 +3,18 @@
 Convenience Functions
 *********************
 
-Using these convenience functions you can get up and running in ``cooked_input`` very quickly to get input.
-Most users can just use these convenience functions and never have to go deeper into the library. For those who want
-to do more advanced input cooking, see the `GetInput <get_input.html>`_ documentation.
+Using these convenience functions you can get up and running in ``cooked_input`` very quickly.
+Most users can just use these convenience functions and never have to go deeper into the library.
 
+The convenience functions can also take advantage of the rich set up `Cleaners <cleaners.html>`_,
+`Convertors <convertors.html>`_, and `Validators <validators.html>`_ in the
+``cooked_input`` library.
 
 GetInput Convenience Functions
 ==============================
 
-These functions create a :class:`GetInput` object with a parameter values for the type desired (e.g. hard code the
-convertor and set a reasonable prompt and set of cleaners.) The convenience functions are just syntactic sugar for
+These functions create a :class:`GetInput` object with parameter values for the type desired (e.g. the
+convertor and a reasonable prompt and cleaners.) The convenience functions are just syntactic sugar for
 calls to :class:`GetInput`, but simpler to use. For instance, the following two versions calls do the same thing::
 
 

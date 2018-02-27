@@ -16,14 +16,14 @@ This is documentation for cooked_input |my_version|, generated |my_date|.
    README
    tutorial
    get_input_convenience
-   get_input
-   get_input_exceptions
-   get_input_commands
-   get_table
    cleaners
    convertors
    validators
+   get_input
+   get_table
+   get_input_exceptions
    error_callbacks
+   get_input_commands
 
 
 Indices and tables

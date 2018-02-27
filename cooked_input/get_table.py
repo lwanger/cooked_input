@@ -879,30 +879,30 @@ def get_table_input(table, **options):
     """
     Get input value from a table of values.
 
-    :param table: a Table instance
-    :param options: see Table for details about options.
+    :param table: a :class:`Table` instance
+    :param options: all :class:`Table` options supported, see :class:`Table` documentation for details.
 
-    :return: the value from calling get_table_choice on the table.
+    :return: the value from calling :func:`Table.get_table_choice` on the table.
     """
     return table.get_table_choice(**options)
 
 
-def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=False, **kwargs):
+def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=False, **options):
     """
+    :param choices: the list of text strings to use for the menu items
+    :param title: a title to use for the menu
+    :param prompt: the prompt string used when asking the user for the menu selection
+    :param default_choice: an optional default item to select
+    :param add_exit: add an exit item if `True` or not if `False` (default)
+    :param options: all :class:`Table` options supported, see :class:`Table` documentation for details.
+
+    :return: the result of calling :func:`Table.get_table_choice` on the table. Will return the index (one based) of
+        the choice selected, unless a different default action is provided in the options. Returns 'exit' if the input
+        value is `None` or the menu was exited.
+
     This is a convenience function to create a Table that acts as a simple menu. It takes a list of text strings
     to use for the menu items, and returns the text string of the item picked. `get_menu` is just syntactic sugar
     for calls to the :class:`Table` class, but simpler to use.
-
-    :param choices: the list of text strings to use for the menu items.
-    :param title: a title to use for the menu.
-    :param prompt: the prompt string used when asking the user for the menu selection
-    :param default_choice: an optional default item to select.
-    :param add_exit: add an exit item if True or not if False (default).
-    :param options: see Table for details.
-
-    :return: the result of calling get_table_choice on the table. Will return the index (one based) of the choice
-        selected, unless a different default action is provided in the options. Returns 'exit' if the input value is
-        `None` or the menu was exited.
     """
     menu_choices = [TableItem(choice) for choice in choices]
 
@@ -914,9 +914,9 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
     default_idx = None
 
     # return the tag for the menu item unless the user set a specific default action.
-    menu_options = dict(**kwargs)
+    menu_options = dict(**options)
 
-    if 'default_action' not in kwargs:
+    if 'default_action' not in options:
         menu_options['default_action'] = return_tag_action
 
     if default_choice is not None:
