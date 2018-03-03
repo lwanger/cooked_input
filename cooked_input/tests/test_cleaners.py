@@ -113,7 +113,7 @@ class TestGetFloat(object):
 
     def test_regex_cleaner(self):
         input_str = 'foo and bar'
-        rc = RegexCleaner(pattern=r'\sAND\s', sub=' & ', flags=re.IGNORECASE)
+        rc = RegexCleaner(pattern=r'\sAND\s', repl=' & ', flags=re.IGNORECASE)
         with redirect_stdin(StringIO(input_str)):
             result = get_input(cleaners=rc)
             assert(result == 'foo & bar')

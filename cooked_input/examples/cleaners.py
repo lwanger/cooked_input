@@ -37,8 +37,8 @@ if __name__ == '__main__':
     print(get_input(prompt='Enter any string ("Pi" replaced by its float value)', cleaners=replace_pi))
 
     # RegexCleaner examples:
-    regex_and = RegexCleaner(pattern=r'\sAND\s', sub=' & ', flags=re.IGNORECASE)
-    regex_period = RegexCleaner(pattern=r'\.', sub='. Nudge nudge. Know what I mean... say no more.', flags=re.IGNORECASE)
+    regex_and = RegexCleaner(pattern=r'\sAND\s', repl=' & ', flags=re.IGNORECASE)
+    regex_period = RegexCleaner(pattern=r'\.', repl='. Nudge nudge. Know what I mean... say no more.', flags=re.IGNORECASE)
 
     print(get_input(prompt='Enter any string ("and" replaced with "&")', cleaners=regex_and))
     print(get_input(prompt='Enter any string ("." replaced with something completely different)', cleaners=regex_period))

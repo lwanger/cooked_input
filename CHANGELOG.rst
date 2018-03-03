@@ -14,6 +14,10 @@ see TODO.md for list of TODO items
 
   * added GetInput class
 
+  * changed **kwargs to **options for all calls. Removed options from cleaners and validators
+
+  * changed Cleaner, Convertor and Validator to abstract base classes (ABCMeta) and methods to abtract methods
+
   * added get_menu and Table classes (Table, TableItem, etc.)
 
   * added ConvertorError exception. Changed Convertors to use it

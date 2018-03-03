@@ -18,10 +18,8 @@ An example of a convertor to change the input value to an integer looks like::
 
     class IntConvertor(Convertor):
         # convert to a lower case number
-        def __init__(self, base=10, value_error_str='an integer number', **kwargs):
+        def __init__(self, base=10, value_error_str='an integer number'):
             self._base = base
-            self.value_error_str = value_error_str
-            super(IntConvertor, self).__init__(self.value_error_str)
 
         def __call__(self, value, error_callback, convertor_fmt_str):
             result = int(value, self._base)

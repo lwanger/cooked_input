@@ -6,8 +6,9 @@ Copyright: Len Wanger, 2017
 """
 
 import re
-import logging
 from string import capwords
+from abc import ABCMeta, abstractmethod
+
 from .input_utils import put_in_a_list, cap_last_word
 
 LOWER_CAP_STYLE = 1
@@ -33,13 +34,15 @@ CAP_STYLE_STRS = {
 ###
 ### Cleaners:
 ###
-# class Cleaner(metaclass=ABCMeta):
 class Cleaner(object):
     # Abstract base class for cleaner classes
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
     def __init__(self):
         pass
 
-    # @abstractmethod
+    @abstractmethod
     def __call__(self, value):
         pass
 
@@ -47,7 +50,6 @@ class Cleaner(object):
 class CapitalizationCleaner(Cleaner):
     """
     :param style: capitalization style to use: 'lower', 'upper', 'first_word', 'last_word'[#f1]_, 'all_words'.
-    :param kwargs: currently no keyword arguments are supported by :class:`CapitalizationCleaner`
 
     Capitalize the value using the specified style
 
@@ -70,7 +72,7 @@ The styles are equivalent to the following:
     +--------------+-----------------+-------------------------------------------------------+
 
     """
-    def __init__(self, style='lower', **kwargs):
+    def __init__(self, style='lower'):
         if isinstance(style, int):
             if style in CAP_STYLES:
                 self._style = style
@@ -81,8 +83,6 @@ The styles are equivalent to the following:
                 self._style = CAP_STYLE_STRS[style]
             else:
                 raise ValueError('CapitalizationCleaner: {} is not a valid capitalization style'.format(style))
-
-        super(CapitalizationCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
         if self._style == LOWER_CAP_STYLE:
@@ -104,15 +104,13 @@ class StripCleaner(Cleaner):
     """
     :param lstrip: strips white space from the left side of the value if True
     :param rstrip: strips white space from the right side of the value if True
-    :param kwargs: currently no keyword arguments are supported by :class:`StripCleaner`
 
     Strips white space from the input value. Strips from the left side if lstrip=True, and from the
     right side if rstrip=True. Both are True by default (i.e. strips from left and right).
     """
-    def __init__(self, lstrip=True, rstrip=True, **kwargs):
+    def __init__(self, lstrip=True, rstrip=True):
         self._lstrip = lstrip
         self._rstrip = rstrip
-        super(StripCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
         result = value
@@ -130,7 +128,6 @@ class ChoiceCleaner(Cleaner):
     """
     :param choices: the list of choices to match
     :param case_insensitive: if True (default) matching the choice is case insensitive, otherwise it's case sensitive
-    :param kwargs: currently no keyword arguments are supported by :class:`ChoiceCleaner`
 
     .. note:: The cleaned output uses the same capitalization as the item matched from the choices list regardless of the
         ``case_insensitive`` parameter.
@@ -160,7 +157,7 @@ class ChoiceCleaner(Cleaner):
         | 'BR'  | 'BR'    | original value returned as case of the input does not match     |
         +-------+---------+-----------------------------------------------------------------+
     """
-    def __init__(self, choices, case_insensitive=False, **kwargs):
+    def __init__(self, choices, case_insensitive=False):
         self._case_insensitive = case_insensitive
 
         # create a dictionary as choices may not be strings
@@ -168,8 +165,6 @@ class ChoiceCleaner(Cleaner):
             self._str_choices = {str(choice).lower(): choice for choice in choices}
         else:
             self._str_choices = {str(choice): choice for choice in choices}
-
-        super(ChoiceCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
         if self._case_insensitive:
@@ -190,13 +185,11 @@ class ChoiceCleaner(Cleaner):
 class RemoveCleaner(Cleaner):
     """
     :param patterns: a list of strings to remove
-    :param kwargs: currently no keyword arguments are supported by :class:`RemoveCleaner`
 
     Removes all occurrences of any of the strings in the patterns list from the input value.
     """
-    def __init__(self, patterns, **kwargs):
+    def __init__(self, patterns):
         self._patterns = put_in_a_list(patterns)
-        super(RemoveCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
         result = value
@@ -213,35 +206,18 @@ class ReplaceCleaner(Cleaner):
     """
     :param old: string to replace
     :param new: string to substitute for occurrences of ``old``
-    :param kwargs: see below
-
-    **kwargs**:
-
-    **count**: the maximum number of substitutions to perform to the value. If not specified all occurences are replaced
+    :param count: the maximum number of substitutions to perform to the value. If 0, or not specified, all occurences are replaced
 
     Replaces occurrences of ``old`` string with ``new`` string from the input value. If `count` is specified the first
     ``count`` occurences, from left to right, are replaced.
     """
-    def __init__(self, old, new, **kwargs):
-        count = None
-
-        for k, v in kwargs.items():
-            if k == 'count':
-                count = v
-            else:
-                logging.warning('Warning: ReplaceCleaner received unknown option (%s)' % k)
-
+    def __init__(self, old, new, count=0):
         self._old = str(old)
         self._new = str(new)
         self._count = count
 
-        super_options_to_skip = {'count'}
-        super_kwargs = {k: v for k, v in kwargs.items() if k not in super_options_to_skip}
-
-        super(ReplaceCleaner, self).__init__(**super_kwargs)
-
     def __call__(self, value):
-        if self._count is None:
+        if self._count == 0:
             result = value.replace(self._old, self._new)
         else:
             result = value.replace(self._old, self._new, self._count)
@@ -258,7 +234,6 @@ class RegexCleaner(Cleaner):
     :param repl: string to substitute for occurences of ``pattern``
     :param count: count
     :param flags: flags
-    :param kwargs: currently no keyword arguments are supported by the :class:`RegexCleaner`
 
     Return the string obtained by replacing the leftmost non-overlapping occurrences of `pattern` in the input value
     by the replacement `repl`. If the pattern isn’t found in the input value, the value is returned unchanged.
@@ -267,12 +242,11 @@ class RegexCleaner(Cleaner):
 
         https://docs.python.org/2/library/re.html
     """
-    def __init__(self, pattern, repl, count=0, flags=0, **kwargs):
+    def __init__(self, pattern, repl, count=0, flags=0):
         self._pattern = pattern
         self._repl = repl
         self._count = count
         self._flags = flags
-        super(RegexCleaner, self).__init__(**kwargs)
 
     def __call__(self, value):
         result = re.sub(self._pattern, self._repl, value, self._count, self._flags)

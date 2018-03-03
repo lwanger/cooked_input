@@ -15,12 +15,11 @@ case looks like::
 
     class LowerCleaner(Cleaner):
         def __init__(self, **kwargs):
-            super(LowerCleaner, self).__init__(**kwargs)
             # initialize any specific state for the cleaner.
+            pass
 
         def __call__(self, value, error_callback, convertor_fmt_str):
-            result = value.lower()
-            return result
+            return value.lower()
 
 Cleaners
 ========
