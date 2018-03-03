@@ -255,7 +255,7 @@ class TestValidate(object):
 
         print(sv)  # for code coverage
 
-        sv = SimpleValidator(validator_func=simple_func, bad_option='bad option')
+        sv = SimpleValidator(validator_func=simple_func, name='bad option')
 
 
     def test_regex(self):
@@ -280,5 +280,5 @@ class TestValidate(object):
             with redirect_stdin(StringIO(input_str)):
                 result = get_input(convertor=IntConvertor(), validators=rev)
 
-        rev = RegexValidator(pattern=r'^[2-9]\d{9}$', bad_option='bad option')
+        rev = RegexValidator(pattern=r'^[2-9]\d{9}$', regex_desc='bad option')
 
