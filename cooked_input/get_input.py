@@ -26,7 +26,7 @@ from .input_utils import compose, isstring
 # Custom exceptions for get_input
 class GetInputInterrupt(KeyboardInterrupt):
     """
-    GetInputInterrupt is raised on a cancellation command (COMMAND_ACTION_CANCEL)
+    A cancellation command (COMMAND_ACTION_CANCEL) occurred.
     """
     pass
 
@@ -96,34 +96,35 @@ COMMAND_ACTION_NOP = 'nop_action'
 
 class GetInputCommand():
     """
+    :class:`GetInputCommand` is used to create commands that can be used while getting input from :class:`GetInput.get_input`
+
     :param cmd_action: callback function used to process the command
-    :param cmd_dict: a dictionary of data passed to the ``cmd_action`` callback function
+    :param cmd_dict: (optional) a dictionary of data passed to the ``cmd_action`` callback function
 
-    :class:`GetInputCommand` is used to create commands that can be used while getting input from GetInput.get_input. Each
-    command has an `action` (callback function) and optional data (cmd_dict).
+    Each command has a callback function (``cmd_action``) and optional data (``cmd_dict``).
 
-    The ``cmd_action`` is a callback function used for the command. The callback is called as follows::
+    ``cmd_action`` is a callback function used for the command. The callback is called as follows::
 
-        def cmd_action(cmd_str, cmd_vars, cmd_dict):
+        cmd_action(cmd_str, cmd_vars, cmd_dict):
 
     :param cmd_str: the string used to call the command
-    :param cmd_vars: additional arguments for the command (i.e. the rest of the command input)
-    :param cmd_dict: a dictionary of additional data for processing the command
+    :param cmd_vars: additional arguments for the command (i.e. the rest of string used for the command input)
+    :param cmd_dict: a dictionary of additional data for processing the command (often **None**)
 
     Command callback functions return a a tuple containing (`COMMAND_ACTION_TYPE`, value), where the command action
     type is one of the following:
 
-    +-------------------------------+------------------------------------------------------+
-    | Action                        |    Result                                            |
-    +-------------------------------+------------------------------------------------------+
-    | **COMMAND_ACTION_USE_VALUE**  |  use the second value of the tuple as the input      |
-    +-------------------------------+------------------------------------------------------+
-    | **COMMAND_ACTION_CANCEL**     |  cancel the current input (raise GetInputInterrupt)  |
-    +-------------------------------+------------------------------------------------------+
-    | **COMMAND_ACTION_NOP**        |  do nothing - continues to ask for the input         |
-    +-------------------------------+------------------------------------------------------+
+    +-------------------------------+--------------------------------------------------------------------------+
+    | **Action**                    |    **Result**                                                            |
+    +===============================+==========================================================================+
+    | ``COMMAND_ACTION_USE_VALUE``  |  use the second value of the tuple as the input                          |
+    +-------------------------------+--------------------------------------------------------------------------+
+    | ``COMMAND_ACTION_CANCEL``     |  cancel the current input (raises :class:`GetInputInterrupt` exception)  |
+    +-------------------------------+--------------------------------------------------------------------------+
+    | ``COMMAND_ACTION_NOP``        |  do nothing - continues to ask for the input                             |
+    +-------------------------------+--------------------------------------------------------------------------+
 
-    For convenience command action callbacks can return a CommandResponse namedtuple instance::
+    For convenience command action callbacks can return a :class:`CommandResponse` namedtuple instance::
 
          CommandResponse(action, value)
 
@@ -161,6 +162,7 @@ class GetInputCommand():
         except GetInputInterrupt:
             print('Operation cancelled (received GetInputInterrupt)')
 
+.. note::
     Nothing stops you from using ``cooked_input`` to get additional input within a command action callback. For example,
     the cancel command could be extended to confirm the user wants to cancel the current input::
 

@@ -35,9 +35,11 @@ DEFAULT_VALIDATOR_ERROR = '"{value}" {error_content}'
 def print_error(fmt_str, value, error_content):
     """
     send errors to stdout. This displays errors on the screen.
+    
 
-    :param fmt_str: a Python format string for the error. Can use variables {value} and {error_content}.
-    :param value:  the value the caused the error.
+    :param fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
+      for the error. Can use arguments **{value}** and **{error_content}** in the format string
+    :param value: the value the caused the error
     :param error_content: additional information for the error
 
     :return: None
@@ -47,10 +49,11 @@ def print_error(fmt_str, value, error_content):
 
 def silent_error(fmt_str, value, error_content):
     """
-        Ignores errors, causing them to be silent
+        Ignores errors, causing them to be silent.
 
-        :param fmt_str: a Python format string for the error. Can use variables {value} and {error_content}.
-        :param value:  the value the caused the error.
+        :param fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
+          for the error. Can use arguments **{value}** and **{error_content}** in the format string
+        :param value: the value the caused the error
         :param error_content: additional information for the error
 
         :return: None
@@ -62,8 +65,9 @@ def log_error(fmt_str, value, error_content):
     """
         send errors to the log. See logging for details on using logs.
 
-        :param fmt_str: a Python format string for the error. Can use variables {value} and {error_content}.
-        :param value:  the value the caused the error.
+        :param fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
+          for the error. Can use arguments **{value}** and **{error_content}** in the format string
+        :param value: the value the caused the error.
         :param error_content: additional information for the error
 
         :return: None
