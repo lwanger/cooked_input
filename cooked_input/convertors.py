@@ -39,10 +39,12 @@ class IntConvertor(Convertor):
     """
     convert the cleaned input to an integer.
 
-    :param base:  the radix base to use for the int conversion (default=10).
-    :param value_error_str: the error string to use when an improper value is input.
+    :param int base:  the radix base to use for the int conversion (default=10)
+    :param str value_error_str: (optional) the error string to use when an improper value is input
 
-    :return: an `int` value
+    :return: ``value`` converted to `int`
+    :rtype: int
+    :raises ConvertorError: if ``value`` cannot be converted to `int`
 
 
     Legal values for the `base` parameter are 0 and 2-36. See the Python `int <https://docs.python.org/3/library/functions.html#int>`_
@@ -65,12 +67,13 @@ class IntConvertor(Convertor):
 
 class FloatConvertor(Convertor):
     """
-    convert to a floating point number
+    convert to a floating point number.
 
-    :param value_error_str: the error string to use when an improper value is input.
+    :param str value_error_str: (optional) the error string to use when an improper value is input
 
-    :return: a `float` value
-
+    :return: ``value`` converted to `float`
+    :rtype: float
+    :raises ConvertorError: if ``value`` cannot be converted to `float`
     """
     def __init__(self, value_error_str='a float number'):
         super(FloatConvertor, self).__init__(value_error_str)
@@ -88,15 +91,17 @@ class FloatConvertor(Convertor):
 
 class BooleanConvertor(Convertor):
     """
-    convert to a boolean value (`True` or `False`).
+    convert to a boolean value (**True** or **False**.)
 
-    :param value_error_str: the error string to use when an improper value is input.
+    :param str value_error_str: (optional) the error string to use when an improper value is input
 
-    :return: a `boolean` value
+    :return: ``value`` converted to a `boolean`
+    :rtype: boolean (**True** or **False**)
+    :raises ConvertorError: if ``value`` cannot be converted to `bool`
 
 
-    `BooleanConvertor` returns `True` for input values: 't', 'true', 'y', 'yes', and '1'. `BooleanConvertor` returns
-    `False` for input values: 'f', 'false', 'n', 'no', '0'.
+    `BooleanConvertor` returns **True** for input values: 't', 'true', 'y', 'yes', and '1'. `BooleanConvertor` returns
+    **False** for input values: 'f', 'false', 'n', 'no', '0'.
     """
     def __init__(self, value_error_str='true or false'):
         super(BooleanConvertor, self).__init__(value_error_str)
@@ -121,13 +126,15 @@ class ListConvertor(Convertor):
     """
     convert to a list.
 
-    :param value_error_str: the error string for improper value inputs
-    :param delimiter: the single character delimiter to use for parsing the list. If None, will sniff the value
+    :param str value_error_str: (optional) the error string for improper value inputs
+    :param str delimiter: (optional) the single character delimiter to use for parsing the list. If None, will sniff the value
         (ala CSV library.)
-    :param elem_convertor: the convertor function to use for each element of the list (e.g. setting `elem_convertor` to
+    :param Convertor elem_convertor: (optional) the convertor function to use for each element of the list (e.g. setting `elem_convertor` to
         `IntConvertor` will return a list where each element is an integer
 
     :return: a `list` values, where each item in the list is of the type returned by `elem_convertor`
+    :rtype: List[Any] (element type of list determined by ``elem_convertor``)
+    :raises ConvertorError: if ``elem_convertor`` is unable to convert a list value
 
     For example, the accept a list of integers separated by colons (':') and return it as a Python list of ints::
 
@@ -170,11 +177,15 @@ class ListConvertor(Convertor):
 
 class DateConvertor(Convertor):
     """
-    convert to a datetime.
+    convert to a `datetime <https://docs.python.org/3/library/datetime.html#datetime.datetime>`_ value.
 
-    :param value_error_str: the error string to use when an improper value is input.
+    :param str value_error_str: (optional) the error string to use when an improper value is input
 
-    :return: a `datetime <https://docs.python.org/3/library/datetime.html#datetime.datetime>`_ value
+    :return: ``value`` converted to a `datetime <https://docs.python.org/3/library/datetime.html#datetime.datetime>`_
+    :rtype: `datetime <https://docs.python.org/3/library/datetime.html#datetime.datetime>`_
+    :raises ConvertorError: if dateparser is unable to convert ``value`` to a
+        `datetime <https://docs.python.org/3/library/datetime.html#datetime.datetime>`_
+
 
     Converts the cleaned input to an datetime value. Dateparser is used for the parsing, allowing
     a lot of flexibility in how date input is entered (e.g. '12/12/12', 'October 1, 2015', 'today', or 'next Tuesday').
@@ -199,10 +210,11 @@ class YesNoConvertor(Convertor):
     """
     convert to 'yes' or 'no'.
 
-    :param value_error_str: the error string to use when an improper value is input.
+    :param str value_error_str: (optional) the error string to use when an improper value is input
 
     :return: a string set to either **"yes"** or **"no"**
-
+    :rtype: str (**"yes"** or **"no"**)
+    :raises ConvertorError: if ``value`` cannot be converted to **"yes"** or **"no"**
 
     **YesNoConvertor** returns `yes` for input values: 'y', 'yes', 'yeah', 'yup', 'aye', 'qui', 'si', 'ja', 'ken',
     'hai', 'gee', 'da', 'tak', 'affirmative'. `YesNoConvertor` returns `no` for input values: 'n', 'no', 'nope',
@@ -231,21 +243,24 @@ class ChoiceConvertor(Convertor):
     """
     Convert a value to its mapped value in a dictionary.
 
-    :param value_dict:  a dictionary containing keys to map from and values to map to
-    :param value_error_str: the error string to use when an improper value is input.
+    :param Dict[str, str] value_dict:  a dictionary containing keys to map from and values to map to
+    :param str value_error_str: (optional) the error string to use when an improper value is input
 
-    :return: the `value` associated with value_dict[value]
+    :raises ConvertorError if ``value`` key is not found in ``value_dict``
+
+    :return: the `value` associated with the choice in ``value_dict`` (e.g. `value_dict[value]`)
+    :rtype: Any (type is dependent on mapped value in ``value_dict``)
 
     convert a value to it's return value in a dictionary (i.e. value_dict[value]). Can be used to map the row
     index from a table of values or to map multiple tags to a single choice.
 
     For example, to use a number to pick from a list of colors::
 
-      value_map = {'1': 'red', '2': 'green', '3': 'blue'}
+      value_map = {'1': 'red', '2': '/green', '3': 'blue'}
       choice_convertor = ci.ChoiceConvertor(value_dict=value_map)
       result = ci.get_input(convertor=choice_convertor, prompt='Pick a color (1 - red, 2 - green, 3 - blue)')
     """
-    def __init__(self, value_dict=(), value_error_str='a valid row number'):
+    def __init__(self, value_dict, value_error_str='a valid row number'):
         self._choices = value_dict
         super(ChoiceConvertor, self).__init__(value_error_str)
 

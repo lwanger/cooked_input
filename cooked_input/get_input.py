@@ -26,7 +26,7 @@ from .input_utils import compose, isstring
 # Custom exceptions for get_input
 class GetInputInterrupt(KeyboardInterrupt):
     """
-    GetInputInterrupt is raised on a cancellation command (COMMAND_ACTION_CANCEL)
+    A cancellation command (COMMAND_ACTION_CANCEL) occurred.
     """
     pass
 
@@ -94,36 +94,44 @@ COMMAND_ACTION_USE_VALUE = 'enter_value_action'
 COMMAND_ACTION_CANCEL = 'cancel_input_action'
 COMMAND_ACTION_NOP = 'nop_action'
 
-class GetInputCommand():
+COMMAND_ACTIONS = {
+    COMMAND_ACTION_USE_VALUE: 'enter_value_action',
+    COMMAND_ACTION_CANCEL: 'cancel_input_action',
+    COMMAND_ACTION_NOP: 'nop_action',
+}
+
+
+class GetInputCommand(object):
     """
-    :param cmd_action: callback function used to process the command
-    :param cmd_dict: a dictionary of data passed to the ``cmd_action`` callback function
+    `GetInputCommand` is used to create commands that can be used while getting input from :meth:`GetInput.get_input`
 
-    :class:`GetInputCommand` is used to create commands that can be used while getting input from GetInput.get_input. Each
-    command has an `action` (callback function) and optional data (cmd_dict).
+    :param Callable[str, str, Dict[str, Any], Tuple[str, Any]] cmd_action: callback function used to process the command
+    :param Dict[Any, Any] cmd_dict: (optional) a dictionary of data passed to the ``cmd_action`` callback function
 
-    The ``cmd_action`` is a callback function used for the command. The callback is called as follows::
+    Each command has a callback function (``cmd_action``) and optional data (``cmd_dict``).
 
-        def cmd_action(cmd_str, cmd_vars, cmd_dict):
+    ``cmd_action`` is a callback function used for the command. The callback is called as follows
 
-    :param cmd_str: the string used to call the command
-    :param cmd_vars: additional arguments for the command (i.e. the rest of the command input)
-    :param cmd_dict: a dictionary of additional data for processing the command
+        .. py:function:: cmd_action(cmd_str, cmd_vars, cmd_dict)
+
+          :param str cmd_str: the string used to call the command
+          :param str cmd_vars: additional arguments for the command (i.e. the rest of string used for the command input)
+          :param Dict[str, Any] cmd_dict: a dictionary of additional data for processing the command (often **None**)
 
     Command callback functions return a a tuple containing (`COMMAND_ACTION_TYPE`, value), where the command action
     type is one of the following:
 
-    +-------------------------------+------------------------------------------------------+
-    | Action                        |    Result                                            |
-    +-------------------------------+------------------------------------------------------+
-    | **COMMAND_ACTION_USE_VALUE**  |  use the second value of the tuple as the input      |
-    +-------------------------------+------------------------------------------------------+
-    | **COMMAND_ACTION_CANCEL**     |  cancel the current input (raise GetInputInterrupt)  |
-    +-------------------------------+------------------------------------------------------+
-    | **COMMAND_ACTION_NOP**        |  do nothing - continues to ask for the input         |
-    +-------------------------------+------------------------------------------------------+
+    +-------------------------------+--------------------------------------------------------------------------+
+    | **Action**                    |    **Result**                                                            |
+    +===============================+==========================================================================+
+    | ``COMMAND_ACTION_USE_VALUE``  |  use the second value of the tuple as the input                          |
+    +-------------------------------+--------------------------------------------------------------------------+
+    | ``COMMAND_ACTION_CANCEL``     |  cancel the current input (raises :class:`GetInputInterrupt` exception)  |
+    +-------------------------------+--------------------------------------------------------------------------+
+    | ``COMMAND_ACTION_NOP``        |  do nothing - continues to ask for the input                             |
+    +-------------------------------+--------------------------------------------------------------------------+
 
-    For convenience command action callbacks can return a CommandResponse namedtuple instance::
+    For convenience command action callbacks can return a :class:`CommandResponse` namedtuple instance::
 
          CommandResponse(action, value)
 
@@ -161,6 +169,7 @@ class GetInputCommand():
         except GetInputInterrupt:
             print('Operation cancelled (received GetInputInterrupt)')
 
+.. note::
     Nothing stops you from using ``cooked_input`` to get additional input within a command action callback. For example,
     the cancel command could be extended to confirm the user wants to cancel the current input::
 
@@ -193,9 +202,9 @@ class GetInput(object):
     Class to get cleaned, converted, validated input from the command line. This is the central class used for
     cooked_input.
 
-    :param cleaners: list of cleaners to apply to clean the value
-    :param convertor: the convertor to apply to the cleaned value
-    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param List[:class:`Cleaner`] cleaners: list of cleaners to apply to clean the value
+    :param :class:`Convertor` convertor: the convertor to apply to the cleaned value
+    :param List[:class:`Validator`] validators: list of validators to apply to validate the cleaned and converted value
     :param options: see below
 
     Options:
@@ -293,6 +302,7 @@ class GetInput(object):
         Get input from the command line and return a validated response.
 
         :return: the cleaned, converted, validated input
+        :rtype: Any (dependent on the value returned from the :class:`convertors`
 
         get_input prompts the user for an input. Return the cleaned, converted, and validated input.
         """
@@ -353,9 +363,10 @@ class GetInput(object):
 
     def process_value(self, value):
         """
-        :param value: the value to process
+        :param str value: the value to process
 
         :return: Return a **ProcessValueResponse** namedtuple (valid, converted_value)
+        :rtype: NamedTuple[bool, Any]
 
         Run a value through cleaning, conversion, and validation. This allows the same processing used
         in get_input to be performed on a value. For instance, the same processing used for getting
@@ -395,12 +406,13 @@ class GetInput(object):
 
 def get_input(cleaners=None, convertor=None, validators=None, **options):
     """
-    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
-    :param convertor: the `convertor <convertors.html>`_ to apply to the cleaned value
-    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
+    :param Convertor convertor: the `convertor <convertors.html>`_ to apply to the cleaned value
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
     :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
-    :return: the cleaned, converted, validated string
+    :return: the cleaned, converted, validated input string
+    :rtype: Any (returned value is dependent on type returned from ``convertor``)
 
     Convenience function to create a :class:`GetInput` instance and call its `get_input` function. See
     :func:`GetInput.get_input` for more details.
@@ -412,16 +424,16 @@ def get_input(cleaners=None, convertor=None, validators=None, **options):
 def process_value(value, cleaners=None, convertor=None, validators=None, error_callback=print_error,
             convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
     """
-    :param value: the value to process
-    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value
-    :param convertor: the `convertor <convertors.html>`_ to apply to the cleaned value
-    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
-
-    :param error_callback: a callback function to call when an error is encountered. Defaults to :func:`print_error`
-    :param convertor_error_fmt: format string to use for convertor errors. Defaults to **DEFAULT_CONVERTOR_ERROR**
-    :param validator_error_fmt: format string to use for validator errors. Defaults to **DEFAULT_VALIDATOR_ERROR**
+    :param str value: the value to process
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value
+    :param Convertor convertor: the `convertor <convertors.html>`_ to apply to the cleaned value
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param str error_callback: a callback function to call when an error is encountered. Defaults to :func:`print_error`
+    :param str convertor_error_fmt: format string to use for convertor errors. Defaults to **DEFAULT_CONVERTOR_ERROR**
+    :param str validator_error_fmt: format string to use for validator errors. Defaults to **DEFAULT_VALIDATOR_ERROR**
 
     :return: the cleaned, converted validated input value.
+    :rtype: Any (returned value is dependent on type returned from ``convertor``)
 
     Convenience function to create a :class:`GetInput` instance and call its process_value function. See
     :func:`GetInput.process_value` for more details. See  :class:`GetInput` for more information on the
@@ -438,11 +450,12 @@ def process_value(value, cleaners=None, convertor=None, validators=None, error_c
 
 def get_string(cleaners=(StripCleaner()), validators=None, **options):
     """
-    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
-    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
     :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated string
+    :rtype: str
 
     Convenience function to get a string value.
     """
@@ -457,14 +470,15 @@ def get_string(cleaners=(StripCleaner()), validators=None, **options):
 
 def get_int(cleaners=None, validators=None, minimum=None, maximum=None, base=10, **options):
     """
-    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
-    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
-    :param minimum: minimum value allowed. Use None (default) for no minimum value.
-    :param maximum: maximum value allowed. Use None (default) for no maximum value.
-    :param base: Convert a string in radix base to an integer. Base defaults to 10.
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param int minimum: minimum value allowed. Use None (default) for no minimum value.
+    :param int maximum: maximum value allowed. Use None (default) for no maximum value.
+    :param int base: Convert a string in radix base to an integer. Base defaults to 10.
     :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated int value
+    :rtype: int
 
     Convenience function to get an integer value. See the documentation for the Python
     `int <https://docs.python.org/3/library/functions.html#int>`_ builtin function for further description
@@ -492,13 +506,14 @@ def get_int(cleaners=None, validators=None, minimum=None, maximum=None, base=10,
 
 def get_float(cleaners=None, validators=None, minimum=None, maximum=None, **options):
     """
-    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
-    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
-    :param minimum: minimum value allowed. Use None (default) for no minimum value.
-    :param maximum: maximum value allowed. Use None (default) for no maximum value.
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param float minimum: minimum value allowed. Use None (default) for no minimum value.
+    :param float maximum: maximum value allowed. Use None (default) for no maximum value.
     :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated float value
+    :rtype: float
 
     Convenience function to get an float value.
     """
@@ -524,11 +539,12 @@ def get_float(cleaners=None, validators=None, minimum=None, maximum=None, **opti
 
 def get_boolean(cleaners=(StripCleaner()), validators=None, **options):
     """
-    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
-    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
     :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated boolean value
+    :rtype: bool
 
     Convenience function to get a Boolean value. See :class:`BooleanConvertor` for a list of values accepted
     for `True` and `False`.
@@ -544,11 +560,12 @@ def get_boolean(cleaners=(StripCleaner()), validators=None, **options):
 
 def get_date(cleaners=(StripCleaner()), validators=None, **options):
     """
-    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
-    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
     :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated date value
+    :rtype: `datetime <https://docs.python.org/3/library/datetime.html#datetime.datetime>`_
 
     Convenience function to get a date value. See :class:`DateConvertor` for more information on converting dates.
     """
@@ -563,11 +580,12 @@ def get_date(cleaners=(StripCleaner()), validators=None, **options):
 
 def get_yes_no(cleaners=(StripCleaner()), validators=None, **options):
     """
-    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
-    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
     :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated yes/no value
+    :rtype: str (**"yes"** or **"no"**)
 
     Convenience function to get an yes/no value. See :class:`YesNoConvertor` for a list of values accepted
     for `yes` and `no`.
@@ -584,16 +602,17 @@ def get_yes_no(cleaners=(StripCleaner()), validators=None, **options):
 def get_list(cleaners=(StripCleaner()), validators=None, value_error_str='list of values', delimiter=',',
              elem_convertor=None, elem_validators=None, **options):
     """
-    :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
-    :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
-    :param value_error_str: the error string for improper value inputs
-    :param delimiter: the delimiter to use between values
-    :param elem_convertor: the Convertor to use for each element
-    :param elem_validator: the Validator to use for each element
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param str value_error_str: the error string for improper value inputs
+    :param str delimiter: the delimiter to use between values
+    :param Convertor elem_convertor: the :class:`Convertor` to use for each element
+    :param Validator elem_validator: the :class:`Validator` to use for each element
     :param options: all get_input options supported, see get_input documentation for details.
 
     :return: the cleaned, converted, validated list of values. For more information on the `value_error_str`,
       `delimeter`, `elem_convertor`, and elem_valudator` parameters see :class:`ListConvertor`.
+    :rtype: List[Any]
 
     Convenience function to get a list of values.
     """

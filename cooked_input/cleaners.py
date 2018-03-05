@@ -17,7 +17,6 @@ FIRST_WORD_CAP_STYLE = 3
 LAST_WORD_CAP_STYLE = 4
 ALL_WORDS_CAP_STYLE = 5
 
-# CAP_STYLES = { LOWER_CAP_STYLE, UPPER_CAP_STYLE, FIRST_WORD_CAP_STYLE, ALL_WORDS_CAP_STYLE }
 CAP_STYLES = { LOWER_CAP_STYLE, UPPER_CAP_STYLE, FIRST_WORD_CAP_STYLE, LAST_WORD_CAP_STYLE, ALL_WORDS_CAP_STYLE }
 
 CAP_STYLE_STRS = {
@@ -49,27 +48,32 @@ class Cleaner(object):
 
 class CapitalizationCleaner(Cleaner):
     """
-    :param style: capitalization style to use: 'lower', 'upper', 'first_word', 'last_word'[#f1]_, 'all_words'.
+    :param CAP_STYLE_STR style: (optional) capitalization style to use. Defaults to  ``LOWER_CAP_STYLE``
+
+    :return: the cleaned (capitalized) value
+    :rtype: str
 
     Capitalize the value using the specified style
 
-.. [#f1] This parameter is dedicated to Colleen, who will be happy to finally get the last word.
+    The styles are equivalent to the following:
 
-The styles are equivalent to the following:
+    +---------------------------+--------------------------------+
+    | **style**                 | **equivalent string function** |
+    +---------------------------+--------------------------------+
+    | ``LOWER_CAP_STYLE``       | lower                          |
+    +---------------------------+--------------------------------+
+    | ``UPPER_CAP_STYLE``       | upper                          |
+    +---------------------------+--------------------------------+
+    | ``FIRST_WORD_CAP_STYLE``  | capitalize                     |
+    +---------------------------+--------------------------------+
+    | ``LAST_WORD_CAP_STYLE``   | --  [#f1]_                     |
+    +---------------------------+--------------------------------+
+    | ``ALL_WORDS_CAP_STYLE``   | capwords                       |
+    +---------------------------+--------------------------------+
 
-    +--------------+-----------------+-------------------------------------------------------+
-    | style        | string function |                       Note                            |
-    +--------------+-----------------+-------------------------------------------------------+
-    | 'lower'      | lower           |  can also use ``LOWER_CAP_STYLE``                     |
-    +--------------+-----------------+-------------------------------------------------------+
-    | 'upper'      | upper           |  can also use ``UPPER_CAP_STYLE``                     |
-    +--------------+-----------------+-------------------------------------------------------+
-    | 'first_word' | capitalize      |  can also use 'capitalize' or ``FIRST_WORD_CAP_STYLE``|
-    +--------------+-----------------+-------------------------------------------------------+
-    | 'last_word'  | --              |  can also use  ``LAST_WORD_CAP_STYLE``                |
-    +--------------+-----------------+-------------------------------------------------------+
-    | 'all_words'  | capwords        |  can also use 'capwords' or ``ALL_WORDS_CAP_STYLE``   |
-    +--------------+-----------------+-------------------------------------------------------+
+.. [#f1] There is no standard library function for capitalizing the last word in a string. This was added to properly 
+  capitalize family names, (e.g. `"van Rossum"`.) This parameter is dedicated to Colleen, who will be happy to capitalize
+  on getting the last word.
 
     """
     def __init__(self, style='lower'):
@@ -102,11 +106,14 @@ The styles are equivalent to the following:
 
 class StripCleaner(Cleaner):
     """
-    :param lstrip: strips white space from the left side of the value if True
-    :param rstrip: strips white space from the right side of the value if True
+    :param bool lstrip: (optional) strips white space from the left side of the value if **True** (default)
+    :param bool rstrip: (optional) strips white space from the right side of the value if **True** (default)
+
+    :return: the cleaned (stripped) value
+    :rtype: str
 
     Strips white space from the input value. Strips from the left side if lstrip=True, and from the
-    right side if rstrip=True. Both are True by default (i.e. strips from left and right).
+    right side if rstrip=True. Both are True by default (i.e. strips from both left and right).
     """
     def __init__(self, lstrip=True, rstrip=True):
         self._lstrip = lstrip
@@ -126,8 +133,12 @@ class StripCleaner(Cleaner):
 
 class ChoiceCleaner(Cleaner):
     """
-    :param choices: the list of choices to match
-    :param case_insensitive: if True (default) matching the choice is case insensitive, otherwise it's case sensitive
+    :param List[str] choices: the list of choices to match
+    :param bool case_insensitive: (optional) if **True** matching the choice is case insensitive, otherwise
+      matching is case sensitive (default)
+
+    :return: the cleaned (matched choice from the ``choices`` list) value or the original value if no match is found
+    :rtype: str (type is dependent on the mapped value in ``choices`` but is generally `str`)
 
     .. note:: The cleaned output uses the same capitalization as the item matched from the choices list regardless of the
         ``case_insensitive`` parameter.
@@ -135,7 +146,7 @@ class ChoiceCleaner(Cleaner):
     ChoiceCleaner tries to replace the input value with a single element from a list of choices by finding the unique
     element starting with the input value. If no single element can be identified, the input value is returned (i.e. no
     cleaning is performed.) This is a complicated way of saying you can type in the first few letters of an input and
-    the cleaner will return the choice that starts with those letters if it can determine which one it is.
+    the cleaner will return the choice that starts with those letters if it can determined which one it is.
 
     For example::
 
@@ -143,19 +154,21 @@ class ChoiceCleaner(Cleaner):
 
     will with the following input values would return the following values:
 
-        +-------+---------+-----------------------------------------------------------------+
-        | value | returns | note                                                            |
-        +=======+=========+=================================================================+
-        | 'g'   | 'green' |                                                                 |
-        +-------+---------+-----------------------------------------------------------------+
-        | 'br'  | 'brown' |                                                                 |
-        +-------+---------+-----------------------------------------------------------------+
-        | 'blu' | 'blue'  |                                                                 |
-        +-------+---------+-----------------------------------------------------------------+
-        | 'b'   | 'b'     | original value returned as can't tell between 'browm' and 'blue'|
-        +-------+---------+-----------------------------------------------------------------+
-        | 'BR'  | 'BR'    | original value returned as case of the input does not match     |
-        +-------+---------+-----------------------------------------------------------------+
+        +-------+---------+--------------------------------------------------------------------+
+        | value | returns | note                                                               |
+        +=======+=========+====================================================================+
+        | 'g'   | 'green' |                                                                    |
+        +-------+---------+--------------------------------------------------------------------+
+        | 'br'  | 'brown' |                                                                    |
+        +-------+---------+--------------------------------------------------------------------+
+        | 'blu' | 'blue'  |                                                                    |
+        +-------+---------+--------------------------------------------------------------------+
+        | 'b'   | 'b'     | original value returned as can't tell between 'brown' and 'blue'   |
+        +-------+---------+--------------------------------------------------------------------+
+        | 'BR'  | 'BR'    | original value returned as case of the input does not match [#f2]_ |
+        +-------+---------+--------------------------------------------------------------------+
+
+.. [#f2] Would return `"brown"` if ``case_insensitive`` is **True**
     """
     def __init__(self, choices, case_insensitive=False):
         self._case_insensitive = case_insensitive
@@ -184,17 +197,26 @@ class ChoiceCleaner(Cleaner):
 
 class RemoveCleaner(Cleaner):
     """
-    :param patterns: a list of strings to remove
+    :param List[str] patterns: a list of strings to remove
+    :param int count: (optional) the maximum number of substitutions to perform on the input value. Default
+      is to remove all occurences
 
-    Removes all occurrences of any of the strings in the patterns list from the input value.
+    :return: the cleaned (``patterns`` removed) value
+    :rtype: str
+
+    Removes all occurrences of any of the strings in the ``patterns`` list from the input value.
     """
-    def __init__(self, patterns):
+    def __init__(self, patterns, count=0):
         self._patterns = put_in_a_list(patterns)
+        self._count = count
 
     def __call__(self, value):
         result = value
         for pattern in self._patterns:
-            result = result.replace(pattern, '')
+            if self._count == 0:
+                result = result.replace(pattern, '')
+            else:
+                result = result.replace(pattern, '', self._count)
 
         return result
 
@@ -204,12 +226,16 @@ class RemoveCleaner(Cleaner):
 
 class ReplaceCleaner(Cleaner):
     """
-    :param old: string to replace
-    :param new: string to substitute for occurrences of ``old``
-    :param count: the maximum number of substitutions to perform to the value. If 0, or not specified, all occurences are replaced
+    :param str old: string to replace
+    :param str new: string to substitute for occurrences of ``old``
+    :param int count: (optional) the maximum number of substitutions to perform on the input value. Default
+      is to replace all occurences
+
+    :return: the cleaned (``old`` replaced with ``new``) value
+    :rtype: str
 
     Replaces occurrences of ``old`` string with ``new`` string from the input value. If `count` is specified the first
-    ``count`` occurences, from left to right, are replaced.
+    ``count`` occurences, from left to right, are replaced. If count is **0**, or not speciffied, all occurences are replaced.
     """
     def __init__(self, old, new, count=0):
         self._old = str(old)
@@ -230,17 +256,22 @@ class ReplaceCleaner(Cleaner):
 
 class RegexCleaner(Cleaner):
     """
-    :param pattern: regular expression to search for
-    :param repl: string to substitute for occurences of ``pattern``
-    :param count: count
-    :param flags: flags
+    :param Pattern[str] pattern: regular expression to search for
+    :param str repl: string to substitute for occurences of ``pattern``
+    :param int count: (optional) the maximum number of substitutions to perform on the input value. Default is to replace
+      all occurences
+    :param flags: (optional) flags. Default is no flags. See below for details
+    
+    :return: the cleaned (**pattern** replaced with **repl**) value
+    :rtype: str
 
     Return the string obtained by replacing the leftmost non-overlapping occurrences of `pattern` in the input value
     by the replacement `repl`. If the pattern isn’t found in the input value, the value is returned unchanged.
-    For more information on regular expressions and the meaning of count and flags. See the Python `re.sub` function
-    in `re` module in the standard library at:
+    ``Count`` occurences, from left to right, are replaced. If count is **0**, or not speciffied, all occurences are replaced.
 
-        https://docs.python.org/2/library/re.html
+    For more information on regular expressions and the meaning of count and flags. See the 
+    `re.sub <https://docs.python.org/3/library/re.html#re.sub>`_ function in the `re <https://docs.python.org/3/library/re.html>`_
+    module in the Python standard library.
     """
     def __init__(self, pattern, repl, count=0, flags=0):
         self._pattern = pattern

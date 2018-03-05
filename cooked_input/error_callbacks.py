@@ -15,15 +15,21 @@ import logging
 
 ### cooked input custom exceptions
 class MaxRetriesError(RuntimeError):
-    # Exception raised when the maximum number of retries is exceeded.
+    """
+    raised when the maximum number of retries is exceeded.
+    """
     pass
 
 class ValidationError(ValueError):
-    # Exception raised when a value does not pass validation.
+    """
+    raised when a value does not pass validation.
+    """
     pass
 
 class ConvertorError(ValueError):
-    # Exception raised when a value does not pass validation.
+    """
+    raised by a when a value does not pass conversion.
+    """
     pass
 
 ### Default error callback format strings
@@ -35,10 +41,12 @@ DEFAULT_VALIDATOR_ERROR = '"{value}" {error_content}'
 def print_error(fmt_str, value, error_content):
     """
     send errors to stdout. This displays errors on the screen.
+    
 
-    :param fmt_str: a Python format string for the error. Can use variables {value} and {error_content}.
-    :param value:  the value the caused the error.
-    :param error_content: additional information for the error
+    :param int fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
+      for the error. Can use arguments **{value}** and **{error_content}** in the format string
+    :param Any value: the value the caused the error
+    :param str error_content: additional information for the error
 
     :return: None
     """
@@ -47,11 +55,12 @@ def print_error(fmt_str, value, error_content):
 
 def silent_error(fmt_str, value, error_content):
     """
-        Ignores errors, causing them to be silent
+        Ignores errors, causing them to be silent.
 
-        :param fmt_str: a Python format string for the error. Can use variables {value} and {error_content}.
-        :param value:  the value the caused the error.
-        :param error_content: additional information for the error
+        :param str fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
+          for the error. Can use arguments **{value}** and **{error_content}** in the format string
+        :param Any value: the value the caused the error
+        :param str error_content: additional information for the error
 
         :return: None
     """
@@ -62,9 +71,10 @@ def log_error(fmt_str, value, error_content):
     """
         send errors to the log. See logging for details on using logs.
 
-        :param fmt_str: a Python format string for the error. Can use variables {value} and {error_content}.
-        :param value:  the value the caused the error.
-        :param error_content: additional information for the error
+        :param str fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
+          for the error. Can use arguments **{value}** and **{error_content}** in the format string
+        :param Any value: the value the caused the error.
+        :param str error_content: additional information for the error
 
         :return: None
     """
