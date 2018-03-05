@@ -41,7 +41,6 @@ DEFAULT_VALIDATOR_ERROR = '"{value}" {error_content}'
 def print_error(fmt_str, value, error_content):
     """
     send errors to stdout. This displays errors on the screen.
-    
 
     :param int fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
       for the error. Can use arguments **{value}** and **{error_content}** in the format string
