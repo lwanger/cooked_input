@@ -30,7 +30,7 @@ def in_any(value, validators, error_callback, validator_fmt_str):
     :param value: the input value to validate
     :param validators: an iterable (list or tuple) containing the validators to use.
     :param error_callback: the function to call when an error occurs in conversion or validation
-    :param validator_fmt_str: format string fro convertor errors (defaults to DEFAULT_CONVERTOR_ERROR)
+    :param validator_fmt_str: format string for convertor errors (defaults to DEFAULT_CONVERTOR_ERROR)
 
     :return: **True** if any of the validators pass, **False** if they all fail.
     """
@@ -108,7 +108,7 @@ def not_in(value, validators, error_callback, validator_fmt_str):
     if not result:
         return True
     else:
-        error_callback(validator_fmt_str, 'value', 'cannot match {}'.format(value))
+        error_callback(validator_fmt_str, value, 'value cannot match {}'.format(value))
         return False
 
 
@@ -206,7 +206,7 @@ class EqualToValidator(Validator):
         if condition1:
             return True
         else:
-            error_callback(validator_fmt_str, 'value', 'not equal to {}'.format(self._value))
+            error_callback(validator_fmt_str, value, 'value not equal to {}'.format(self._value))
             return False
 
     def __repr__(self):
@@ -272,7 +272,7 @@ class ChoiceValidator(Validator):
             return True
         else:
             choice_strs = [str(c) for c in self._choices]
-            error_callback(validator_fmt_str, 'value', 'must be one of: {}'.format(', '.join(choice_strs)))
+            error_callback(validator_fmt_str, value, 'value must be one of: {}'.format(', '.join(choice_strs)))
             return False
 
     def __repr__(self):
