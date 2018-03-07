@@ -3,12 +3,12 @@
 Tables and Menus
 ****************
 
-The :class:`TableItem` and :class:`Table` support text-based table and menus in `cooked_input`.
+The :class:`TableItem` and :class:`Table` support text-based tables and menus in `cooked_input`.
 
 .. note::
 
  Using the :class:`Table` class is for more advanced users, Beginners can just use
- the **get_menu** and **get_table_input** `convenience functions <get_input_convenience.html>`_.
+ the :func:`get_menu` and :func:`get_table_input` `convenience functions <get_input_convenience.html>`_.
 
 TableItem:
 ==========

@@ -202,16 +202,16 @@ class GetInput(object):
     Class to get cleaned, converted, validated input from the command line. This is the central class used for
     cooked_input.
 
-    :param List[:class:`Cleaner`] cleaners: list of cleaners to apply to clean the value
-    :param :class:`Convertor` convertor: the convertor to apply to the cleaned value
-    :param List[:class:`Validator`] validators: list of validators to apply to validate the cleaned and converted value
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value
+    :param Convertor convertor: the `convertor <convertors.html>`_ to apply to the cleaned value
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
     :param options: see below
 
     Options:
 
         **prompt**: the string to use for the prompt. For example prompt="Enter your name"
 
-        **required**: True if a non-blank value is required, False if a blank response is OK.
+        **required**: **True** if a non-blank value is required, **False** if a blank response is OK.
 
         **default**: the default value to use if a blank string is entered. This takes precedence over required
             (i.e. a blank response will return the default value.)
@@ -220,25 +220,33 @@ class GetInput(object):
 
         **hidden**: the input typed should not be displayed. This is useful for entering passwords.
 
-        **retries**: the maximum number of attempts to allow before raising a MaxRetriesError exception.
+        **retries**: the maximum number of attempts to allow before raising a :class:`MaxRetriesError` exception.
 
-        **error_callback**: a callback function to call when an error is encountered. Defaults to print_error
+        **error_callback**: a callback function to call when an error is encountered. Defaults to :func:`print_error`
 
-        **convertor_error_fmt**: format string to use for convertor errors. Defaults to DEFAULT_CONVERTOR_ERROR.
-            Format string receives two variables - {value} the value that failed conversion, and {error_content}
-            set by the convertor.
+        **convertor_error_fmt**: format string to use for `convertor <convertors.html>`_ errors. Defaults to
+            **DEFAULT_CONVERTOR_ERROR**. Format string receives two variables - **{value}** the value that failed
+            conversion, and **{error_content}** set by the convertor.
 
-        **validator_error_fmt**: format string to use for validator errors. Defaults to DEFAULT_VALIDATOR_ERROR.
-            Format string receives two variables - {value} the value that failed conversion, and {error_content}
-            set by the validator.
+        **validator_error_fmt**: format string to use for `validator <validators.html>`_ errors. Defaults
+            to **DEFAULT_VALIDATOR_ERROR**. Format string receives two variables - **{value}** the value that
+            failed conversion, and **{error_content}** set by the validator.
 
         **commands**: an optional dictionary of commands. See below for more details.
 
     Commands:
 
-        GetInput optionally takes a dictionary containing commands that can be run from the input prompt. The key for
-        each command is the string used to call the command and the value is an instance of the GetInputCommand class
-        for the command (e.g. "/help": GetInputCommand(show_help_action)). For more information see :class:`GetInputCommand`
+        :class:`GetInput` optionally takes a dictionary containing commands that can be run from the input prompt. The key for
+        each command is the string used to call the command and the value is an instance of the :class:`GetInputCommand` class
+        for the command. For intance, the following dictionary sets two different command string (**/?** and **/help**)
+        to call a function to show help information::
+
+            {
+                "/?": GetInputCommand(show_help_action)),
+                "/help": GetInputCommand(show_help_action)),
+            }
+
+        For more information see :class:`GetInputCommand`
     """
     def __init__(self, cleaners=None, convertor=None, validators=None, **options):
         self.cleaners = cleaners
@@ -302,9 +310,9 @@ class GetInput(object):
         Get input from the command line and return a validated response.
 
         :return: the cleaned, converted, validated input
-        :rtype: Any (dependent on the value returned from the :class:`convertors`
+        :rtype: Any (dependent on the value returned from the :class:`convertors`)
 
-        get_input prompts the user for an input. Return the cleaned, converted, and validated input.
+        This method prompts the user for an input, and returns the cleaned, converted, and validated input.
         """
         retries = 0
         input_str = '{}{}: '.format(self.prompt_str, self.default_string)
@@ -369,12 +377,12 @@ class GetInput(object):
         :rtype: NamedTuple[bool, Any]
 
         Run a value through cleaning, conversion, and validation. This allows the same processing used
-        in get_input to be performed on a value. For instance, the same processing used for getting
+        in :meth:`GetInput.get_input` to be performed on a value. For instance, the same processing used for getting
         keyboard input can be applied to the value from a gui or web form input.
 
         The **ProcessValueResponse** namedtuple has elements **valid** and **value**. If the value was
         successfully cleaned, converted and validated, **valid** is True and **value** is the converted and cleaned
-        value. If not, **valid** is `False`, and **value** is `None`.
+        value. If not, **valid** is **False**, and **value** is **None**.
         """
         if self.cleaners:
             cleaned_response = compose(value, self.cleaners)

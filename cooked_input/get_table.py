@@ -493,7 +493,7 @@ class Table(object):
         if callable(action):
             return action(row, self.action_dict)
         elif action == 'default' and self.default_action is not None:
-            return self.default_action(row, self.action_dict) # TODO - passing row now -- item_data available from row
+            return self.default_action(row, self.action_dict)
         else:
             return row
 
@@ -880,9 +880,10 @@ def get_table_input(table, **options):
     Get input value from a table of values.
 
     :param table: a :class:`Table` instance
-    :param options: all :class:`Table` options supported, see :class:`Table` documentation for details.
+    :param options: all :class:`Table` options supported, see :class:`Table` documentation for details
 
-    :return: the value from calling :func:`Table.get_table_choice` on the table.
+    :return: the value from calling :func:`Table.get_table_choice` on the table
+    :rtype: Any (dependent on the action function of the :class:`TableItem` selected)
     """
     return table.get_table_choice(**options)
 
@@ -896,9 +897,10 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
     :param add_exit: add an exit item if `True` or not if `False` (default)
     :param options: all :class:`Table` options supported, see :class:`Table` documentation for details.
 
-    :return: the result of calling :func:`Table.get_table_choice` on the table. Will return the index (one based) of
+    :return: the result of calling :func:`Table.get_table_choice` on the menu table. Will return the index (one based) of
         the choice selected, unless a different default action is provided in the options. Returns 'exit' if the input
         value is `None` or the menu was exited.
+    :rtype: int or str (dependent on default action specified)
 
     This is a convenience function to create a Table that acts as a simple menu. It takes a list of text strings
     to use for the menu items, and returns the text string of the item picked. `get_menu` is just syntactic sugar

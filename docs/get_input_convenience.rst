@@ -72,6 +72,11 @@ process_value
 .. autofunction:: process_value
 
 
+validate
+--------
+
+.. autofunction:: validate
+
 Table Convenience Functions
 ===========================
 
