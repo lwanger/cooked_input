@@ -615,7 +615,7 @@ def get_list(cleaners=(StripCleaner()), validators=None, value_error_str='list o
     :param str value_error_str: the error string for improper value inputs
     :param str delimiter: the delimiter to use between values
     :param Convertor elem_convertor: the :class:`Convertor` to use for each element
-    :param Validator elem_validator: the :class:`Validator` to use for each element
+    :param Validator elem_validators: a list of `validators <validators.html>`_ to use for each element
     :param options: all get_input options supported, see get_input documentation for details.
 
     :return: the cleaned, converted, validated list of values. For more information on the `value_error_str`,
@@ -655,7 +655,7 @@ def get_list(cleaners=(StripCleaner()), validators=None, value_error_str='list o
     while True:
         result = gi.get_input()
 
-        if elem_validators is None:
+        if result is None or elem_validators is None:
             break
         else:
             if all(validate(elem, elem_validators, error_callback=error_callback, validator_fmt_str=validator_error_fmt) for elem in result):

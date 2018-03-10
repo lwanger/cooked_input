@@ -135,5 +135,5 @@ class TestGetFloat(object):
 
 
 # if __name__ == '__main__':
-#     c = TestGetFloat()
+#     c = TestCleaners()
 #     c.test_get_float()
