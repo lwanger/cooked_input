@@ -53,8 +53,6 @@
     * NameTuple convertor - pass in a NamedTuple type (from typing.NamedTuple if want default values)
       and a list of values. Returns an instance of the NamedTuple. l = [1,2,3]; def(cls, values):
       return cls(*l). Can check len of values list by len(_fields), or catch an exception (TypeError on __new__)
-    * List convertor, how to do choice cleaning? i.e. enter a list with the first letters of the
-    list item. Have cleaners for list elements?
     * Dollar convertor that has minimum of 0.00 and strips off $ sign and commas. Returns float
     * Boolean convertor, add 'true_values' and 'false_values' lists
     * yes_no convertor, add 'yes_values' and 'no_values' lists

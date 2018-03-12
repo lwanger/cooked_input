@@ -607,27 +607,33 @@ def get_yes_no(cleaners=(StripCleaner()), validators=None, **options):
     return result
 
 
-def get_list(cleaners=(StripCleaner()), validators=None, value_error_str='list of values', delimiter=',',
-             elem_convertor=None, elem_validators=None, **options):
+def get_list(elem_get_input=None, cleaners=None, validators=None, value_error_str='list of values', delimiter=',', **options):
     """
-    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
-    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param GetInput elem_get_input: an instance of a :class:`GetInput` to apply to each element
+    :param List[Cleaner] cleaners: cleaners to be applied to the input line before the :class:`ListConvertor` is applied.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the converted list
     :param str value_error_str: the error string for improper value inputs
     :param str delimiter: the delimiter to use between values
-    :param Convertor elem_convertor: the :class:`Convertor` to use for each element
-    :param Validator elem_validators: a list of `validators <validators.html>`_ to use for each element
     :param options: all get_input options supported, see get_input documentation for details.
 
     :return: the cleaned, converted, validated list of values. For more information on the `value_error_str`,
       `delimeter`, `elem_convertor`, and elem_valudator` parameters see :class:`ListConvertor`.
     :rtype: List[Any]
 
-    Convenience function to get a list of values.
+    Get a homogenous list of values. The :meth:`GetInput.process_value` method on the ``elem_get_input`` :class:`GetInput`
+    instance is called for each element in the list.
+
+    Example usage - get a list of integers between 3 and 5 numbers long, separated by colons (:)::
+
+        get_int_list = GetInput(convertor=IntConvertor())
+        len_3_validator = LengthValidator(min_len=3, max_len=5)
+        int_list = get_list(prompt='List of integers between 3 and 5 numbers long, separated by ":"',
+                            elem_get_input=get_int_list, delimiter=':')
     """
     new_options = dict(options)
 
     if 'prompt' not in options:
-        new_options['prompt'] = 'Enter a list of values (separated by commas)'
+        new_options['prompt'] = 'Enter a list of values (separated by "{}")'.format(delimiter)
 
     error_callback = print_error
     validator_error_fmt = DEFAULT_VALIDATOR_ERROR
@@ -649,16 +655,10 @@ def get_list(cleaners=(StripCleaner()), validators=None, value_error_str='list o
                     default_val = str(v)
             new_options['default'] = default_val
 
-    convertor = ListConvertor(value_error_str=value_error_str, delimiter=delimiter, elem_convertor=elem_convertor)
+    new_options['error_callback'] = error_callback
+    new_options['validator_error_fmt'] = validator_error_fmt
+    convertor = ListConvertor(value_error_str=value_error_str, delimiter=delimiter, elem_get_input=elem_get_input)
     gi = GetInput(cleaners, convertor, validators, **new_options)
 
-    while True:
-        result = gi.get_input()
-
-        if result is None or elem_validators is None:
-            break
-        else:
-            if all(validate(elem, elem_validators, error_callback=error_callback, validator_fmt_str=validator_error_fmt) for elem in result):
-                break
-
+    result = gi.get_input()
     return result

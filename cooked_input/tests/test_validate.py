@@ -14,7 +14,7 @@ else:
     from StringIO import StringIO
 
 from cooked_input import validate, Validator, RangeValidator, NoneOfValidator
-from cooked_input import get_input, print_error, StripCleaner, IntConvertor, ListConvertor, AnyOfValidator
+from cooked_input import GetInput, get_input, print_error, StripCleaner, IntConvertor, ListConvertor, AnyOfValidator
 from cooked_input import NoneOfValidator, LengthValidator
 from cooked_input import EqualToValidator, ListValidator, PasswordValidator, ChoiceValidator, SimpleValidator, RegexValidator
 
@@ -178,7 +178,7 @@ class TestValidate(object):
             2,3,4
             """
 
-        lc = ListConvertor(elem_convertor=IntConvertor())
+        lc = ListConvertor(elem_get_input=GetInput(convertor=IntConvertor()))
         lv = ListValidator(len_validator=LengthValidator(min_len=2, max_len=7))
         with redirect_stdin(StringIO(input_str)):
             result = get_input(cleaners=StripCleaner(), convertor=lc, validators=lv)

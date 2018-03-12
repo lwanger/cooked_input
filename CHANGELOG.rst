@@ -24,6 +24,8 @@ see TODO.md for list of TODO items
 
   * added ChoiceConvertor to support get_menu
 
+  * ListConvertor now takes a GetInput instance to apply to each element in the list
+
   * fixed bug: menus now work if rows is a single MenuItem, not a list of MenuItems
 
   * modified get_menu example for new menu structure

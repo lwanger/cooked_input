@@ -89,32 +89,6 @@ class TestConvertors(object):
         print(lc)   # for code coverage
 
 
-    def test_get_input_list_2(self):
-        input_str = u"""
-            foo, bar, blat
-            1-2-3
-            """
-
-        lc = ListConvertor(delimiter='-', elem_convertor=IntConvertor())
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=lc)
-            print(result)
-            assert (result == [1,2,3])
-
-
-    def test_get_input_list_3(self):
-        input_str = u"""
-            foo, bar
-            -1,2,3
-            """
-
-        lc = ListConvertor(delimiter=None, elem_convertor=IntConvertor())
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=lc)
-            print(result)
-            assert (result == [-1,2,3])
-
-
     def test_get_date(self):
         input_str = u"""
             foo
