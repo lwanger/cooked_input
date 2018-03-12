@@ -188,6 +188,8 @@ class ChoiceCleaner(Cleaner):
 
         if len(matches) == 1:
             return matches[0]
+        elif value in self._str_choices:  # one value is an exact subset of another
+            return self._str_choices[value]
         else:
             return value
 

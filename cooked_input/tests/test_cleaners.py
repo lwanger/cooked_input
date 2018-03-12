@@ -133,6 +133,17 @@ class TestCleaners(object):
 
         print(cc)
 
+    def test_subset_choice(self):
+        # make sure works if one value is a subset of another and case insenstive
+        input_str = 'date'
+
+        type_choices = ['Boolean', 'Date', 'DateTime']
+        ft_cleaner = ChoiceCleaner(type_choices, case_insensitive=True)
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(prompt="Type", cleaners=ft_cleaner)
+            assert (result == 'Date')
+
     def test_case_isensitive_choice_cleaner(self):
         input_str = 'b\nbl\nBL\nf'
         color_choices = ['foo', 'bar', 'BLAT']

@@ -122,59 +122,6 @@ class BooleanConvertor(Convertor):
         return 'BooleanConvertor(%s)' % self.value_error_str
 
 
-# class ListConvertor(Convertor):
-#     """
-#     convert to a list.
-#
-#     :param str value_error_str: (optional) the error string for improper value inputs
-#     :param str delimiter: (optional) the single character delimiter to use for parsing the list. If None, will sniff the value
-#         (ala CSV library.)
-#     :param Convertor elem_convertor: (optional) the convertor function to use for each element of the list (e.g. setting `elem_convertor` to
-#         `IntConvertor` will return a list where each element is an integer
-#
-#     :return: a `list` values, where each item in the list is of the type returned by `elem_convertor`
-#     :rtype: List[Any] (element type of list determined by ``elem_convertor``)
-#     :raises ConvertorError: if ``elem_convertor`` is unable to convert a list value
-#
-#     For example, the accept a list of integers separated by colons (':') and return it as a Python list of ints::
-#
-#       prompt_str = 'Enter a list of integers (separated by ":")'
-#       lc = ListConvertor(delimiter=':', elem_convertor=IntConvertor())
-#       result = get_input(prompt=prompt_str, convertor=lc)
-#     """
-#     def __init__(self, value_error_str='list of values', delimiter=',', elem_convertor=None):
-#         self._delimeter = delimiter
-#         self._elem_convertor = elem_convertor
-#         super(ListConvertor, self).__init__(value_error_str)
-#
-#
-#     def __call__(self, value, error_callback, convertor_fmt_str):
-#         buffer = StringIO(value)
-#
-#         if self._delimeter is None:
-#             dialect = csv.Sniffer().sniff(value)
-#             dialect.skipinitialspace = True
-#         else:
-#             csv.register_dialect('my_dialect', delimiter=self._delimeter, quoting=csv.QUOTE_MINIMAL, skipinitialspace=True)
-#             dialect = csv.get_dialect('my_dialect')
-#
-#         reader = csv.reader(buffer, dialect)
-#         lst = next(reader)
-#
-#         try:
-#             if self._elem_convertor:
-#                 converted_list = [self._elem_convertor(item, error_callback, convertor_fmt_str) for item in lst]
-#             else:
-#                 converted_list = lst
-#         except ConvertorError:
-#             raise ConvertorError(self._elem_convertor.value_error_str)
-#
-#         return converted_list
-#
-#     def __repr__(self):
-#         return 'ListConvertor(%s)' % self.value_error_str
-
-
 class ListConvertor(Convertor):
     """
     convert to a list.
