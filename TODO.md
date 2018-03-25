@@ -4,6 +4,8 @@
 **TODO:**
 
 * general:
+    * _get_choice should create a GetInput instance and call get_input on it, instead of calling the GetInput.get_input
+        convenience function (so don't have to reconstruct the GetInput everytime through the loop)
     * List processing - have process done on each list element - allows ChoiceCleaner on each element, etc.
     * Gray out visible but disabled entries in menus
     * Improve the README file
@@ -27,13 +29,16 @@
 
 * get_table_input
     * lots of plans to improve tables and menus! Scheduled for v0.3+
+    * Set column name for tag in tables/menus
 
 * tutorial:
+    * change to quick start?
     * Add tables (build-a-burger) to tutorial
     * add part 2 (and part 3?) to tutorial to show more examples: passwords (get_user_info), tables,
         menus, and databases?
     * more how-to examples (pick from examples)
     * move `more examples` to `how-to` in a separate file?
+    * show how to get an object back - put in item data, return table item and get from item data.
            
 * examples/tests:
     * clean up examples. With test coverage don't need to show so many cases.

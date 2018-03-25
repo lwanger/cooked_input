@@ -253,7 +253,7 @@ class ChoiceConvertor(Convertor):
     """
     Convert a value to its mapped value in a dictionary.
 
-    :param Dict[str, str] value_dict:  a dictionary containing keys to map from and values to map to
+    :param Dict value_dict:  a dictionary containing keys to map from and values to map to
     :param str value_error_str: (optional) the error string to use when an improper value is input
 
     :raises ConvertorError if ``value`` key is not found in ``value_dict``
@@ -266,7 +266,7 @@ class ChoiceConvertor(Convertor):
 
     For example, to use a number to pick from a list of colors::
 
-      value_map = {'1': 'red', '2': '/green', '3': 'blue'}
+      value_map = {'1': 'red', '2': 'green', '3': 'blue'}
       choice_convertor = ci.ChoiceConvertor(value_dict=value_map)
       result = ci.get_input(convertor=choice_convertor, prompt='Pick a color (1 - red, 2 - green, 3 - blue)')
     """

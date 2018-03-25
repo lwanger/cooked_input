@@ -15,7 +15,7 @@ if __name__ == '__main__':
     color_choices = ['Black', 'Brown', 'BLUE', 'red', 'green']
     color_choice_cleaner = ChoiceCleaner(color_choices)
 
-    color_choice_cleaner_case_insensitive = ChoiceCleaner(color_choices, case_insensitive=True)
+    color_choice_cleaner_case_insensitive = ChoiceCleaner(color_choices, case_sensitive=False)
 
     color_choice_validator = ChoiceValidator(color_choices)
     float_choice_cleaner = ChoiceCleaner(choices=[1.0, 10.0, 1.11, 3.141569])

@@ -134,14 +134,14 @@ class StripCleaner(Cleaner):
 class ChoiceCleaner(Cleaner):
     """
     :param List[str] choices: the list of choices to match
-    :param bool case_insensitive: (optional) if **True** matching the choice is case insensitive, otherwise
-      matching is case sensitive (default)
+    :param bool case_sensitive: (optional) if **True** (default) matching the choice is case sensitive, 
+      otherwise matching is case insensitive
 
     :return: the cleaned (matched choice from the ``choices`` list) value or the original value if no match is found
     :rtype: str (type is dependent on the mapped value in ``choices`` but is generally `str`)
 
     .. note:: The cleaned output uses the same capitalization as the item matched from the choices list regardless of the
-        ``case_insensitive`` parameter.
+        ``case_sensitive`` parameter.
 
     ChoiceCleaner tries to replace the input value with a single element from a list of choices by finding the unique
     element starting with the input value. If no single element can be identified, the input value is returned (i.e. no
@@ -150,7 +150,7 @@ class ChoiceCleaner(Cleaner):
 
     For example::
 
-        ChoiceCleaner(choices=['blue', 'brown', 'green'], case_insensitive=False)
+        ChoiceCleaner(choices=['blue', 'brown', 'green'], case_sensitive=True)
 
     will with the following input values would return the following values:
 
@@ -168,22 +168,22 @@ class ChoiceCleaner(Cleaner):
         | 'BR'  | 'BR'    | original value returned as case of the input does not match [#f2]_ |
         +-------+---------+--------------------------------------------------------------------+
 
-.. [#f2] Would return `"brown"` if ``case_insensitive`` is **True**
+.. [#f2] Would return `"brown"` if ``case_sensitive`` is **False**
     """
-    def __init__(self, choices, case_insensitive=False):
-        self._case_insensitive = case_insensitive
+    def __init__(self, choices, case_sensitive=True):
+        self._case_sensitive = case_sensitive
 
         # create a dictionary as choices may not be strings
-        if case_insensitive:
-            self._str_choices = {str(choice).lower(): choice for choice in choices}
-        else:
+        if case_sensitive:
             self._str_choices = {str(choice): choice for choice in choices}
+        else:
+            self._str_choices = {str(choice).lower(): choice for choice in choices}
 
     def __call__(self, value):
-        if self._case_insensitive:
-            str_value = str(value).lower()
-        else:
+        if self._case_sensitive:
             str_value = str(value)
+        else:
+            str_value = str(value).lower()
         matches = [v for k, v in self._str_choices.items() if k.startswith(str_value)]
 
         if len(matches) == 1:

@@ -138,7 +138,7 @@ class TestCleaners(object):
         input_str = 'date'
 
         type_choices = ['Boolean', 'Date', 'DateTime']
-        ft_cleaner = ChoiceCleaner(type_choices, case_insensitive=True)
+        ft_cleaner = ChoiceCleaner(type_choices, case_sensitive=False)
 
         with redirect_stdin(StringIO(input_str)):
             result = get_input(prompt="Type", cleaners=ft_cleaner)
@@ -147,7 +147,7 @@ class TestCleaners(object):
     def test_case_isensitive_choice_cleaner(self):
         input_str = 'b\nbl\nBL\nf'
         color_choices = ['foo', 'bar', 'BLAT']
-        cc = ChoiceCleaner(color_choices, case_insensitive=True)
+        cc = ChoiceCleaner(color_choices, case_sensitive=False)
         with redirect_stdin(StringIO(input_str)):
             result = get_input(cleaners=cc)
             assert(result == 'b')
@@ -164,7 +164,7 @@ class TestCleaners(object):
     def test_case_sesitive_choice_cleaner(self):
         input_str = 'b\nbl\nBL\nf'
         color_choices = ['foo', 'bar', 'BLAT']
-        cc = ChoiceCleaner(color_choices, case_insensitive=False)
+        cc = ChoiceCleaner(color_choices, case_sensitive=True)
         with redirect_stdin(StringIO(input_str)):
             result = get_input(cleaners=cc)
             assert (result == 'bar')

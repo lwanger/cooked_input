@@ -20,6 +20,7 @@ from sqlalchemy.orm import sessionmaker
 from cooked_input import get_menu, get_string, get_int, get_list, validate, Validator, ChoiceValidator
 from cooked_input import Table
 from cooked_input import TableItem, TABLE_ITEM_DEFAULT, TABLE_ITEM_EXIT, TABLE_ITEM_RETURN, TABLE_ADD_RETURN, TABLE_ADD_EXIT
+from cooked_input import TABLE_RETURN_FIRST_VAL, RULE_NONE, RULE_ALL
 
 
 # TODO - actions are wrong!
@@ -37,7 +38,8 @@ def test_get_menu_2():
     print('\nwith options...\n')
     prompt_str = 'Enter a menu choice'
     result = get_menu(choices, title='My Menu', prompt=prompt_str, default_choice='red',  add_exit=TABLE_ADD_EXIT,
-                      case_sensitive=True, default_action='first_value')
+                      #case_sensitive=True, default_action='first_value')
+                      case_sensitive=True, default_action=TABLE_RETURN_FIRST_VAL)
     print('result={}'.format(result))
 
 
@@ -65,21 +67,28 @@ def test_action_Table():
     ]
 
     print('\nget_table_choice - add_exit=True\n')
-    menu = Table(menu_choices[:-1])
+    menu = Table(menu_choices[:-1], add_exit=True)
     choice = menu.get_table_choice()
     show_choice(menu, choice)
 
-    print('\nget_table_choice - add_exit=False (no exit!), case_sensitive=True, with title\n')
-    menu = Table(menu_choices[:-1], title='My Menu:', add_exit=False, case_sensitive=True)
+    print('\nget_table_choice - add_exit=False (no exit!), case_sensitive=True, with title, no columns\n')
+    menu = Table(menu_choices[:-1], title='My Menu:', add_exit=False, case_sensitive=True, show_cols=False)
     choice = menu.get_table_choice()
     show_choice(menu, choice)
 
-    print('\nget_table_choice - add_exit=False, w/ prompt, default="stop"\n')
-    menu = Table(menu_choices, prompt='Choose or die!', default_choice='stop', default_action=default_action, add_exit=False)
+    print('\nget_table_choice - add_exit=False, w/ prompt, default="stop", hrule=ALL, vrule=NONE\n')
+    menu = Table(menu_choices, prompt='Choose or die!', default_choice='stop', default_action=default_action,
+                 add_exit=False, hrules=RULE_ALL, vrules=RULE_NONE)
+    choice = menu.get_table_choice()
+    show_choice(menu, choice)
+
+    print('\nget_table_choice - add_exit=False, w/ prompt, default="stop", no columns, no border\n')
+    menu = Table(menu_choices, prompt='Choose or die!', default_choice='stop', default_action=default_action, add_exit=False, show_border=False , show_cols=False)
     choice = menu.get_table_choice()
     show_choice(menu, choice)
 
     print('\nmenu.run - add_exit=True\n')
+    menu.add_exit = True
     menu.run()
     print('done')
 
@@ -91,7 +100,7 @@ def sub_menu_action(row, action_dict):
         TableItem("sub menu 2: Choice 1", 1, TABLE_ITEM_DEFAULT),
         TableItem("sub menu 2: Choice 2", 2, TABLE_ITEM_DEFAULT),
     ]
-    sub_menu = Table(sub_menu_choices, title="Sub-Menu 2", add_exit=TABLE_ADD_RETURN)
+    sub_menu = Table(sub_menu_choices, title="Sub-Menu 2", show_cols=False, add_exit=TABLE_ADD_RETURN)
     sub_menu.run()
 
 
@@ -100,7 +109,7 @@ def test_sub_Table():
         TableItem("sub menu 1: Choice 1", 1, TABLE_ITEM_DEFAULT),
         TableItem("sub menu 1: Choice 2", 2, TABLE_ITEM_DEFAULT),
     ]
-    sub_menu_1 = Table(sub_menu_1_items, title="Sub-Menu 2", add_exit=TABLE_ADD_RETURN)
+    sub_menu_1 = Table(sub_menu_1_items, title="Sub-Menu 2", show_cols=False, add_exit=TABLE_ADD_RETURN)
 
     # call submenus two different ways. First by using it as a callable, which calls run on the sub_menu, and second
     # with an explicit action handler
@@ -111,7 +120,7 @@ def test_sub_Table():
     ]
 
     print('\nmenu.run - with sub-menu\n')
-    menu = Table(menu_choices, )
+    menu = Table(menu_choices, show_cols=False, add_exit=True)
     menu.run()
     print('done')
 
@@ -144,7 +153,7 @@ def test_args_Table():
     my_profile = {'first': 'Len', 'last': 'Wanger'}
 
     print('\nmenu.run - with sub-menu\n')
-    menu = Table(menu_choices, default_action=default_action, action_dict=my_profile)
+    menu = Table(menu_choices, add_exit=True, default_action=default_action, action_dict=my_profile)
     menu.run()
     print('done')
 
@@ -170,7 +179,7 @@ def test_refresh_Table():
     ]
 
     print('\nmenu.run - dynamic labels - now w/ refresh\n')
-    menu = Table(menu_choices, default_action=default_action, action_dict=my_profile, refresh=True)
+    menu = Table(menu_choices, add_exit=True, default_action=default_action, action_dict=my_profile, refresh=True)
     menu.run()
 
     print('done')
@@ -235,7 +244,7 @@ def test_item_filter():
 
     print('\nmenu.run\n')
     my_profile = {'first': 'Len', 'last': 'Wanger', 'roles': ['user'] }
-    menu = Table(menu_choices, default_action=default_action, action_dict=my_profile, refresh=True, item_filter=role_item_filter)
+    menu = Table(menu_choices, add_exit=True, default_action=default_action, action_dict=my_profile, refresh=True, item_filter=role_item_filter)
     menu.run()
 
     print('done')
@@ -290,9 +299,9 @@ def test_dynamic_menu_from_db(filter_items=False):
     session.commit()
 
     if filter_items:
-        menu = Table(rows=tis, item_filter=user_filter)
+        menu = Table(rows=tis, add_exit=True, item_filter=user_filter)
     else:
-        menu = Table(rows=tis)
+        menu = Table(rows=tis, add_exit=True)
 
     menu()
 #### End of Dynamic menu from DB stuff ####
@@ -327,7 +336,7 @@ def test_dynamic_menu_from_list(filter_items=False):
         { 'name':'wendy', 'fullname': 'Wendy Williams', 'password': 'foobar' },
         { 'name':'mary', 'fullname': 'Mary Contrary', 'password': 'xxg527' },
         { 'name':'leonard', 'fullname': 'Leonard Nemoy', 'password': 'spock' },
-        { 'name':'fred', 'fullname': 'Fred Flinstone', 'password': 'blah'  } ]
+        { 'name':'fred', 'fullname': 'Fred Flintstone', 'password': 'blah'  } ]
 
     action_dict = {'min_len': 4}
     tis = [menu_item_factory2(user, 4) for user in users]
@@ -336,7 +345,7 @@ def test_dynamic_menu_from_list(filter_items=False):
 
     header = 'Showing users with user length > {min_len}\n'
     footer = 'type "filter" to change minimum length'
-    menu = Table(rows=tis, action_dict=action_dict, header=header, footer=footer, item_filter=user_filter2)
+    menu = Table(rows=tis, add_exit=True, action_dict=action_dict, header=header, footer=footer, item_filter=user_filter2)
     menu()
 
 

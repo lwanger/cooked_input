@@ -40,6 +40,10 @@ TABLE_RETURN_FIRST_VAL = 'first_value'
 TABLE_RETURN_ROW = 'row'
 TABLE_RETURN_TABLE_ITEM = 'table_item'
 
+RULE_FRAME = pt.FRAME
+RULE_HEADER = pt.HEADER
+RULE_ALL = pt.ALL
+RULE_NONE = pt.NONE
 
 # Supplied table actions
 def return_table_item_action(row, action_dict):
@@ -270,6 +274,14 @@ class Table(object):
 
         **footer**:  a format string to print after the table, can use any values from action_dict as well as pagination information
 
+        **show_border**:  if True (default) shows a border around the table
+
+        **show_cols**:  if True (default) shows a the column names at the top of the table
+        
+        **hrules**:  whether to draw horizontal lines between rows. Values allowed: RULE_FRAME, RULE_HEADER, RULE_ALL and RULE_NONE
+
+        **vrules**:  whether to draw vertical lines between rows. Values allowed: RULE_FRAME, RULE_HEADER, RULE_ALL and RULE_NONE
+
     Table default actions:
 
         Each table has a default action to take when an item is selected. The action can be a callable or a value from
@@ -350,7 +362,8 @@ class Table(object):
                 print('Table:__init__: ')
                 raise RuntimeError('Table: unexpected value for add_exit option ({})'.format(add_exit))
         except KeyError:
-            self.add_exit = TABLE_ADD_EXIT
+            #self.add_exit = TABLE_ADD_EXIT
+            self.add_exit = TABLE_ADD_NONE
 
         try:
             self.action_dict = options['action_dict']
@@ -378,6 +391,16 @@ class Table(object):
             self.item_filter = None
 
         try:
+            self.show_border = options['show_border']
+        except KeyError:
+            self.show_border = True
+
+        try:
+            self.show_cols = options['show_cols']
+        except KeyError:
+            self.show_cols = True
+
+        try:
             self.header = options['header']
         except KeyError:
             self.header = None
@@ -386,6 +409,16 @@ class Table(object):
             self.footer = options['footer']
         except KeyError:
             self.footer = None
+
+        try:
+            self.hrules = options['hrules']
+        except KeyError:
+            self.hrules = RULE_FRAME
+
+        try:
+            self.vrules = options['vrules']
+        except KeyError:
+            self.vrules = RULE_FRAME
 
         if prompt is None:
             self.prompt = 'Choose a table item'
@@ -430,12 +463,17 @@ class Table(object):
         self.field_names = ['tag'] + field_names
         self.table.field_names = ['tag'] + field_names + ['action']
 
-        self.table.set_style(pt.PLAIN_COLUMNS)
-        self.table.border = False
-        self.table.header = False
+        #self.table.set_style(pt.PLAIN_COLUMNS)
+        self.table.set_style(pt.DEFAULT)
+        #self.table.border = False
+        self.table.border = self.show_border
+        #elf.table.header = False
+        self.table.header = self.show_cols
         self.table.align = 'l'
         self.table.align['tag'] = 'r'
         # self.tbl.left_padding_width = 2
+        self.table.hrules = self.hrules
+        self.table.vrules = self.vrules
 
         if self.refresh is False:   # set up rows to start as won't be refreshed each time called
             self.refresh_items(rows=rows, add_exit=True, item_filter=self.item_filter)
@@ -776,7 +814,7 @@ class Table(object):
             self._rows.append(row_entry)
             table_idx += 1
 
-        if add_exit and self.add_exit:
+        if add_exit not in (False, 'none') and self.add_exit not in (False, 'none'):
             num_values = 1
             if len(self._rows):
                 num_values = len(self._rows[0].values)
@@ -918,6 +956,18 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
     # return the tag for the menu item unless the user set a specific default action.
     menu_options = dict(**options)
 
+    if 'show_cols' not in options:
+        menu_options['show_cols'] = False
+
+    if 'show_border' not in options:
+        menu_options['show_border'] = False
+
+    if 'hrule' not in options:
+        menu_options['hrules'] = RULE_NONE
+
+    if 'vrule' not in options:
+        menu_options['vrules'] = RULE_NONE
+
     if 'default_action' not in options:
         menu_options['default_action'] = return_tag_action
 
@@ -941,7 +991,8 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
     if result is None:
         return 'exit'
 
-    if add_exit and result.action=='exit':
+    # if add_exit and result.action=='exit':
+    if add_exit!="none" and result=='exit':
         return 'exit'
 
     return result
