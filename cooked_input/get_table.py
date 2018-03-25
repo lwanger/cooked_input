@@ -253,6 +253,8 @@ class Table(object):
     Options:
 
         **required**:    requires an entry if True, exits the table on blank entry if False.
+        
+        **tag_str**:     string to use for the tag column name. Defaults to an empty string ("").
 
         **add_exit**:    automatically adds a TableItem to exit the menu (MENU_ADD_EXIT - default) or return to the
                                 parent table/menu (MENU_ADD_RETURN), or not to add a TableItem at all (False). Used to
@@ -353,6 +355,11 @@ class Table(object):
             self.required = options['required']
         except KeyError:
             self.required = True
+
+        try:
+            self.tag_str = options['tag_str']
+        except KeyError:
+            self.tag_str = ''
 
         try:
             add_exit = options['add_exit']
@@ -460,15 +467,15 @@ class Table(object):
         if len(field_names) != num_cols:
             raise RuntimeError('Table: number of column names does not match number of columns in the table'.format())
 
-        self.field_names = ['tag'] + field_names
-        self.table.field_names = ['tag'] + field_names + ['action']
+        self.field_names = [self.tag_str] + field_names
+        self.table.field_names = [self.tag_str] + field_names + ['action']
 
         #self.table.set_style(pt.PLAIN_COLUMNS)
         self.table.set_style(pt.DEFAULT)
         self.table.border = self.show_border
         self.table.header = self.show_cols
         self.table.align = 'l'
-        self.table.align['tag'] = 'r'
+        self.table.align[self.tag_str] = 'r'
         # self.tbl.left_padding_width = 2
         self.table.hrules = self.hrules
         self.table.vrules = self.vrules

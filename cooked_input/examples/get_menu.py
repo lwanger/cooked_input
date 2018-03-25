@@ -67,7 +67,7 @@ def test_action_Table():
     ]
 
     print('\nget_table_choice - add_exit=True\n')
-    menu = Table(menu_choices[:-1], add_exit=True)
+    menu = Table(menu_choices[:-1], add_exit=True, tag_str="")
     choice = menu.get_table_choice()
     show_choice(menu, choice)
 
