@@ -18,6 +18,7 @@
     * Add bytearray type to isstring (doesn't match bytes, str, unicode or basestring)
 
 * get_input:
+    * add methods (or properties) for GetInput, TableItem and Table classes (e.g. set hrules in Table)
     * show all errors for validation errors? Perform like flash messages where can have a list of them?
     * provide kwarg/option to run all validators, instead of failing on first one, so can see all errors.
     * send error messages to stderr?
@@ -53,6 +54,8 @@
         * cleaner for Unicode normalization and character encodings
     * cleaner for html quoting/unquoting
     * strip sql injection when dealing with tables
+    * add: simple cleaner - take a callable in and clean. Like SimpleValidator. Useful for cleaning from
+        large set of items. For example ChoiceCleaner on a large database table
 
 * convertors:
     * NameTuple convertor - pass in a NamedTuple type (from typing.NamedTuple if want default values)
@@ -65,6 +68,8 @@
     * Float convertor - add places, rounding and locale parameters/options
     * add a Complex convertor?
     * add: File convertor - pattern for name, suffix, path, check for existence, wildcard for multiple fields
+    * add: simple convertor - take a callable in and convert. Like SimpleValidator. Useful for converting from
+        large set of items. For example a database table
  
 * validators:
     * add intersection_validator? See get_menu example. useful for filtering user roles.
