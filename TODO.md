@@ -30,7 +30,8 @@
 
 * get_table_input
     * lots of plans to improve tables and menus! Scheduled for v0.3+
-    * Set column name for tag in tables/menus
+    * Set column name for tag in tables/menus (i.e. tag_str so doesn't show 'tag' in column hdr)
+    * Method to display/show table without getting input
 
 * tutorial:
     * change to quick start?

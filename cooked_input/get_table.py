@@ -465,9 +465,7 @@ class Table(object):
 
         #self.table.set_style(pt.PLAIN_COLUMNS)
         self.table.set_style(pt.DEFAULT)
-        #self.table.border = False
         self.table.border = self.show_border
-        #elf.table.header = False
         self.table.header = self.show_cols
         self.table.align = 'l'
         self.table.align['tag'] = 'r'
@@ -672,6 +670,18 @@ class Table(object):
             print(formatter.vformat(self.footer, None, self.action_dict))
 
 
+    def show_table(self):
+        """
+        Show the table without asking for input.
+
+        :return: None
+        """
+        if self.refresh is True:
+            self.refresh_items(self._table_items, self.add_exit, self.item_filter)
+
+        self.refresh_screen()
+
+
     def _get_choice(self, table_choices, table_cleaners, table_convertor, table_validators, **options):
         """
         Internal function to get the input for the table choice.
@@ -842,6 +852,8 @@ class Table(object):
             # filtering can cause the table to not show any rows. If so, show last page of filtered table
             start_row = max(self.get_num_rows() - self.rows_per_page, 0)
             self.show_rows(start_row)
+
+        self.table.end = self.table.start + self.rows_per_page
 
 
     def __call__(self, choice=None, action_dict=None):
