@@ -15,7 +15,6 @@ import sys
 import string
 import re
 import collections
-import logging
 from abc import ABCMeta, abstractmethod
 
 
@@ -25,14 +24,14 @@ from .input_utils import put_in_a_list, isstring
 
 def in_any(value, validators, error_callback, validator_fmt_str):
     """
-    return True if the value passes any of the validators - OR's the list of supplied validators.
+    return **True** if the value passes any of the ``validators`` - OR's the list of supplied `validators <validators.html>`_.
 
-    :param value: the input value to validate
-    :param validators: an iterable (list or tuple) containing the validators to use.
-    :param error_callback: the function to call when an error occurs in conversion or validation
-    :param validator_fmt_str: format string for convertor errors (defaults to DEFAULT_CONVERTOR_ERROR)
+    :param Any value: the input value to validate
+    :param List[Validator] validators: an iterable (list or tuple) containing the `validators <validators.html>`_ to use.
+    :param Callable error_callback: a function called when an error occurs during validation
+    :param str validator_fmt_str: format string for validation errors
 
-    :return: **True** if any of the validators pass, **False** if they all fail.
+    :return: boolean **True** if any of the validators pass, **False** if they all fail.
     """
 
     if validators is None:
@@ -55,14 +54,14 @@ def in_any(value, validators, error_callback, validator_fmt_str):
 
 def in_all(value, validators, error_callback, validator_fmt_str):
     """
-    return True if the value passes all of the validators - AND's the list of supplied validators.
+    return **True** if the value passes all of the validators - AND's the list of supplied `validators <validators.html>`_.
 
-    :param value: the input value to validate
-    :param validators: an iterable (list or tuple) containing the validators to use.
-    :param error_callback: function to call if an error occurs.
-    :param validator_fmt_str: format string to pass to the error callback routine for formatting the error.
+    :param Any value: the input value to validate
+    :param List[Validator] validators: an iterable (list or tuple) containing the `validators <validators.html>`_ to use.
+    :param Callable error_callback: a function called when an error occurs during validation
+    :param str validator_fmt_str: format string to pass to the error callback routine for formatting the error.
 
-    :return: **True** if all of the validators pass, **False** if they all fail.
+    :return: boolean **True** if all of the validators pass, **False** if they all fail.
     """
 
     if validators is None:
@@ -79,14 +78,14 @@ def in_all(value, validators, error_callback, validator_fmt_str):
 
 def not_in(value, validators, error_callback, validator_fmt_str):
     """
-    return True if the value does not pass any of the validators - NOT's the list of supplied validators.
+    return **True** if the value does not pass any of the validators - NOT's the list of supplied `validators <validators.html>`_.
 
-    :param value: the input value to validate
-    :param validators: an iterable (list or tuple) containing the validators to use.
-    :param error_callback: function to call if an error occurs.
-    :param validator_fmt_str: format string to pass to the error callback routine for formatting the error.
+    :param Any value: the input value to validate
+    :param List[Validator] validators: an iterable (list or tuple) containing the `validators <validators.html>`_ to use.
+    :param allable error_callback: a function called when an error occurs during validation
+    :param str validator_fmt_str: format string to pass to the error callback routine for formatting the error.
 
-    :return: **True** if none of the validators pass, **False** if they any of them pass.
+    :return: boolean **True** if none of the validators pass, **False** if they any of them pass.
     """
     result = False
 
@@ -114,15 +113,15 @@ def not_in(value, validators, error_callback, validator_fmt_str):
 
 def validate(value, validators, error_callback=print_error, validator_fmt_str=DEFAULT_VALIDATOR_ERROR):
     """
-    Run validators on a value.
+    return **True** is a value passes validation.
 
-    :param value: the value to validate
-    :param validators: list of `validators <validators.html>`_ to run on ``value``
-    :param error_callback: function to call if an error occurs
-    :param validator_fmt_str: format string to pass to the error callback routine for formatting the error
+    :param Any value: the value to validate
+    :param List[Validator] validators: an iterable (list or tuple) of `validators <validators.html>`_ to run on ``value``
+    :param Callable error_callback: a function called when an error occurs during validation
+    :param str validator_fmt_str: format string to pass to the error callback routine for formatting the error
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: bool
+    :rtype: boolean
     """
     result = None
 
@@ -155,14 +154,20 @@ class Validator(object):
 
 class LengthValidator(Validator):
     """
-    check a value is in between a length range (open interval). For exact length match set ``min_len`` and ``max_len`` lengths
+    check the length of a value is in a range (open interval). For exact length match set ``min_len`` and ``max_len`` lengths
     to the same value.
 
-    :param int min_len: the minimum required length for the input. If **None** (the default), no minimum length is checked.
-    :param int max_len: the maximum required length for the input. If **None** (the default), no maximum length is checked.
+    :param int min_len: the minimum required length for the input. If **None** (default), no minimum length is checked.
+    :param int max_len: the maximum required length for the input. If **None** (default), no maximum length is checked.
 
-    :return: **True** if the input passed validation, else **False**
-    :rtype: bool
+    :return: **True** if the input passed validation
+    :rtype: boolean
+
+    Example::
+
+        lv = LengthValidator(min_len=3, max_len=5)
+        result = get_string(prompt="Enter a 3 to 5 char string", validators=lv)
+
     """
     def __init__(self, min_len=None, max_len=None):
         self._min_len = min_len
@@ -193,12 +198,12 @@ class LengthValidator(Validator):
 
 class EqualToValidator(Validator):
     """
-    check if a value is an exact value
+    check if a value is equal to a specified value.
 
     :param Any value: the value to match
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: bool
+    :rtype: boolean
     """
     def __init__(self, value):
         self._value = value
@@ -218,14 +223,20 @@ class EqualToValidator(Validator):
 
 class RangeValidator(Validator):
     """
-    check if a value is in between a minimum and maximum value (open interval). The value can be of any type as long
-    as the __ge__ and __le__ comparison functions are defined.
+    check if a value is in a specified range (open interval.) The value can be of any type as long
+    as the ``__ge__`` and ``__le__`` comparison functions are defined.
 
     :param Any min_val: The minimum allowed value (i.e. ``value`` must be >= ``min_val``). If **None** (the default), no minimum value is checked.
     :param Any max_val: The maximum allowed value (i.e. ``value`` must be <= max_val). If **None** (the default), no maximum value is checked.
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: bool
+    :rtype: boolean
+
+    Example::
+
+        rv = RangeValidator(min_val=1), max_val=10)
+        result = get_int(prompt="Enter a number (1 to 10)", validators=rv)
+
     """
     def __init__(self, min_val=None, max_val=None):
         self._min_val = min_val
@@ -259,15 +270,20 @@ class RangeValidator(Validator):
 
 class ChoiceValidator(Validator):
     """
-    check if a value is in a list of choices.
+    check if a value is in a set of choices.
 
     :param Iterable choices: an iterable (tuple, list, or set) containing the allowed set of choices for the value.
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: bool
+    :rtype: boolean
 
-    .. note::
-        if ``choices`` is mutable, it can be changed after the instance is created.
+
+    Example::
+
+        colors = ["red", "green", "blue"]
+        cv = ChoiceValidator(colors]
+        result = get_string(prompt="Enter a color", validators=cv)
+
     """
     def __init__(self, choices):
         # note: if choices is mutable, the choices can change after instantiation
@@ -289,15 +305,25 @@ class ChoiceValidator(Validator):
 
 class NoneOfValidator(Validator):
     """
-    check if a value is not in a set of `validators <validators.html>`_ (NOT operation).
+    check if a value does not pass validation for a list of `validators <validators.html>`_ (NOT operation).
 
-    :param List[Validator] validators: a list of `validators <validators.html>`_ that should not match the input value
+    :param List[Validator] validators: a list of `validators <validators.html>`_ that should not pass
+        validation on the input value
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: bool
+    :rtype: boolean
 
     .. note::
         if ``choices`` is mutable, it can be changed after the instance is created.
+
+    Example::
+
+        rv1 = RangeValidator(min_val=1, max_val=3)
+        rv2 = EqualToValidator(7)
+        nv = NoneOfValidator([rv1, rv2])
+        prompt_str = "Enter a number (not between 1 and 3, and not 7)"
+        result = get_int(prompt=prompt_str, validators = nv)
+
     """
     def __init__(self, validators):
         self._validators = validators
@@ -320,10 +346,19 @@ class AnyOfValidator(Validator):
         once any of the `validators <validators.html>`_ passes.
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: bool
+    :rtype: boolean
 
     .. note::
         if ``choices`` is mutable, it can be changed after the instance is created.
+
+    Example::
+
+        rv1 = RangeValidator(min_val=1, max_val=3)
+        rv2 = EqualToValidator(7)
+        nv = AnyOfValidator([rv1, rv2])
+        prompt_str = "Enter a number (between 1 and 3, or 7)"
+        result = get_int(prompt=prompt_str, validators = nv)
+
     """
     def __init__(self, validators):
         self._validators = validators
@@ -343,7 +378,7 @@ class IsFileValidator(Validator):
     :param str value: the filename to verify
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: bool
+    :rtype: boolean
     """
     def __init__(self):
         pass
@@ -370,7 +405,15 @@ class SimpleValidator(Validator):
     :param str name: an optional string to use for the validator name in error messages
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: bool
+    :rtype: boolean
+
+    Example::
+
+        def is_even(value):
+            return True if (value % 2) == 0 else False
+
+        sv = SimpleValidator(is_even, "EvenNumberValidator")
+        result = get_int(prompt="Enter an even number", validators = sv)
     """
     def __init__(self, validator_func, name='SimpleValidator value'):
         self._validator = validator_func
@@ -396,7 +439,13 @@ class RegexValidator(Validator):
     :param str regex_desc: a human readable string to use for the regular expression (used for error messages)
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: bool
+    :rtype: boolean
+
+    Example::
+
+        rv = RegexValidator(pattern=r'^[2-9]\d{9}$', regex_desc='phone number')
+        result = get_string(prompt="Enter a phone number", validators = rv)
+
     """
     def __init__(self, pattern, regex_desc=None):
         self._regex = pattern
@@ -426,18 +475,24 @@ class PasswordValidator(Validator):
     """
     validate a password string.
 
-    :param int min_len: the minimum allowed password length. Defaults to 1
-    :param int max_len: the maximum password length. Defaults to 64
-    :param int min_lower: the minimum number of lower case letters. Defaults to None
-    :param int min_upper: the minimum number of upper case letters. Defaults to None
-    :param int min_digits: the minimum number of digits. Defaults to None
-    :param int min_puncts: the minimum number of punctuation characters. Defaults to None
-    :param str allowed: a string containing the allowed characters in the password. Defaults to upper and lower case ascii
+    :param int min_len: the minimum allowed password length (default=1)
+    :param int max_len: the maximum password length (default=64)
+    :param int min_lower: the minimum number of lower case letters (default=``None``)
+    :param int min_upper: the minimum number of upper case letters (default=``None``)
+    :param int min_digits: the minimum number of digits (default=``None``)
+    :param int min_puncts: the minimum number of punctuation characters (default=``None`)
+    :param str allowed: a string containing the allowed characters in the password. Default is upper and lower case ascii
         letters, plus digits, plus punctuation characters
-    :param str disallowed: a string containing characters not allowed in the password. Defaults to None
+    :param str disallowed: a string containing characters not allowed in the password (default=``None``)
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: bool
+    :rtype: boolean
+
+    Example::
+
+        pv = PasswordValidator(min_len=5, min_lower=2, min_upper=2, min_digits=1, min_puncts=1)
+        result = ci.get_string(prompt="Enter a password", validators=pv, hidden=True)
+
     """
     def __init__(self, min_len=None, max_len=None, min_lower=0, min_upper=0, min_digits=0, min_puncts=0,
                  allowed=None, disallowed=None):
@@ -507,21 +562,48 @@ class ListValidator(Validator):
     """
     Run a set of `validators <validators.html>`_ on a list.
 
-    :param Validator len_validator: a `validator <validators.html>`_ to run to validate the length of the ``value``
-        list. if **None** (default) no validation is done on the list length
+    :param List[Validator] len_validators: a list of  `validators <validators.html>`_ to run on the length of the ``value``
+        list. if **None** (default) no validation is done on the list length.
     :param List[Validator] elem_validators: a list of `validators <validators.html>`_ to apply to the
         elements of the list.
+    :param str len_validator_fmt_str: a format string to use as an error message is the length of the ``value`` string
+        does not pass the length validation (``len_validators``). If **None** (default), ``validator_fmt_str`` is used
+        from the call to the validator.
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: bool
+    :rtype: boolean
+
+    .. note::
+
+        ``len_validator`` is usually an instance of :class:`EqualToValidator` for a list of a specific length, or
+        :class:`RangeValidator` for a list who's length is in a range. :class:`LengthValidator` is not used as the ``value``
+        passed to the validator is the length of the list, not the list itself.
+
+    Example::
+
+        colors = ['red', 'green', 'blue']
+        len_validator = ci.RangeValidator(min_val=2, max_val=4)
+        lvfs="List length {error_content} ({value})"
+        elem_validator = ci.ChoiceValidator(colors)
+        prompt_str = "Enter a list of 2 to 4 colors"
+        lv = ci.ListValidator(len_validator=len_validator, elem_validators=elem_validator, len_validator_fmt_str=lvfs)
+        result = ci.get_list(prompt=prompt_str, validators=lv)
+
     """
-    def __init__(self, len_validator=None, elem_validators=None):
-        self._len_validator = len_validator
+    def __init__(self, len_validator=None, elem_validators=None, len_validator_fmt_str=None):
+        self._len_validators = len_validator
         self._elem_validators = elem_validators
+        self._len_validator_fmt_str = len_validator_fmt_str
 
     def __call__(self, value, error_callback, validator_fmt_str):
-        if self._len_validator:
-            result = self._len_validator(value, error_callback, validator_fmt_str)
+        if self._len_validators:
+            if self._len_validator_fmt_str is None:
+                use_llvfs = validator_fmt_str
+            else:
+                use_llvfs = self._len_validator_fmt_str
+
+            result = validate(len(value), self._len_validators, error_callback, use_llvfs)
+
             if not result:
                 # error callback performed in len_validator
                 return False

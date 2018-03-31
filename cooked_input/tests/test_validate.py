@@ -179,7 +179,7 @@ class TestValidate(object):
             """
 
         lc = ListConvertor(elem_get_input=GetInput(convertor=IntConvertor()))
-        lv = ListValidator(len_validator=LengthValidator(min_len=2, max_len=7))
+        lv = ListValidator(len_validator=RangeValidator(min_val=2, max_val=7))
         with redirect_stdin(StringIO(input_str)):
             result = get_input(cleaners=StripCleaner(), convertor=lc, validators=lv)
             print(result)
@@ -187,7 +187,7 @@ class TestValidate(object):
 
         print(lv)   # for code coverage
 
-        lv = ListValidator(len_validator=LengthValidator(min_len=2), elem_validators=RangeValidator(max_val=6))
+        lv = ListValidator(len_validator=RangeValidator(min_val=2), elem_validators=RangeValidator(max_val=6))
         with redirect_stdin(StringIO(input_str)):
             result = get_input(cleaners=StripCleaner(), convertor=lc, validators=lv)
             print(result)
