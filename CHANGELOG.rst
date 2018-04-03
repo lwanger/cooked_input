@@ -26,6 +26,9 @@ see TODO.md for list of TODO items
 
   * ListConvertor now takes a GetInput instance to apply to each element in the list
 
+  * ListValidator now passes the length of the list to the len_validator. Also accepts an error format string for the
+        the length validation
+
   * fixed bug: menus now work if rows is a single MenuItem, not a list of MenuItems
 
   * modified get_menu example for new menu structure

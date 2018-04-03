@@ -142,7 +142,7 @@ class ListConvertor(Convertor):
     For example, the accept a list of integers separated by colons (':') and return it as a Python list of ints::
 
       prompt_str = 'Enter a list of integers (separated by ":")'
-      lc = ListConvertor(delimiter=':', elem_convertor=IntConvertor())
+      lc = ListConvertor(delimiter=':', elem_get_input=GetInput(convertor=IntConvertor()))
       result = get_input(prompt=prompt_str, convertor=lc)
     """
     def __init__(self, elem_get_input=None, delimiter=',', value_error_str='list of values' ):

@@ -625,10 +625,12 @@ def get_list(elem_get_input=None, cleaners=None, validators=None, value_error_st
 
     Example usage - get a list of integers between 3 and 5 numbers long, separated by colons (:)::
 
-        get_int_list = GetInput(convertor=IntConvertor())
-        len_3_validator = LengthValidator(min_len=3, max_len=5)
-        int_list = get_list(prompt='List of integers between 3 and 5 numbers long, separated by ":"',
-                            elem_get_input=get_int_list, delimiter=':')
+        elem_gi = GetInput(convertor=IntConvertor())
+        length_validator = RangeValidator(min_val=3, max_val=5)
+        list_validator = ListValidator(len_validator=length_validator)
+        prompt_str = "Enter a list of 3-5 ints"
+        result = get_list(prompt=prompt_str, elem_get_input=elem_gi, validators=list_validator, delimiter=":")
+
     """
     new_options = dict(options)
 

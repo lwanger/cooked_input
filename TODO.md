@@ -18,6 +18,7 @@
     * Add bytearray type to isstring (doesn't match bytes, str, unicode or basestring)
 
 * get_input:
+    * get_list is not right! not dealing with elem and list validators (should create a ListValidator)... comments wrong
     * add methods (or properties) for GetInput, TableItem and Table classes (e.g. set hrules in Table)
     * show all errors for validation errors? Perform like flash messages where can have a list of them?
     * provide kwarg/option to run all validators, instead of failing on first one, so can see all errors.
