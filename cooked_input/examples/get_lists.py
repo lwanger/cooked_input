@@ -38,7 +38,7 @@ if __name__ == '__main__':
     # length of list
     print(get_input(prompt='Enter a list (len=3)', convertor=ListConvertor(), validators=ListValidator(len_validator=length_3_validator)))
     print(get_input(prompt='Enter a list (len=5+)', convertor=ListConvertor(), validators=ListValidator(len_validator=length_5_plus_validator)))
-    print(get_input(prompt='Enter a list (len=2-4)', convertor=ListConvertor(), validators=ListValidator(len_validator=length_2_to_4_validator)))
+    print(get_input(prompt='Enter a list (len=2-4)', convertor=ListConvertor(), validators=ListValidator(len_validators=length_2_to_4_validator)))
 
     # items in list of type int, float, or string (homogenous)
     elem_int_gi = GetInput(convertor=IntConvertor())
@@ -50,4 +50,4 @@ if __name__ == '__main__':
     print(get_input(prompt='Enter a list (colors=red|green|blue)', convertor=ListConvertor(), validators=ListValidator(elem_validators=[color_validator])))
 
     # len and elem validators:
-    print(get_input(prompt='Enter a list (ints, len=3)', convertor=ListConvertor(elem_get_input=elem_int_gi), validators=ListValidator(len_validator=length_3_validator)))
+    print(get_input(prompt='Enter a list (ints, len=3)', convertor=ListConvertor(elem_get_input=elem_int_gi), validators=ListValidator(len_validators=length_3_validator)))

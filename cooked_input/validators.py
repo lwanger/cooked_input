@@ -575,7 +575,7 @@ class ListValidator(Validator):
 
     .. note::
 
-        ``len_validator`` is usually an instance of :class:`EqualToValidator` for a list of a specific length, or
+        ``len_validators`` is usually an instance of :class:`EqualToValidator` for a list of a specific length, or
         :class:`RangeValidator` for a list who's length is in a range. :class:`LengthValidator` is not used as the ``value``
         passed to the validator is the length of the list, not the list itself.
 
@@ -586,12 +586,12 @@ class ListValidator(Validator):
         lvfs="List length {error_content} ({value})"
         elem_validator = ci.ChoiceValidator(colors)
         prompt_str = "Enter a list of 2 to 4 colors"
-        lv = ci.ListValidator(len_validator=len_validator, elem_validators=elem_validator, len_validator_fmt_str=lvfs)
+        lv = ci.ListValidator(len_validators=len_validator, elem_validators=elem_validator, len_validator_fmt_str=lvfs)
         result = ci.get_list(prompt=prompt_str, validators=lv)
 
     """
-    def __init__(self, len_validator=None, elem_validators=None, len_validator_fmt_str=None):
-        self._len_validators = len_validator
+    def __init__(self, len_validators=None, elem_validators=None, len_validator_fmt_str=None):
+        self._len_validators = len_validators
         self._elem_validators = elem_validators
         self._len_validator_fmt_str = len_validator_fmt_str
 
