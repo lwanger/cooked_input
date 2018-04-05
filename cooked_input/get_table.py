@@ -530,7 +530,6 @@ class Table(object):
         The action is called with the following parameters:
 
             :param row: The TableItem instance selected (i.e. this table item)
-            :param action_dict:  The parent table's action_dict.
         """
         action = row.action
         if callable(action):

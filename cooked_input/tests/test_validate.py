@@ -207,7 +207,7 @@ class TestValidate(object):
         with redirect_stdin(StringIO(input_str)):
             result = get_input(validators=[any_password_val], prompt='type in any password', required=False, hidden=True)
             print(result)
-            assert (result == None)
+            assert (result is None)
 
         stronger_password_val = PasswordValidator(allowed='fobarFOB1!^', disallowed='[]', min_len=5, max_len=15, min_lower=4, min_upper=2, min_digits=1, min_puncts=2)
 
