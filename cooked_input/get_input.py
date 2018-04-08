@@ -16,7 +16,7 @@ import getpass
 
 from .error_callbacks import MaxRetriesError, ValidationError, ConvertorError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
-from .validators import RangeValidator, in_all, validate
+from .validators import RangeValidator, in_all
 from .convertors import IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor
 from .convertors import YesNoConvertor, ListConvertor
 from .cleaners import StripCleaner
@@ -447,10 +447,8 @@ def process_value(value, cleaners=None, convertor=None, validators=None, error_c
     :func:`GetInput.process_value` for more details. See  :class:`GetInput` for more information on the
     `error_callback`, `convertor_error_fmt`, and `validator_error_fmt` parameters.
     """
-    options = {}
-    options['error_callback'] = error_callback
-    options['convertor_error_fmt'] = convertor_error_fmt
-    options['validator_error_fmt'] = validator_error_fmt
+    options = {'error_callback': error_callback, 'convertor_error_fmt': convertor_error_fmt,
+               'validator_error_fmt': validator_error_fmt}
 
     gi = GetInput(cleaners, convertor, validators, **options)
     return gi.process_value(value)

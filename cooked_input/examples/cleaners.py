@@ -6,7 +6,7 @@ Len Wanger, 2017
 
 import re
 from cooked_input import get_input
-from cooked_input.cleaners import ChoiceCleaner, CapitalizationCleaner, ReplaceCleaner, RegexCleaner
+from cooked_input.cleaners import ChoiceCleaner, ReplaceCleaner, RegexCleaner
 from cooked_input.validators import ChoiceValidator
 
 
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # ReplaceCleaner examples:
     replace_color = ReplaceCleaner(old='color', new='colour')
     replace_color_twice = ReplaceCleaner(old='color', new='colour', count=2)
-    replace_pi = ReplaceCleaner(old='Pi', new=3.141569)
+    replace_pi = ReplaceCleaner(old='Pi', new="3.141569")
 
     print(get_input(prompt='Enter any string ("color" replaced by "colour")', cleaners=replace_color))
     print(get_input(prompt='Enter any string ("color" replaced by "colour, max 2 times")', cleaners=replace_color_twice))

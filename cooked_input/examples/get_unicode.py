@@ -94,22 +94,22 @@ def filter_cmd_action(cmd_str, cmd_vars, cmd_dict):
             \*\*|L[ultmo\*]|M[nce\*]|N[dlo\*]|P[cdseifo\*]|S[mcko\*]|Z[slp\*]|C[cfson\*]
     """
     cat_arg = name_arg = None
-    vars = cmd_vars.split(' ') if len(cmd_vars) else []
+    variables = cmd_vars.split(' ') if len(cmd_vars) else []
     cat_regex = '\*\*|L[ultmo\*]|M[nce\*]|N[dlo\*]|P[cdseifo\*]|S[mcko\*]|Z[slp\*]|C[cfson\*]'
     category_validator = ci.RegexValidator(pattern=cat_regex)
 
-    if len(vars) > 2:
+    if len(variables) > 2:
         print_filter_usage(cmd_str)
         return (ci.COMMAND_ACTION_NOP, None)
 
-    if len(vars) > 0:
-        cat_arg = vars[0]
+    if len(variables) > 0:
+        cat_arg = variables[0]
 
         if len(cat_arg) != 2:
             print_filter_usage(cmd_str)
             return (ci.COMMAND_ACTION_NOP, None)
 
-        name_arg = vars[1] if len(vars) > 1 else None
+        name_arg = variables[1] if len(variables) > 1 else None
 
     if cat_arg is None:
         cat = ci.get_string(prompt='Enter filter value for category', default='**', validators=category_validator)

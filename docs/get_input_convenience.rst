@@ -100,6 +100,12 @@ get_menu
 .. autofunction:: get_menu
 
 
+show_table
+----------
+
+.. autofunction:: show_table
+
+
 get_table_input
 ---------------
 

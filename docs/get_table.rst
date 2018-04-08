@@ -21,6 +21,8 @@ Table:
 
 .. autoclass:: Table
 
+.. automethod:: Table.show_table
+
 .. automethod:: Table.get_table_choice
 
 .. automethod:: Table.run
@@ -55,7 +57,7 @@ Table:
 Table Action Functions:
 =======================
 
-The following pre-defined action functions can be used for the action for :class:`Tables` and :class:`TableItem`:
+The following pre-defined action functions can be used for the action for :class:`Table` and :class:`TableItem`:
 
 return_table_item_action
 ------------------------

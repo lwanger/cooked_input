@@ -57,7 +57,7 @@ def show_choice(menu, choice):
     print('choice={}'.format(choice))
 
 
-def test_action_Table():
+def test_action_table():
     menu_choices = [
         TableItem("Choice 1 - no specified tag, no specified action", None, None),
         TableItem("Choice 2 - default action", 2, TABLE_ITEM_DEFAULT),
@@ -104,7 +104,7 @@ def sub_menu_action(row, action_dict):
     sub_menu.run()
 
 
-def test_sub_Table():
+def test_sub_table():
     sub_menu_1_items = [
         TableItem("sub menu 1: Choice 1", 1, TABLE_ITEM_DEFAULT),
         TableItem("sub menu 1: Choice 2", 2, TABLE_ITEM_DEFAULT),
@@ -139,7 +139,7 @@ def change_kwargs(row, action_dict):
     return action_dict
 
 
-def test_args_Table():
+def test_args_table():
     print('test sending args and kwargs to menus:\n')
 
     menu_choices = [
@@ -166,7 +166,7 @@ def change_last_name(row, action_dict):
     result = get_string(prompt='Enter a new last name', default=action_dict['last'])
     action_dict['last'] = result
 
-def test_refresh_Table():
+def test_refresh_table():
     print('test refresh option in a menu:\n')
     my_profile = {'first': 'Len', 'last': 'Wanger'}
 
@@ -216,7 +216,7 @@ class IntersectionValidator(Validator):
 
 def role_item_filter(row, action_dict):
     # check if the roles in action_dict for the current user matches any of the required roles for the menu item
-    if row.item_data == None or row.action in {TABLE_ITEM_EXIT, TABLE_ITEM_RETURN}:
+    if row.item_data is None or row.action in {TABLE_ITEM_EXIT, TABLE_ITEM_RETURN}:
         return (False, True)
 
     try:
@@ -278,8 +278,8 @@ def test_dynamic_menu_from_db(filter_items=False):
     engine = create_engine('sqlite:///:memory:', echo=True)
     Base.metadata.create_all(engine)
 
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session_maker = sessionmaker(bind=engine)
+    session = session_maker()
 
     session.add_all([
         User(name='ed', fullname='Ed Jones', password='edspassword'),
@@ -355,10 +355,10 @@ if __name__ == '__main__':
 
     test_get_menu_1()
     test_get_menu_2()
-    test_action_Table()
-    test_sub_Table()
-    test_args_Table()
-    test_refresh_Table()
+    test_action_table()
+    test_sub_table()
+    test_args_table()
+    test_refresh_table()
     test_item_filter()
     test_dynamic_menu_from_db(filter_items=False)
     test_dynamic_menu_from_db(filter_items=True)

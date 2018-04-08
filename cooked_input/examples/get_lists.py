@@ -4,8 +4,7 @@ cooked input examples of getting an list values
 Len Wanger, 2017
 """
 
-from cooked_input import GetInput, get_input, get_list, GetInputInterrupt
-# from cooked_input.validators import LengthValidator, ChoiceValidator, ListValidator
+from cooked_input import GetInput, get_input, get_list
 from cooked_input.validators import RangeValidator, ChoiceValidator, ListValidator
 from cooked_input.cleaners import StripCleaner, CapitalizationCleaner
 from cooked_input.convertors import ListConvertor, IntConvertor, YesNoConvertor
@@ -36,8 +35,8 @@ if __name__ == '__main__':
 
 
     # length of list
-    print(get_input(prompt='Enter a list (len=3)', convertor=ListConvertor(), validators=ListValidator(len_validator=length_3_validator)))
-    print(get_input(prompt='Enter a list (len=5+)', convertor=ListConvertor(), validators=ListValidator(len_validator=length_5_plus_validator)))
+    print(get_input(prompt='Enter a list (len=3)', convertor=ListConvertor(), validators=ListValidator(len_validators=length_3_validator)))
+    print(get_input(prompt='Enter a list (len=5+)', convertor=ListConvertor(), validators=ListValidator(len_validators=length_5_plus_validator)))
     print(get_input(prompt='Enter a list (len=2-4)', convertor=ListConvertor(), validators=ListValidator(len_validators=length_2_to_4_validator)))
 
     # items in list of type int, float, or string (homogenous)
