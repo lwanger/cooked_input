@@ -43,6 +43,8 @@ see TODO.md for list of TODO items
 
   * removed TableConvertor. This functionality has been replaced by the Table class.
 
+  * added minimum and maximum parameters to get_date
+
 * v0.2.12:
 
   * renamed ChoicesValidator to ChoiceValidator

@@ -66,7 +66,7 @@
     * Dollar convertor that has minimum of 0.00 and strips off $ sign and commas. Returns float
     * Boolean convertor, add 'true_values' and 'false_values' lists
     * yes_no convertor, add 'yes_values' and 'no_values' lists
-    * Time convertor
+    * Time convertor, add so can get_time and compare times
     * Float convertor - add places, rounding and locale parameters/options
     * add a Complex convertor?
     * add: File convertor - pattern for name, suffix, path, check for existence, wildcard for multiple fields

@@ -564,23 +564,39 @@ def get_boolean(cleaners=(StripCleaner()), validators=None, **options):
     return result
 
 
-def get_date(cleaners=(StripCleaner()), validators=None, **options):
+# def get_date(cleaners=(StripCleaner()), validators=None, **options):
+def get_date(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=None, **options):
     """
     :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
     :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param datetime minimum: earliest date allowed. Use None (default) for no minimum value.
+    :param datetime maximum: latest date allowed. Use None (default) for no maximum value.
     :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated date value
     :rtype: `datetime <https://docs.python.org/3/library/datetime.html#datetime.datetime>`_
 
-    Convenience function to get a date value. See :class:`DateConvertor` for more information on converting dates.
+    Convenience function to get a date value. See :class:`DateConvertor` for more information on converting dates. Get_date
+    can be used to get both times and dates.
     """
     new_options = dict(options)
 
     if 'prompt' not in options:
         new_options['prompt'] = 'Enter a date'
 
-    result = GetInput(cleaners, DateConvertor(), validators, **new_options).get_input()
+    if minimum is None and maximum is None:
+        val_list = validators
+    else:
+        irv = RangeValidator(min_val=minimum, max_val=maximum)
+        if validators is None:
+            val_list = irv
+        elif callable(validators):
+            val_list = [validators, irv]
+        else:
+            val_list = validators + [irv]
+
+    result = GetInput(cleaners, DateConvertor(), val_list, **new_options).get_input()
+    # result = GetInput(cleaners, DateConvertor(), validators, **new_options).get_input()
     return result
 
 
