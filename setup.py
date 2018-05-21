@@ -51,7 +51,13 @@ setup(
     ],
 
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=['setuptools-git'],
+    install_requires=[
+        'setuptools-git',
+        'future',
+        'prettytable',
+        'dateparser',
+        'validus'
+    ],
 
     #python_required='>=2.7, >=3.3',
 
