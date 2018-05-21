@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from .version import __version__
+
 from .get_input import get_input, get_table_input, process
 from .get_input import get_string, get_int, get_float, get_boolean, get_date, get_yes_no, get_list
 from .error_callbacks import MaxRetriesError
@@ -14,5 +16,3 @@ from .validators import in_all, in_any, not_in, validate
 from .cleaners import Cleaner, CapitalizationCleaner, LOWER_CAP_STYLE, UPPER_CAP_STYLE, FIRST_WORD_CAP_STYLE, ALL_WORDS_CAP_STYLE
 from .cleaners import StripCleaner, RemoveCleaner, ReplaceCleaner, ChoiceCleaner, RegexCleaner
 from .input_utils import make_pretty_table
-
-__version__ = '0.2.12'
