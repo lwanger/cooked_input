@@ -13,18 +13,21 @@ from distutils.core import setup
 
 here = path.abspath(path.dirname(__file__))
 
-import cooked_input
+# Load the package's version.py module
+version = {}
+with open(path.join(here, 'cooked_input', 'version.py')) as f:
+    exec(f.read(), version)
 
 
 with open('README.rst') as readme_file:
-    readme = readme_file.read() 
+    readme = readme_file.read()
 
 l_desc = readme + "\n\n"
 #print('l_desc={}'.format(l_desc))
 
 setup(
     name='cooked-input',
-    version=cooked_input.__version__,
+    version=version['__version__'],
     description='Get, clean, convert and validate input.',
     long_description=l_desc,
     author='Len Wanger',
@@ -48,7 +51,13 @@ setup(
     ],
 
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=['setuptools-git'],
+    install_requires=[
+        'setuptools-git',
+        'future',
+        'prettytable',
+        'dateparser',
+        'validus'
+    ],
 
     #python_required='>=2.7, >=3.3',
 
