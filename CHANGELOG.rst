@@ -45,6 +45,8 @@ see TODO.md for list of TODO items
 
   * added minimum and maximum parameters to get_date
 
+  * added requirements to setup.py. Moved __version__ to version.py
+
 * v0.2.12:
 
   * renamed ChoicesValidator to ChoiceValidator

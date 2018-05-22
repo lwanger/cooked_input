@@ -13,24 +13,27 @@ from distutils.core import setup
 
 here = path.abspath(path.dirname(__file__))
 
-# import cooked_input
 # load version number
 version = {}
 with open(path.join(here, 'cooked_input', 'version.py')) as f:
     exec(f.read(), version)
 
-with open('README.rst') as readme_file:
+with open('README.rst', 'r', encoding='utf-8') as readme_file:
+# with open('README.md', 'r', encoding='utf-8') as readme_file:
     readme = readme_file.read()
 
 l_desc = readme + "\n\n"
-#print('l_desc={}'.format(l_desc))
+# print('l_desc={}'.format(l_desc))
 
 setup(
     name='cooked-input',
-    # version=cooked_input.__version__,
     version=version['__version__'],
     description='Get, clean, convert and validate input.',
-    long_description=l_desc,
+    # long_description=l_desc,
+    long_description=readme,
+    # long_description_content_type='text/markdown',
+    long_description_content_type='text/x-rst',
+    # long_description_content_type='text/rst',
     author='Len Wanger',
     author_email='len_wanger@hotmail.com',
     url='https://github.com/lwanger/cooked_input',

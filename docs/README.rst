@@ -41,7 +41,7 @@ input.
 ``cooked_input`` provides a simple and safe way to get validated input that ranges from the simplest
 of Python programs to complex command line applications using menus and tables. Beginner's can use the
 provided convenience classes to get simple inputs from the user. Following the
-`tutorial <http://cooked-input.readthedocs.io/en/latest/tutorial.html/>`_ you can be up and running in
+`tutorial <http://cooked-input.readthedocs.io/en/latest/tutorial.html>`_ you can be up and running in
 minutes. More advanced users can easily create custom classes for sophisticated cleaning and
 validation of inputs.
 
