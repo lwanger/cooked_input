@@ -30,4 +30,4 @@ from .cleaners import StripCleaner, RemoveCleaner, ReplaceCleaner, ChoiceCleaner
 from .input_utils import make_pretty_table
 from .input_utils import put_in_a_list, isstring
 
-__version__ = '0.3.0'
+from .version import __version__

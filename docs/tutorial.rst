@@ -3,6 +3,11 @@
 Cooked Input Tutorial
 *********************
 
+.. note::
+
+    This tutorial is out of date. The introduction is still valid, but the rest needs to be re-written for v0.3+. The
+    new tutorial discusses: The GetInput class, table, commands.
+
 Introduction:
 =============
 

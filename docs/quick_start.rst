@@ -44,8 +44,8 @@ keep on asking until you enter valid input. `Get_string` will not accept a blank
 
 .. note::
 
-    To make `get_string` accept a blank line, like `input <https://docs.python.org/3/library/functions.html?highlight=input#input>`_,
-    add the ``required`` parameter::
+    To allow `get_string` to accept a blank line, like `input <https://docs.python.org/3/library/functions.html?highlight=input#input>`_,
+    set the ``required`` parameter to **False**::
 
         ci.get_string(prompt="What is your name?", required=False)
 
@@ -59,7 +59,7 @@ to capitalize the first letter of each of the words in the value::
 
 Now the input will be cleaned up with the proper capitalization::
 
-    >>> ci.get_string(prompt="What is your name?")
+    >>> ci.get_string(prompt="What is your name?", cleaners=[cap_cleaner])
 
     What is your name?: jOhn CLeEse
     'John Cleese'
@@ -79,7 +79,7 @@ and ``maximum`` values allowed. Since we are asking for a person's age, we want 
 number (i.e. the person is at least 1 year old.) Since no ``maximum`` value is given in this example there is no
 maximum age for this input::
 
-    $ python temp.py
+    >>>  ci.get_int(prompt="How old are you?", minimum=1)
 
     How old are you?: abc
     "abc" cannot be converted to an integer number
@@ -90,14 +90,14 @@ maximum age for this input::
 
 This is just the tip of the iceberg of what `get_int` can do. There are a lot of examples of using `get_int` in
 `get_ints.py` in the `cooked_input` examples directory, such as more complex validators and customized error messages.
-The `exampples` directory is a good place to look to see how to use many of `cooked_input`'s features.
+The `examples` directory is a good place to look to see how to use many of `cooked_input`'s features.
 
 Getting Dates:
 --------------
 
 A good example of how `cooked_input` can be helpful is
 `get_date <file:///C:/Users/len_w/OneDrive/Documents/IO/code/cooked_input/build/sphinx/html/get_input_convenience.html#get-date>`_.
-`get_date` is used to get a dates and times (more specifically a Python
+`get_date` is used to get dates and times (more specifically a Python
 `datetime <https://docs.python.org/3/library/datetime.html#time-objects>`_ value.) Today's date is used in the example
 below as the ``maximum`` beause it doesn't make sense that the user's birthday is in the future::
 
@@ -111,7 +111,7 @@ Running this returns a datetime::
     What is your birthday?: 4/1/1957
     1957-04-01 00:00:00
 
-`Get_date` is very flexible on how you to type times and dates. For instance, ``"April 4, 1967"``, ``"today"``,
+`Get_date` is very flexible regarding how you can type times and dates. For instance, ``"April 4, 1967"``, ``"today"``,
 ``"1 hour from now"``, ``"9:30 am yesterday"`` and ``"noon 3 days ago"`` are all valid date values. `Cooked_input`
 functions can also take a ``default`` value. For instance, using ``"today"`` as the default value will use today's
 date if the user hits enter without entering a value::
@@ -119,7 +119,7 @@ date if the user hits enter without entering a value::
     appt_date = ci.get_date(prompt="Appointment date?", default="today")
     print(appt_date.strftime("%x"))
 
-Which produces::
+Produces::
 
     Appointment date? (enter for: today):
     4/14/2018
@@ -147,7 +147,7 @@ Further reading:
     +----------------+-------------------------------+
 
 There are also convenience functions for a number of other `cooked_input` features, such as: getting lists,
-choosing values from a table or showing a menu. For more information see the `convenience functions <get_input_convenience>`_
+choosing values from a table or showing a menu. For more information see the `convenience functions <get_input_convenience.html>`_
 documentation,
 
 
