@@ -14,13 +14,18 @@ This is documentation for cooked_input |my_version|, generated |my_date|.
    :caption: Contents:
 
    README
+   quick_start
    tutorial
-   get_input
+   how_to
+   get_input_convenience
    cleaners
    convertors
    validators
+   get_input
+   get_table
+   get_input_exceptions
    error_callbacks
-   input_utils
+   get_input_commands
 
 
 Indices and tables

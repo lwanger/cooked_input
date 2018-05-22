@@ -4,27 +4,44 @@
 **TODO:**
 
 * general:
+    * _get_choice should create a GetInput instance and call get_input on it, instead of calling the GetInput.get_input
+        convenience function (so don't have to reconstruct the GetInput everytime through the loop)
+    * List processing - have process done on each list element - allows ChoiceCleaner on each element, etc.
+    * Gray out visible but disabled entries in menus
     * Improve the README file
     * Add queue_errors error handler. Use for an example to send flash_messages for Flask support. Add option to 
         validators to force running all validators vs. quiting after first error found
     * get to 100% coverage and add badge
     * For consistency with wtform, should 'cleaners' be changed to 'filters'?
     * Changelog link broken in README. Add TODO too?
+    * change put_in_a_list to tolist (consistent with memoryview)
+    * Add bytearray type to isstring (doesn't match bytes, str, unicode or basestring)
 
 * get_input:
+    * get_list is not right! not dealing with elem and list validators (should create a ListValidator)... comments wrong
+    * add methods (or properties) for GetInput, TableItem and Table classes (e.g. set hrules in Table)
     * show all errors for validation errors? Perform like flash messages where can have a list of them?
     * provide kwarg/option to run all validators, instead of failing on first one, so can see all errors.
     * send error messages to stderr?
+    
+* get_menu:
+    * add to tutorial - get_menu and Menu.run and setting parameters
+    * add examples
+    * add coverage tests
 
 * get_table_input
     * lots of plans to improve tables and menus! Scheduled for v0.3+
+    * Set column name for tag in tables/menus (i.e. tag_str so doesn't show 'tag' in column hdr)
+    * Method to display/show table without getting input
 
 * tutorial:
+    * change to quick start?
     * Add tables (build-a-burger) to tutorial
     * add part 2 (and part 3?) to tutorial to show more examples: passwords (get_user_info), tables,
         menus, and databases?
     * more how-to examples (pick from examples)
     * move `more examples` to `how-to` in a separate file?
+    * show how to get an object back - put in item data, return table item and get from item data.
            
 * examples/tests:
     * clean up examples. With test coverage don't need to show so many cases.
@@ -33,26 +50,31 @@
 
 * cleaners:
     * add swapcase and casefold styles to Capitalization
+    * add EncodingCleaner to encode the value (see str.encode)
+    * add cleaner to clean string from byte or bytearray to str (or unicode in 2.x)
     * Unicode support:
-        * add EncodingCleaner to encode the value (see str.encode)
         * cleaner for Unicode normalization and character encodings
     * cleaner for html quoting/unquoting
     * strip sql injection when dealing with tables
+    * add: simple cleaner - take a callable in and clean. Like SimpleValidator. Useful for cleaning from
+        large set of items. For example ChoiceCleaner on a large database table
 
 * convertors:
     * NameTuple convertor - pass in a NamedTuple type (from typing.NamedTuple if want default values)
       and a list of values. Returns an instance of the NamedTuple. l = [1,2,3]; def(cls, values):
       return cls(*l). Can check len of values list by len(_fields), or catch an exception (TypeError on __new__)
-    * List convertor, how to do choice cleaning? i.e. enter a list with the first letters of the
-    list item. Have cleaners for list elements?
     * Dollar convertor that has minimum of 0.00 and strips off $ sign and commas. Returns float
     * Boolean convertor, add 'true_values' and 'false_values' lists
     * yes_no convertor, add 'yes_values' and 'no_values' lists
-    * Time convertor
+    * Time convertor, add so can get_time and compare times
     * Float convertor - add places, rounding and locale parameters/options
+    * add a Complex convertor?
     * add: File convertor - pattern for name, suffix, path, check for existence, wildcard for multiple fields
+    * add: simple convertor - take a callable in and convert. Like SimpleValidator. Useful for converting from
+        large set of items. For example a database table
  
 * validators:
+    * add intersection_validator? See get_menu example. useful for filtering user roles.
     * add: date range, date day of week
     * allow forcing to validate all validators instead of stopping on first failure
     * return list of all validation failures
@@ -69,9 +91,6 @@
 
 * v0.3 and beyond:
     * Revamp tables and menus
-        * make it easier to make tables from query results
-        * allow showing multiple columns tables (with one column as value)
-        * allow value column to show longer description, but type in value
         * allow typing unique first characters of a choice input?
         * add render_table method to allow printing other than prettytable
         * and lots more...

@@ -10,17 +10,17 @@ the input passes the validation (i.e. is valid), and False otherwise.
 Creating Validators
 ===================
 
-Validator classes inherit from the Validator metaclass. They must be callable, with the __call__ dunder
-method taking three parameters: the value to validate, a function to call when an error occurs and the format string
-for the error function. See the [error_callbacks] for more information on error functions and their format strings.
+Validator classes inherit from the :class:`Validator`  base class. They must be a callable, and take three parameters:
+the ``value`` to validate, a function to call when an error occurs and a format string
+for the error function. See `error callbacks <error_callbacks.html>`_    for more information on error functions and their
+format strings.
 
 An example of a validator to verify that the input is exactly a specified length looks like::
 
     class LengthValidator(Validator):
-        def __init__(self, min_len=None, max_len=None, **kwargs):
+        def __init__(self, min_len=None, max_len=None):
             self._min_len = min_len
             self._max_len = max_len
-            super(LengthValidator, self).__init__(**kwargs)
 
         def __call__(self, value, error_callback, validator_fmt_str):
             try:
@@ -41,19 +41,15 @@ An example of a validator to verify that the input is exactly a specified length
                 error_callback(validator_fmt_str, value, 'too long (max_len={})'.format(self._max_len))
                 return False
 
-        def __repr__(self):
-            return 'LengthValidator(min_len=%s, max_len=%s)' % (self.min_len, self.max_len)
 
-Note: There are a large number of Boolean validation functions available from the validus project. These can be used as
-cooked_input validation functions by wrapping them in a SimpleValidator. For instance, to use validus to validate an email address::
+.. note::
+    There are a large number of Boolean validation functions available from the `validus <https://shopnilsazal.github.io/validus/>`_
+    project. These can be used as cooked_input validation functions by wrapping them in a :class:`SimpleValidator`. For
+    instance, to use ``validus`` to validate an email address::
 
-    from validus import isemail
-    email_validator = SimpleValidator(isemail, name='email')
-    email = get_input(prompt='enter a valid Email address', validators=email_validator)
-
-
-for more information on validus see: https://github.com/shopnilsazal/validus
-
+        from validus import isemail
+        email_validator = SimpleValidator(isemail, name='email')
+        email = get_input(prompt='enter a valid Email address', validators=email_validator)
 
 Validators
 ==========
@@ -74,6 +70,12 @@ EqualToValidator
 -------------------
 
 .. autoclass:: cooked_input.EqualToValidator
+
+
+IsFileValidator
+---------------
+
+.. autoclass:: cooked_input.IsFileValidator
 
 
 LengthValidator

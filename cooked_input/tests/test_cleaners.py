@@ -21,7 +21,7 @@ from cooked_input import Cleaner, StripCleaner, CapitalizationCleaner, RemoveCle
 from .utils import redirect_stdin
 
 
-class TestGetFloat(object):
+class TestCleaners(object):
 
     def test_call_abstract(self):
         c = Cleaner()
@@ -113,7 +113,7 @@ class TestGetFloat(object):
 
     def test_regex_cleaner(self):
         input_str = 'foo and bar'
-        rc = RegexCleaner(pattern=r'\sAND\s', sub=' & ', flags=re.IGNORECASE)
+        rc = RegexCleaner(pattern=r'\sAND\s', repl=' & ', flags=re.IGNORECASE)
         with redirect_stdin(StringIO(input_str)):
             result = get_input(cleaners=rc)
             assert(result == 'foo & bar')
@@ -131,4 +131,62 @@ class TestGetFloat(object):
             result = get_input(cleaners=cc)
             assert (result == 'foo')
 
+        print(cc)
+
+    def test_subset_choice(self):
+        # make sure works if one value is a subset of another and case insenstive
+        input_str = 'date'
+
+        type_choices = ['Boolean', 'Date', 'DateTime']
+        ft_cleaner = ChoiceCleaner(type_choices, case_sensitive=False)
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(prompt="Type", cleaners=ft_cleaner)
+            assert (result == 'Date')
+
+    def test_case_isensitive_choice_cleaner(self):
+        input_str = 'b\nbl\nBL\nf'
+        color_choices = ['foo', 'bar', 'BLAT']
+        cc = ChoiceCleaner(color_choices, case_sensitive=False)
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(cleaners=cc)
+            assert(result == 'b')
+            result = get_input(cleaners=cc)
+            assert (result == 'BLAT')
+            result = get_input(cleaners=cc)
+            assert (result == 'BLAT')
+            result = get_input(cleaners=cc)
+            assert (result == 'foo')
+
+        print(cc)
+
+
+    def test_case_sesitive_choice_cleaner(self):
+        input_str = 'b\nbl\nBL\nf'
+        color_choices = ['foo', 'bar', 'BLAT']
+        cc = ChoiceCleaner(color_choices, case_sensitive=True)
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(cleaners=cc)
+            assert (result == 'bar')
+            result = get_input(cleaners=cc)
+            assert (result == 'bl')
+            result = get_input(cleaners=cc)
+            assert (result == 'BLAT')
+            result = get_input(cleaners=cc)
+            assert (result == 'foo')
+
+        print(cc)
+
+    def test_subset_choice_cleaner(self):
+        # test choice cleaner if one of the choices is the subset of another
+        input_str = 'foo\nf\nfoob'
+        color_choices = ['foo', 'foobar']
+        cc = ChoiceCleaner(color_choices)
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(cleaners=cc)
+            assert(result == 'foo')
+            result = get_input(cleaners=cc)
+            assert (result == 'f')
+            result = get_input(cleaners=cc)
+            assert (result == 'foobar')
         print(cc)

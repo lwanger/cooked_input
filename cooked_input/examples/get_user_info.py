@@ -44,7 +44,7 @@ import sys
 from validus import isemail
 
 from cooked_input import get_input
-from cooked_input.cleaners import StripCleaner, CapitalizationCleaner, ChoiceCleaner
+from cooked_input.cleaners import StripCleaner, CapitalizationCleaner
 from cooked_input.convertors import ListConvertor
 from cooked_input.validators import Validator, PasswordValidator, ListValidator, ChoiceValidator, EqualToValidator
 from cooked_input.validators import SimpleValidator
@@ -57,8 +57,8 @@ class CheckUserValidator(Validator):
     operating system. For instance, on Unix systems the Python pwd module (part of the standard library)
     can be used. See more details above.
     """
-    def __init__(self, **kwargs):
-        super(CheckUserValidator, self).__init__(**kwargs)
+    def __init__(self):
+        pass
 
     def __call__(self, value, error_callback, validator_fmt_str):
         if value in user_list:
@@ -76,9 +76,8 @@ class CheckPasswordValidator(Validator):
     practice this is a very bad idea. See above for more details.
 
     """
-    def __init__(self, username, **kwargs):
+    def __init__(self, username):
         self.username = username
-        super(CheckPasswordValidator, self).__init__(**kwargs)
 
     def __call__(self, value, error_callback, validator_fmt_str):
         hashed_value = hash(value)
@@ -94,8 +93,7 @@ class CheckPasswordValidator(Validator):
 if __name__ == '__main__':
     # The BBC would like to appologize for this fake list of users. passwords are encrypted with the Python hash function for simplicity. See warnings above!
     user_list = {
-        'len': {'first_name': 'Len', 'last_name': 'Wanger', 'email': 'lwanger@yahoo.com', 'password': hash('12345'), 'roles': ['admin'] },
-        'gc': {'first_name': 'Graham', 'last_name': 'Chapman', 'email': 'king.arthur@camelot.com', 'password': hash('IWasBrian2!'), 'roles': ['arthur'] },
+        'gc': {'first_name': 'Graham', 'last_name': 'Chapman', 'email': 'king.arthur@camelot.com', 'password': hash('IWasBrian2!'), 'roles': ['admin', 'arthur'] },
         'jc': {'first_name': 'John', 'last_name': 'Cleese', 'email': 'basel@fawlty-towers.com', 'password': hash('&Now4SomethingCompletelyDifferent...'), 'roles': ['praline']},
         'tg': {'first_name': 'Terry', 'last_name': 'Gilliam', 'email': 'director@movie.com.br', 'password': hash('Its-Spelled-Color'), 'roles': ['animator']},
         'tj': {'first_name': 'Terry', 'last_name': 'Jones', 'email': 'erik@drag.com.np', 'password': hash('Hes_1_very_naughty_boy'), 'roles': ['mandy']},

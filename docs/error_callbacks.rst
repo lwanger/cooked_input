@@ -6,12 +6,15 @@ error_callbacks
 Creating Error functions:
 =========================
 
-Error functions are used by cooked_input to report errors from convertors and validators. Error functions take three
-parameters:
+Error functions are used by cooked_input to report errors from `convertors <convertors.html>`_ and 
+`validators <validators.html>`_. Error functions take three parameters:
 
- * fmt_str: a Python format string for the error. The format string can use the variable {value} and {error_content}.
- * value: the value that caused the error from the convertor or validator.
- * error_content: the particulars of the error message from the convertor or validator.
+ * ``fmt_str``: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
+   for the error. The format string can use the arguments **{value}** and **{error_content}**.
+ * ``value``: the value that caused the error from the `convertor <convertors.html>`_ or 
+   `validator <validators.html>`_.
+ * ``error_content``: the particulars of the error message from the `convertor <convertors.html>`_ or
+   `validator <validators.html>`_.
 
 The following example prints errors to sys.stdout::
 

@@ -7,335 +7,488 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
+from __future__ import unicode_literals
+
 import sys
-import copy
+import collections
 import logging
 import getpass
 
-from .error_callbacks import MaxRetriesError, ValidationError
+from .error_callbacks import MaxRetriesError, ValidationError, ConvertorError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
-from .validators import RangeValidator, ChoiceValidator, in_all
-from .convertors import TableConvertor, IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor, YesNoConvertor, \
-    ListConvertor
+from .validators import RangeValidator, in_all
+from .convertors import IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor
+from .convertors import YesNoConvertor, ListConvertor
 from .cleaners import StripCleaner
-from .input_utils import compose, make_pretty_table
+from .input_utils import compose, isstring
 
-from .convertors import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
 
+# Custom exceptions for get_input
+class GetInputInterrupt(KeyboardInterrupt):
+    """
+    A cancellation command (COMMAND_ACTION_CANCEL) occurred.
+    """
+    pass
+
+
+class RefreshScreenInterrupt(Exception):
+    """
+    When raised, directs ``cooked_input`` to refresh the display. Used primarily to refresh table items.
+    """
+    pass
+
+
+class PageUpRequest(Exception):
+    """
+    When raised, directs ``cooked_input`` to go to the previous page in paginated tables
+    """
+    pass
+
+
+class PageDownRequest(Exception):
+    """
+    When raised, directs ``cooked_input`` to go to the next page in paginated tables
+    """
+    pass
+
+
+class FirstPageRequest(Exception):
+    """
+    When raised, directs ``cooked_input`` to go to the first page in paginated tables
+    """
+    pass
+
+
+class LastPageRequest(Exception):
+    """
+    When raised, directs ``cooked_input`` to go to the last page in paginated tables
+    """
+    pass
+
+
+class UpOneRowRequest(Exception):
+    """
+    When raised, directs ``cooked_input`` to scroll up one row in paginated tables
+    """
+    pass
+
+
+class DownOneRowRequest(Exception):
+    """
+    When raised, directs ``cooked_input`` to scroll down one row in paginated tables
+    """
+    pass
+
+
+# Python 2/3 compatibility
 if sys.version_info[0] > 2:  # For Python 3
-    # from abc import ABCMeta, abstractmethod
     def raw_input(prompt_msg):
         return input(prompt_msg)
 
 
-def process(value, cleaners=None, convertor=None, validators=None, error_callback=print_error,
-            convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
+# Named tuple and action types for GetInput commands
+CommandResponse = collections.namedtuple('CommandResponse', 'action value')
+
+# Command action constants
+COMMAND_ACTION_USE_VALUE = 'enter_value_action'
+COMMAND_ACTION_CANCEL = 'cancel_input_action'
+COMMAND_ACTION_NOP = 'nop_action'
+
+COMMAND_ACTIONS = {
+    COMMAND_ACTION_USE_VALUE: 'enter_value_action',
+    COMMAND_ACTION_CANCEL: 'cancel_input_action',
+    COMMAND_ACTION_NOP: 'nop_action',
+}
+
+
+class GetInputCommand(object):
     """
-    runs a value through cleaning, conversion, and validation. This allows the same processing used
-    in get_input to be performed on a value. For instance, the same processing used for getting 
-    keyboard input can be applied to the value from a gui or web form input.
+    `GetInputCommand` is used to create commands that can be used while getting input from :meth:`GetInput.get_input`
 
-    :param value: the value to process
-    :param cleaners: list of cleaners to apply to clean the value
-    :param convertor: the convertor to apply to the cleaned value
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param error_callback: the function to call when an error occurs in conversion or validation
-    :param convertor_error_fmt: format string fro convertor errors (defaults to DEFAULT_CONVERTOR_ERROR)
-    :param validator_error_fmt: format string fro validator errors (defaults to DEFAULT_VALIDATOR_ERROR)
+    :param Callable[str, str, Dict[str, Any], Tuple[str, Any]] cmd_action: callback function used to process the command
+    :param Dict[Any, Any] cmd_dict: (optional) a dictionary of data passed to the ``cmd_action`` callback function
 
-    :return: Return of tuple (valid, converted_value), if the values was cleaned, converted and validated successfully,
-        valid is True and converted value is the converted and cleaned value. If not, valid is False, and value is None.
+    Each command has a callback function (``cmd_action``) and optional data (``cmd_dict``).
+
+    ``cmd_action`` is a callback function used for the command. The callback is called as follows
+
+        .. py:function:: cmd_action(cmd_str, cmd_vars, cmd_dict)
+
+          :param str cmd_str: the string used to call the command
+          :param str cmd_vars: additional arguments for the command (i.e. the rest of string used for the command input)
+          :param Dict[str, Any] cmd_dict: a dictionary of additional data for processing the command (often **None**)
+
+    Command callback functions return a a tuple containing (`COMMAND_ACTION_TYPE`, value), where the command action
+    type is one of the following:
+
+    +-------------------------------+--------------------------------------------------------------------------+
+    | **Action**                    |    **Result**                                                            |
+    +===============================+==========================================================================+
+    | ``COMMAND_ACTION_USE_VALUE``  |  use the second value of the tuple as the input                          |
+    +-------------------------------+--------------------------------------------------------------------------+
+    | ``COMMAND_ACTION_CANCEL``     |  cancel the current input (raises :class:`GetInputInterrupt` exception)  |
+    +-------------------------------+--------------------------------------------------------------------------+
+    | ``COMMAND_ACTION_NOP``        |  do nothing - continues to ask for the input                             |
+    +-------------------------------+--------------------------------------------------------------------------+
+
+    For convenience command action callbacks can return a :class:`CommandResponse` namedtuple instance::
+
+         CommandResponse(action, value)
+
+    The ``cmd_dict`` dictionary can be used to pass data useful in processing the command. For instance, a database
+    session and the name of the user can be passed with::
+
+        cmd_dict = {'session': db_session, 'user_name': user_name }
+        lookup_user_cmd = GetInputCommand(lookup_user_action, cmd_dict)
+
+    The following show examples of of each type of command::
+
+        def use_color_action(cmd_str, cmd_vars, cmd_dict):
+            print('Use "red" as the input value')
+            return (COMMAND_ACTION_USE_VALUE, 'red')
+
+        def cancel_action(cmd_str, cmd_vars, cmd_dict):
+            return CommandResponse(COMMAND_ACTION_CANCEL, None)
+
+        def show_help_action(cmd_str, cmd_vars, cmd_dict):
+            print('Commands:')
+            print('---------')
+            print('/?  - show this message')
+            print('/cancel - cancel this operation')
+            print('/red    - use red as a value')
+            print('/reverse - return the user\'s name reversed')
+            return CommandResponse(COMMAND_ACTION_NOP, None)
+
+        cmds = { '/?': GetInputCommand(show_help_action),
+                 '/cancel': GetInputCommand(cancel_action),
+                 '/red': GetInputCommand(use_color_action, {'color': 'red'}),
+                 '/reverse': GetInputCommand(user_color_action, {'user': 'fred'}) }
+
+        try:
+            result = get_string(prompt=prompt_str, commands=cmds)
+        except GetInputInterrupt:
+            print('Operation cancelled (received GetInputInterrupt)')
+
+.. note::
+    Nothing stops you from using ``cooked_input`` to get additional input within a command action callback. For example,
+    the cancel command could be extended to confirm the user wants to cancel the current input::
+
+        def cancel_action(cmd_str, cmd_vars, cmd_dict):
+            response = get_yes_no(prompt="Are you sure you want to cancel?", default='no')
+
+            if response == 'yes':
+                print('operation cancelled!')
+                return CommandResponse(COMMAND_ACTION_CANCEL, None)
+            else:
+                return CommandResponse(COMMAND_ACTION_NOP, None)
     """
-    if cleaners:
-        cleaned_response = compose(value, cleaners)
-    else:
-        cleaned_response = value
+    def __init__(self, cmd_action, cmd_dict=None):
+        self.cmd_action = cmd_action
+        self.cmd_dict = cmd_dict
 
-    try:
-        if convertor:
-            converted_response = convertor(cleaned_response, error_callback, convertor_error_fmt)
-        else:
-            converted_response = cleaned_response
-    except ValidationError:
-        return (False, None)
+    def __call__(self, cmd_str, cmd_vars):
+        return self.cmd_action(cmd_str, cmd_vars, self.cmd_dict)
 
-    valid_response = in_all(converted_response, validators, error_callback, validator_error_fmt)
-
-    if valid_response:
-        return (True, converted_response)
-    else:
-        return (False, None)
+    def __repr__(self):
+        return 'GetInputCommand(cmd_action={}, cmd_dict={})'.format(self.cmd_action, self.cmd_dict)
 
 
-def get_input(cleaners=None, convertor=None, validators=None, **options):
+# Named tuple for return values of GetInput.process_value
+ProcessValueResponse = collections.namedtuple('ProcessValueResponse', 'valid value')
+
+
+class GetInput(object):
     """
-    Get input from the command line and return a validated response.
+    Class to get cleaned, converted, validated input from the command line. This is the central class used for
+    cooked_input.
 
-    get_input prompts the user for an input. The input is then cleaned, converted, and validated, 
-    and the validated response is returned.
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value
+    :param Convertor convertor: the `convertor <convertors.html>`_ to apply to the cleaned value
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param options: see below
 
     Options:
 
-        prompt: the string to use for the prompt. For example prompt="Enter your name"
+        **prompt**: the string to use for the prompt. For example prompt="Enter your name"
 
-        required: True if a non-blank value is required, False if a blank response is OK.
+        **required**: **True** if a non-blank value is required, **False** if a blank response is OK.
 
-        default: the default value to use if a blank string is entered. This takes precedence over 
-            required (i.e.  a blank response will return the default value.)
+        **default**: the default value to use if a blank string is entered. This takes precedence over required
+            (i.e. a blank response will return the default value.)
 
-        default_str: the string to use for the default value. In general just set the default option. 
-            This is used by get_from_table to display a value but return a table id.
+        **default_str**: the string to use for the default value. In general just set the default option.
 
-        hidden: the input typed should not be displayed. This is useful for entering passwords.
+        **hidden**: the input typed should not be displayed. This is useful for entering passwords.
 
-        retries: the maximum number of attempts to allow before raising a MaxRetriesError exception.
+        **retries**: the maximum number of attempts to allow before raising a :class:`MaxRetriesError` exception.
 
-        error_callback: a callback function to call when an error is encountered. Defaults to print_error
+        **error_callback**: a callback function to call when an error is encountered. Defaults to :func:`print_error`
 
-        convertor_error_fmt: format string to use for convertor errors. Defaults to DEFAULT_CONVERTOR_ERROR.
-            Format string receives two variables - {value} the value that failed conversion, and {error_content}
-            set by the convertor.
+        **convertor_error_fmt**: format string to use for `convertor <convertors.html>`_ errors. Defaults to
+            **DEFAULT_CONVERTOR_ERROR**. Format string receives two variables - **{value}** the value that failed
+            conversion, and **{error_content}** set by the convertor.
 
-        validator_error_fmt: format string to use for validator errors. Defaults to DEFAULT_VALIDATOR_ERROR.
-            Format string receives two variables - {value} the value that failed conversion, and {error_content}
-            set by the validator.
+        **validator_error_fmt**: format string to use for `validator <validators.html>`_ errors. Defaults
+            to **DEFAULT_VALIDATOR_ERROR**. Format string receives two variables - **{value}** the value that
+            failed conversion, and **{error_content}** set by the validator.
 
-    :param cleaners: list of cleaners to apply to clean the value
-    :param convertor: the convertor to apply to the cleaned value
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param options:  see above
-    :return: the cleaned, converted, validated input
+        **commands**: an optional dictionary of commands. See below for more details.
+
+    Commands:
+
+        :class:`GetInput` optionally takes a dictionary containing commands that can be run from the input prompt. The key for
+        each command is the string used to call the command and the value is an instance of the :class:`GetInputCommand` class
+        for the command. For intance, the following dictionary sets two different command string (**/?** and **/help**)
+        to call a function to show help information::
+
+            {
+                "/?": GetInputCommand(show_help_action)),
+                "/help": GetInputCommand(show_help_action)),
+            }
+
+        For more information see :class:`GetInputCommand`
     """
+    def __init__(self, cleaners=None, convertor=None, validators=None, **options):
+        self.cleaners = cleaners
+        self.convertor = convertor
+        self.validators = validators
 
-    prompt_str = ''
-    required = True
-    default_val = None
-    default_string = None
-    hidden = False
-    max_retries = None
-    error_callback = print_error
-    convertor_error_fmt = DEFAULT_CONVERTOR_ERROR
-    validator_error_fmt = DEFAULT_VALIDATOR_ERROR
-    converted_response = None
-    valid_response = None
+        self.prompt_str = ''
+        self.required = True
+        self.default_val = None
+        self.default_string = None
+        self.hidden = False
+        self.max_retries = None
+        self.error_callback = print_error
+        self.convertor_error_fmt = DEFAULT_CONVERTOR_ERROR
+        self.validator_error_fmt = DEFAULT_VALIDATOR_ERROR
+        self.commands = {}
 
-    for k, v in options.items():
-        if k == 'prompt':
-            prompt_str = '%s' % v
-        elif k == 'required':
-            required = True if v else False
-        elif k == 'default':
-            default_val = str(v) if v else None
-        elif k == 'default_str':  # for get_from_table may want to display value but return id.
-            default_string = v
-        elif k == 'hidden':
-            hidden = v
-        elif k == 'retries':
-            max_retries = v
-        elif k == 'error_callback':
-            error_callback = v
-        elif k == 'convertor_error_fmt':
-            convertor_error_fmt = v
-        elif k == 'validator_error_fmt':
-            validator_error_fmt = v
-        else:
-            logging.warning('Warning: get_input received unknown option (%s)' % k)
-
-    if default_val is not None and not default_string:
-        default_string = str(default_val)
-
-    # if not required and default_val is not None:
-    if default_val is not None:
-        # TODO - have a way to set blank if there is a default_val... a command like 'blank' or 'erase'?
-        # logging.warning('Warning: both required and a default value specified. Blank inputs will use default value.')
-        required = True
-
-    if not required and not default_val:
-        default_str = ' (enter to leave blank)'
-    elif default_val:
-        default_str = ' (enter for: %s)' % default_string
-    else:
-        default_str = ''
-
-    retries = 0
-    input_str = '{}{}: '.format(prompt_str, default_str)
-    print('')
-
-    while (max_retries is None) or (retries < max_retries):
-        if hidden:
-            response = getpass.getpass(prompt=input_str)
-        else:
-            response = raw_input(input_str)
-
-        if not required and not response:
-            return None
-        elif default_val and not response:
-            valid_response, converted_response = process(default_val, cleaners, convertor, validators,
-                                                         error_callback, convertor_error_fmt, validator_error_fmt)
-            if valid_response:
-                return converted_response
+        for k, v in options.items():
+            if k == 'prompt':
+                self.prompt_str = '%s' % v
+            elif k == 'required':
+                self.required = True if v else False
+            elif k == 'default':
+                if v is None:
+                    self.default_val = None
+                else:
+                    self.default_val = str(v)
+            elif k == 'default_str':  # for get_from_table may want to display value but return id.
+                self.default_string = v
+            elif k == 'hidden':
+                self.hidden = v
+            elif k == 'retries':
+                self.max_retries = v
+            elif k == 'error_callback':
+                self.error_callback = v
+            elif k == 'convertor_error_fmt':
+                self.convertor_error_fmt = v
+            elif k == 'validator_error_fmt':
+                self.validator_error_fmt = v
+            elif k == 'commands':
+                self.commands = v
             else:
-                raise ValidationError('default value "{!r}" did not pass validation.'.format(default_val))
-        elif response:
-            valid_response, converted_response = process(response, cleaners, convertor, validators,
-                                                         error_callback, convertor_error_fmt, validator_error_fmt)
+                logging.warning('Warning: get_input received unknown option (%s)' % k)
 
-            if valid_response:
-                break
+        if self.default_val is not None:
+            # TODO - have a way to set blank if there is a default_val... a command like 'blank' or 'erase'?
+            # logging.warning('Warning: both required and a default value specified. Blank inputs will use default value.')
+            self.required = True
+
+        if not self.default_string:
+            if not self.required and not self.default_val:
+                self.default_string = ' (enter to leave blank)'
+            elif self.default_val:
+                self.default_string = ' (enter for: %s)' % self.default_val
             else:
-                retries += 1
-                # print('TODO: get validation error messages')
-                continue
-
-    if valid_response:
-        return converted_response
-    else:
-        raise MaxRetriesError('Maximum retries exceeded')
+                self.default_string = ''
 
 
-def get_table_input(table=None, cleaners=None, convertor=None, validators=None, **options):
-    """
-    Get input value from a table of values. Allow to type in and return either the id or the value 
-    for the choice. Useful for entering values from database tables.
+    def get_input(self):
+        """
+        Get input from the command line and return a validated response.
 
-    options:
+        :return: the cleaned, converted, validated input
+        :rtype: Any (dependent on the value returned from the :class:`convertors`)
 
-        input_value: TABLE_VALUE (or True) to input the value from the table row, TABLE_ID (or False) 
-            to enter the id. TABLE_ID_OR_VALUE  allows entering either and will give the preference
-            to entering the value.
+        This method prompts the user for an input, and returns the cleaned, converted, and validated input.
+        """
+        retries = 0
+        input_str = '{}{}: '.format(self.prompt_str, self.default_string)
+        print('')
 
-        return_value: TABLE_VALUE (or True) to return the value from the table row, TABLE_ID (or
-            False) to return the id.
-
-        show_table: will print the table before asking for the prompt
-            before asking for the input.
-
-        sort_by_value: whether to sort the table rows by value (True) or id (False). Defaults to sort by id.
-        default: the default value to use.
-
-        All additional get_input options are also supported (see above.)
-
-    :param table: list of tuples, with each tuple being: (id, value) for the items in the table.
-    :param cleaners: list of cleaners to apply to the inputted value.
-    :param convertor: the convertor to apply to the cleaned input value.
-    :param validators: list of validators to apply to the cleaned, converted input value.
-    :param options: all get_input options supported, see get_input documentation for details.
-
-    :return: the cleaned, converted, validated input value. This is an id or value from the table depending on input_value.
-    """
-    input_value = TABLE_VALUE
-    return_value = TABLE_VALUE
-    show_table = True
-    default_val = None
-    sort_by_value = False
-    valid_get_input_opts = ('value_error', 'prompt', 'required', 'default_str', 'hidden', 'retries', 'error_callback',
-                            'convertor_error_fmt', 'validator_error_fmt')
-
-    for k, v in options.items():
-        if k == 'input_value':
-            if v in {TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE}:
-                input_value = v
+        while (self.max_retries is None) or (retries < self.max_retries):
+            if self.hidden:
+                response = getpass.getpass(prompt=input_str)
             else:
-                logging.warning('Warning: get_table_input received unknown value for input_value (%s)' % v)
-        elif k == 'return_value':
-            return_value = TABLE_VALUE if v else TABLE_ID
-        elif k == 'show_table':
-            show_table = v
-        elif k == 'default':
-            default_val = v
-        elif k == 'sort_by_id':
-            sort_by_value = v
-        elif k not in valid_get_input_opts:
-            logging.warning('Warning: get_table_input received unknown option (%s)' % k)
+                response = raw_input(input_str)
 
-    # put together options to pass to get_input.
-    convertor_options_to_keep = {'input_value', 'value_error'}
-    get_input_options_to_skip = {'input_value', 'return_value', 'show_table', 'sort_by_id', 'value_error'}
-    convertor_options = {k: v for k, v in options.items() if k in convertor_options_to_keep}
-    get_input_options = {k: v for k, v in options.items() if k not in get_input_options_to_skip}
+            if self.commands:
+                command_action = None
+                for cmd in self.commands:
+                    if response.lstrip().startswith(cmd):
+                        idx = response.find(cmd)
+                        cmd_str = response[:idx+len(cmd)].strip()
+                        cmd_vars = response[idx+len(cmd):].strip()
+                        command_action, command_value = self.commands[cmd](cmd_str, cmd_vars)
+                        break
 
-    if default_val and input_value == TABLE_ID:
-        # Handle case where id inputted, but default value displayed
-        get_input_options['default_str'] = str(default_val)
-        for row in table:
-            if row[TABLE_VALUE] == default_val or row[TABLE_ID] == default_val:
-                get_input_options['default'] = row[TABLE_ID]
-                break
-        else:
-            raise ValueError('default value not found in table.')
-
-    if input_value == TABLE_ID_OR_VALUE:
-        choices = tuple(item[TABLE_VALUE] for item in table) + tuple(item[TABLE_ID] for item in table)
-    elif input_value == TABLE_VALUE:
-        choices = tuple(item[TABLE_VALUE] for item in table)
-    else:
-        choices = tuple(item[TABLE_ID] for item in table)
-
-    if validators and not callable(validators):
-        table_validators = list(copy.deepcopy(validators)) + ChoiceValidator(choices=choices)
-    else:
-        table_validators = [ChoiceValidator(choices=choices)]
-
-    if show_table:
-        table_prompt = make_pretty_table(table, 'name', sort_by_value)
-        print(table_prompt)
-
-    convertor = TableConvertor(table, convertor, **convertor_options)
-    returned_value = get_input(cleaners=cleaners, convertor=convertor, validators=table_validators, **get_input_options)
-
-    # Make sure returned value is id or value as requested.
-    if input_value == return_value:
-        return returned_value
-    else:
-        for t in table:
-            if input_value == TABLE_VALUE:
-                if t[TABLE_VALUE] == returned_value:
-                    return t[TABLE_ID]
-            elif input_value == TABLE_ID:
-                if t[TABLE_ID] == returned_value:
-                    return t[TABLE_VALUE]
-            else:  # input_value == TABLE_ID_OR_VALUE
-                if t[TABLE_VALUE] == returned_value or t[TABLE_ID] == returned_value:
-                    if return_value == TABLE_VALUE:
-                        return t[TABLE_VALUE]
+                if command_action:
+                    if command_action == COMMAND_ACTION_USE_VALUE:
+                        response = command_value
+                    elif command_action == COMMAND_ACTION_NOP:
+                        continue
+                    elif command_action == COMMAND_ACTION_CANCEL:
+                        raise GetInputInterrupt
                     else:
-                        return t[TABLE_ID]
+                        raise RuntimeError('GetInput.get_input: Unknown command action specified ({})'.format(command_action))
+
+            if not self.required and not response:
+                return None
+            elif self.default_val and not response:
+                valid_response, converted_response = self.process_value(self.default_val)
+
+                if valid_response:
+                    return converted_response
+                else:
+                    raise ValidationError('default value "{!r}" did not pass validation.'.format(self.default_val))
+            elif response:
+                valid_response, converted_response = self.process_value(response)
+
+                if valid_response:
+                    break
+                else:
+                    retries += 1
+                    # TODO: show validation error messages
+                    continue
+
+        if valid_response:
+            return converted_response
+        else:
+            raise MaxRetriesError('Maximum retries exceeded')
+
+
+    def process_value(self, value):
+        """
+        :param str value: the value to process
+
+        :return: Return a **ProcessValueResponse** namedtuple (valid, converted_value)
+        :rtype: NamedTuple[bool, Any]
+
+        Run a value through cleaning, conversion, and validation. This allows the same processing used
+        in :meth:`GetInput.get_input` to be performed on a value. For instance, the same processing used for getting
+        keyboard input can be applied to the value from a gui or web form input.
+
+        The **ProcessValueResponse** namedtuple has elements **valid** and **value**. If the value was
+        successfully cleaned, converted and validated, **valid** is True and **value** is the converted and cleaned
+        value. If not, **valid** is **False**, and **value** is **None**.
+        """
+        if self.cleaners:
+            cleaned_response = compose(value, self.cleaners)
+        else:
+            cleaned_response = value
+
+        try:
+            if self.convertor:
+                converted_response = self.convertor(cleaned_response, self.error_callback, self.convertor_error_fmt)
+            else:
+                converted_response = cleaned_response
+        except ConvertorError:
+            return (False, None)
+
+        valid_response = in_all(converted_response, self.validators, self.error_callback, self.validator_error_fmt)
+
+        if valid_response:
+            # return (True, converted_response)
+            return ProcessValueResponse(True, converted_response)
+
+        else:
+            # return (False, None)
+            return ProcessValueResponse(False, None)
 
 
 #############################
 ### Convenience Functions ###
 #############################
 
+def get_input(cleaners=None, convertor=None, validators=None, **options):
+    """
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
+    :param Convertor convertor: the `convertor <convertors.html>`_ to apply to the cleaned value
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
+
+    :return: the cleaned, converted, validated input string
+    :rtype: Any (returned value is dependent on type returned from ``convertor``)
+
+    Convenience function to create a :class:`GetInput` instance and call its `get_input` function. See
+    :func:`GetInput.get_input` for more details.
+    """
+    gi = GetInput(cleaners, convertor, validators, **options)
+    return gi.get_input()
+
+
+def process_value(value, cleaners=None, convertor=None, validators=None, error_callback=print_error,
+            convertor_error_fmt=DEFAULT_CONVERTOR_ERROR, validator_error_fmt=DEFAULT_VALIDATOR_ERROR):
+    """
+    :param str value: the value to process
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value
+    :param Convertor convertor: the `convertor <convertors.html>`_ to apply to the cleaned value
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param str error_callback: a callback function to call when an error is encountered. Defaults to :func:`print_error`
+    :param str convertor_error_fmt: format string to use for convertor errors. Defaults to **DEFAULT_CONVERTOR_ERROR**
+    :param str validator_error_fmt: format string to use for validator errors. Defaults to **DEFAULT_VALIDATOR_ERROR**
+
+    :return: the cleaned, converted validated input value.
+    :rtype: Any (returned value is dependent on type returned from ``convertor``)
+
+    Convenience function to create a :class:`GetInput` instance and call its process_value function. See
+    :func:`GetInput.process_value` for more details. See  :class:`GetInput` for more information on the
+    `error_callback`, `convertor_error_fmt`, and `validator_error_fmt` parameters.
+    """
+    options = {'error_callback': error_callback, 'convertor_error_fmt': convertor_error_fmt,
+               'validator_error_fmt': validator_error_fmt}
+
+    gi = GetInput(cleaners, convertor, validators, **options)
+    return gi.process_value(value)
+
+
 def get_string(cleaners=(StripCleaner()), validators=None, **options):
     """
-    Convenience function to get a string value.
-
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated string
+    :rtype: str
+
+    Convenience function to get a string value.
     """
     new_options = dict(options)
 
     if 'prompt' not in options:
         new_options['prompt'] = 'Enter some text'
 
-    result = get_input(cleaners=cleaners, convertor=None, validators=validators, **new_options)
+    result = GetInput(cleaners, None, validators, **new_options).get_input()
     return result
 
 
-def get_int(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=None, **options):
+def get_int(cleaners=None, validators=None, minimum=None, maximum=None, base=10, **options):
     """
-    Convenience function to get an integer value.
-
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param minimum: minimum value allowed. Use None (default) for no minimum value.
-    :param maximum: maximum value allowed. Use None (default) for no maximum value.
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param int minimum: minimum value allowed. Use None (default) for no minimum value.
+    :param int maximum: maximum value allowed. Use None (default) for no maximum value.
+    :param int base: Convert a string in radix base to an integer. Base defaults to 10.
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated int value
+    :rtype: int
+
+    Convenience function to get an integer value. See the documentation for the Python
+    `int <https://docs.python.org/3/library/functions.html#int>`_ builtin function for further description
+    of the `base` parameter.
     """
     new_options = dict(options)
 
@@ -353,21 +506,22 @@ def get_int(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=No
         else:
             val_list = validators + [irv]
 
-    result = get_input(cleaners, convertor=IntConvertor(), validators=val_list, **new_options)
+    result = GetInput(cleaners, IntConvertor(base=base), val_list, **new_options).get_input()
     return result
 
 
-def get_float(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=None, **options):
+def get_float(cleaners=None, validators=None, minimum=None, maximum=None, **options):
     """
-    Convenience function to get an float value.
-
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param minimum: minimum value allowed. Use None (default) for no minimum value.
-    :param maximum: maximum value allowed. Use None (default) for no maximum value.
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param float minimum: minimum value allowed. Use None (default) for no minimum value.
+    :param float maximum: maximum value allowed. Use None (default) for no maximum value.
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated float value
+    :rtype: float
+
+    Convenience function to get an float value.
     """
     new_options = dict(options)
 
@@ -385,81 +539,142 @@ def get_float(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=
         else:
             val_list = validators + [irv]
 
-    result = get_input(cleaners, convertor=FloatConvertor(), validators=val_list, **new_options)
+    result = GetInput(cleaners, FloatConvertor(), val_list, **new_options).get_input()
     return result
 
 
 def get_boolean(cleaners=(StripCleaner()), validators=None, **options):
     """
-    Convenience function to get an Boolean value.
-
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated boolean value
+    :rtype: bool
+
+    Convenience function to get a Boolean value. See :class:`BooleanConvertor` for a list of values accepted
+    for `True` and `False`.
     """
     new_options = dict(options)
 
     if 'prompt' not in options:
         new_options['prompt'] = 'Enter true or false'
 
-    result = get_input(cleaners, convertor=BooleanConvertor(), validators=validators, **new_options)
+    result = GetInput(cleaners, BooleanConvertor(), validators, **new_options).get_input()
     return result
 
 
-def get_date(cleaners=(StripCleaner()), validators=None, **options):
+# def get_date(cleaners=(StripCleaner()), validators=None, **options):
+def get_date(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=None, **options):
     """
-    Convenience function to get an date value.
-
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param datetime minimum: earliest date allowed. Use None (default) for no minimum value.
+    :param datetime maximum: latest date allowed. Use None (default) for no maximum value.
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated date value
+    :rtype: `datetime <https://docs.python.org/3/library/datetime.html#datetime.datetime>`_
+
+    Convenience function to get a date value. See :class:`DateConvertor` for more information on converting dates. Get_date
+    can be used to get both times and dates.
     """
     new_options = dict(options)
 
     if 'prompt' not in options:
         new_options['prompt'] = 'Enter a date'
 
-    result = get_input(cleaners, convertor=DateConvertor(), validators=validators, **new_options)
+    if minimum is None and maximum is None:
+        val_list = validators
+    else:
+        irv = RangeValidator(min_val=minimum, max_val=maximum)
+        if validators is None:
+            val_list = irv
+        elif callable(validators):
+            val_list = [validators, irv]
+        else:
+            val_list = validators + [irv]
+
+    result = GetInput(cleaners, DateConvertor(), val_list, **new_options).get_input()
+    # result = GetInput(cleaners, DateConvertor(), validators, **new_options).get_input()
     return result
 
 
 def get_yes_no(cleaners=(StripCleaner()), validators=None, **options):
     """
-    Convenience function to get an yes/no value.
-
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
-    :param options: all get_input options supported, see get_input documentation for details.
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated yes/no value
+    :rtype: str (**"yes"** or **"no"**)
+
+    Convenience function to get an yes/no value. See :class:`YesNoConvertor` for a list of values accepted
+    for `yes` and `no`.
     """
     new_options = dict(options)
 
     if 'prompt' not in options:
         new_options['prompt'] = 'Enter yes or no'
 
-    result = get_input(cleaners, convertor=YesNoConvertor(), validators=validators, **new_options)
+    result = GetInput(cleaners, YesNoConvertor(), validators, **new_options).get_input()
     return result
 
 
-def get_list(cleaners=(StripCleaner()), validators=None, **options):
+def get_list(elem_get_input=None, cleaners=None, validators=None, value_error_str='list of values', delimiter=',', **options):
     """
-    Convenience function to get a list of values.
-
-    :param cleaners: list of cleaners to apply to clean the value. Not needed in general.
-    :param validators: list of validators to apply to validate the cleaned and converted value
+    :param GetInput elem_get_input: an instance of a :class:`GetInput` to apply to each element
+    :param List[Cleaner] cleaners: cleaners to be applied to the input line before the :class:`ListConvertor` is applied.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the converted list
+    :param str value_error_str: the error string for improper value inputs
+    :param str delimiter: the delimiter to use between values
     :param options: all get_input options supported, see get_input documentation for details.
 
-    :return: the cleaned, converted, validated list of values
+    :return: the cleaned, converted, validated list of values. For more information on the `value_error_str`,
+      `delimeter`, `elem_convertor`, and elem_valudator` parameters see :class:`ListConvertor`.
+    :rtype: List[Any]
+
+    Get a homogenous list of values. The :meth:`GetInput.process_value` method on the ``elem_get_input`` :class:`GetInput`
+    instance is called for each element in the list.
+
+    Example usage - get a list of integers between 3 and 5 numbers long, separated by colons (:)::
+
+        elem_gi = GetInput(convertor=IntConvertor())
+        length_validator = RangeValidator(min_val=3, max_val=5)
+        list_validator = ListValidator(len_validator=length_validator)
+        prompt_str = "Enter a list of 3-5 ints"
+        result = get_list(prompt=prompt_str, elem_get_input=elem_gi, validators=list_validator, delimiter=":")
+
     """
     new_options = dict(options)
 
     if 'prompt' not in options:
-        new_options['prompt'] = 'Enter a list of values (separated by commas)'
+        new_options['prompt'] = 'Enter a list of values (separated by "{}")'.format(delimiter)
 
-    result = get_input(cleaners, convertor=ListConvertor(), validators=validators, **new_options)
+    error_callback = print_error
+    validator_error_fmt = DEFAULT_VALIDATOR_ERROR
+
+    for k, v in options.items():
+        if k == 'error_callback':
+            error_callback = v
+        elif k == 'validator_error_fmt':
+            validator_error_fmt = v
+        elif k == 'default':
+            if v is None:
+                default_val = None
+            else:
+                if isstring(v):
+                    default_val = v
+                elif isinstance(v, collections.Iterable):
+                    default_val = (delimiter + ' ').join(v)
+                else:
+                    default_val = str(v)
+            new_options['default'] = default_val
+
+    new_options['error_callback'] = error_callback
+    new_options['validator_error_fmt'] = validator_error_fmt
+    convertor = ListConvertor(value_error_str=value_error_str, delimiter=delimiter, elem_get_input=elem_get_input)
+    gi = GetInput(cleaners, convertor, validators, **new_options)
+
+    result = gi.get_input()
     return result

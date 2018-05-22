@@ -10,7 +10,7 @@ Copyright: Len Wanger, 2017
 
 import sys
 import collections
-import prettytable
+import veryprettytable
 
 
 def compose(value, funcs):
@@ -49,7 +49,8 @@ def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):
     :param sort_by_second_col: sort by the second column if True, otherwise leave in order from rows.
     :return: a prettytable for the table.
     """
-    x = prettytable.PrettyTable(['id', second_col_name])
+    #x = prettytable.PrettyTable(['id', second_col_name])
+    x = veryprettytable.PrettyTable(['id', second_col_name])
 
     for row in rows:
         x.add_row([row[0], row[1]])
@@ -66,15 +67,15 @@ def isstring(s):
     some cases strings can be of type bytes, which is not caught as a str (Python 3) or basestring (legacy Python) This
     function checks if the value can be treated like a string.
 
-    :param value: the value to check
+    :param s: the value to check
     :return: True if value is a string-like thing (string, unicode, bytes, etc.), otherwise False
     """
 
     # if we use Python 3
     if (sys.version_info[0] >= 3):
         return isinstance(s, (str, bytes))
-    # we use Legacy Python (2.x)
-    return isinstance(s, (basestring, bytes))
+    else:  # we use Legacy Python (2.x)
+        return isinstance(s, (basestring, bytes))
 
 
 def put_in_a_list(values):

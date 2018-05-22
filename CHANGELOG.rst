@@ -10,9 +10,46 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* v0.3.0:
+
+  * added GetInput class
+
+  * changed **kwargs to **options for all calls. Removed options from cleaners and validators
+
+  * changed Cleaner, Convertor and Validator to abstract base classes (ABCMeta) and methods to abtract methods
+
+  * added get_menu and Table classes (Table, TableItem, etc.)
+
+  * added ConvertorError exception. Changed Convertors to use it
+
+  * added ChoiceConvertor to support get_menu
+
+  * ListConvertor now takes a GetInput instance to apply to each element in the list
+
+  * ListValidator now passes the length of the list to the len_validator. Also accepts an error format string for the
+        the length validation
+
+  * fixed bug: menus now work if rows is a single MenuItem, not a list of MenuItems
+
+  * modified get_menu example for new menu structure
+
+  * added elem_validators to get_list to validate list items
+
+  * added IsFileValidator
+
+  * changed parameter names on Regex cleaner to match re.sub parameter names
+
+  * added count parameter to RemoveCleaner
+
+  * removed TableConvertor. This functionality has been replaced by the Table class.
+
+  * added minimum and maximum parameters to get_date
+
 * v0.2.12:
 
   * renamed ChoicesValidator to ChoiceValidator
+
+  * added case_insentive flag to ChoicesCleaner
 
   * check AnyOf and NoneOf for list of values, not just list of validation functions. Allows
     saying: NoneOfValidator(['foo', 'bar'])

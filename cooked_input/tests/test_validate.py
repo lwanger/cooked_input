@@ -14,7 +14,7 @@ else:
     from StringIO import StringIO
 
 from cooked_input import validate, Validator, RangeValidator, NoneOfValidator
-from cooked_input import get_input, print_error, StripCleaner, IntConvertor, ListConvertor, AnyOfValidator
+from cooked_input import GetInput, get_input, print_error, StripCleaner, IntConvertor, ListConvertor, AnyOfValidator
 from cooked_input import NoneOfValidator, LengthValidator
 from cooked_input import EqualToValidator, ListValidator, PasswordValidator, ChoiceValidator, SimpleValidator, RegexValidator
 
@@ -178,8 +178,8 @@ class TestValidate(object):
             2,3,4
             """
 
-        lc = ListConvertor(elem_convertor=IntConvertor())
-        lv = ListValidator(len_validator=LengthValidator(min_len=2, max_len=7))
+        lc = ListConvertor(elem_get_input=GetInput(convertor=IntConvertor()))
+        lv = ListValidator(len_validators=RangeValidator(min_val=2, max_val=7))
         with redirect_stdin(StringIO(input_str)):
             result = get_input(cleaners=StripCleaner(), convertor=lc, validators=lv)
             print(result)
@@ -187,7 +187,7 @@ class TestValidate(object):
 
         print(lv)   # for code coverage
 
-        lv = ListValidator(len_validator=LengthValidator(min_len=2), elem_validators=RangeValidator(max_val=6))
+        lv = ListValidator(len_validators=RangeValidator(min_val=2), elem_validators=RangeValidator(max_val=6))
         with redirect_stdin(StringIO(input_str)):
             result = get_input(cleaners=StripCleaner(), convertor=lc, validators=lv)
             print(result)
@@ -207,7 +207,7 @@ class TestValidate(object):
         with redirect_stdin(StringIO(input_str)):
             result = get_input(validators=[any_password_val], prompt='type in any password', required=False, hidden=True)
             print(result)
-            assert (result == None)
+            assert (result is None)
 
         stronger_password_val = PasswordValidator(allowed='fobarFOB1!^', disallowed='[]', min_len=5, max_len=15, min_lower=4, min_upper=2, min_digits=1, min_puncts=2)
 
@@ -255,7 +255,7 @@ class TestValidate(object):
 
         print(sv)  # for code coverage
 
-        sv = SimpleValidator(validator_func=simple_func, bad_option='bad option')
+        sv = SimpleValidator(validator_func=simple_func, name='bad option')
 
 
     def test_regex(self):
@@ -280,5 +280,5 @@ class TestValidate(object):
             with redirect_stdin(StringIO(input_str)):
                 result = get_input(convertor=IntConvertor(), validators=rev)
 
-        rev = RegexValidator(pattern=r'^[2-9]\d{9}$', bad_option='bad option')
+        rev = RegexValidator(pattern=r'^[2-9]\d{9}$', regex_desc='bad option')
 

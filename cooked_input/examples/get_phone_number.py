@@ -21,8 +21,8 @@ from cooked_input import StripCleaner, RemoveCleaner, RegexCleaner
 
 if __name__ == '__main__':
     phone_validator = [RegexValidator(pattern=r'^[2-9]\d{9}$', regex_desc='a 10 digit phone number')]
-    remove_cleaners = [StripCleaner(), RemoveCleaner(patterns=list('()-, ')), RegexCleaner(pattern=r'^[01]', sub=r'')]
+    remove_cleaners = [StripCleaner(), RemoveCleaner(patterns=list('()-, ')), RegexCleaner(pattern=r'^[01]', repl=r'')]
 
     print('Get a phone number from the user. You can format it anyway you want (spaces, dashes, parenthesis, and leading 0 or 1 stripped out)')
-    result = get_input(cleaners=remove_cleaners, validators=phone_validator, prompt='Please enter a phone number ()')
+    result = get_input(cleaners=remove_cleaners, validators=phone_validator, prompt='Please enter a phone number')
     print(result)
