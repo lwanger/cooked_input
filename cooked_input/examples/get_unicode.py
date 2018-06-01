@@ -12,6 +12,14 @@ import unicodedata
 
 import cooked_input as ci
 
+try:
+    # Try to import pyperclip. If imports then can add the character to the clipboard
+    import pyperclip
+    USE_CLIPBOARD = True
+except (ModuleNotFoundError):
+    print('\nWarning: Install the pyperclip module to have the unicode character copied to the clipboard\n')
+    USE_CLIPBOARD = False
+
 
 def unicode_item_filter(item, action_dict):
     """
@@ -194,4 +202,9 @@ if __name__ == '__main__':
     print('\nUnicode Picker... type "?" for help\n')
     table = make_table(0x00080, 0x007FF, cat_filter='**', name_filter='')
     result = ci.get_table_input(table)
-    print('Unicode character={}'.format(result))
+
+    if USE_CLIPBOARD is True: # put character on the clipboard
+        pyperclip.copy(result)
+        print('{} copied to the clipboard'.format(result))
+    else:
+        print('Unicode character={}'.format(result))
