@@ -59,5 +59,6 @@ Project information and source code is available at: https://github.com/lwanger/
 Tutorial
 --------
 
-The best way to get started is to read the tutorial at: http://cooked-input.readthedocs.io/en/latest/tutorial.html
+The best way to get started is to read the quick start at: http://cooked-input.readthedocs.io/en/latest/quick_start.html
 
+After that, more advanced usage can be learned from the tutorial at: http://cooked-input.readthedocs.io/en/latest/tutorial.html

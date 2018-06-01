@@ -4,6 +4,7 @@
 **TODO:**
 
 * general:
+    * Add type hint stub files (*.pyi) 
     * _get_choice should create a GetInput instance and call get_input on it, instead of calling the GetInput.get_input
         convenience function (so don't have to reconstruct the GetInput everytime through the loop)
     * List processing - have process done on each list element - allows ChoiceCleaner on each element, etc.
@@ -16,8 +17,12 @@
     * Changelog link broken in README. Add TODO too?
     * change put_in_a_list to tolist (consistent with memoryview)
     * Add bytearray type to isstring (doesn't match bytes, str, unicode or basestring)
+    * Add get_password convenience function. Allow validating before and after calling a provided hashing function.
+        (eg. check length, lower and uper case, etc. before hashing, then post-validation, such as comparing to 
+        old password after)
 
 * get_input:
+    * get_input - bug in commands entering /filter, if /f is also a command, finds /f command
     * get_list is not right! not dealing with elem and list validators (should create a ListValidator)... comments wrong
     * add methods (or properties) for GetInput, TableItem and Table classes (e.g. set hrules in Table)
     * show all errors for validation errors? Perform like flash messages where can have a list of them?
@@ -28,6 +33,7 @@
     * add to tutorial - get_menu and Menu.run and setting parameters
     * add examples
     * add coverage tests
+    * add ExitMenuExpception to exit a menu. Could be used from a menu action item to exit a menu
 
 * get_table_input
     * lots of plans to improve tables and menus! Scheduled for v0.3+

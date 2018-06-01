@@ -199,24 +199,24 @@ class TableItem(object):
         The table item action specifies what to do when a table item is selected. The ``action`` can be one of the
         default actions listed in the following table or a custom action can be provided:
 
-        +--------------------------------+--------------------------------------------------------------------------+
-        | value                          | action                                                                   |
-        +--------------------------------+--------------------------------------------------------------------------+
-        | TABLE_DEFAULT_ACTION_TAG       | return the selected row's tag.                                           |
-        +--------------------------------+--------------------------------------------------------------------------+
-        | TABLE_DEFAULT_ACTION_FIRST_VAL | return the first data column value of the selected row.                  |
-        +--------------------------------+--------------------------------------------------------------------------+
-        | TABLE_DEFAULT_ACTION_ROW       | return the list of column values for the selected row.                   |
-        +--------------------------------+--------------------------------------------------------------------------+
-        | TABLE_DEFAULT_ACTION_ITEM      | return the TableItem instance for the selected row.                      |
-        +--------------------------------+--------------------------------------------------------------------------+
-        | TABLE_ITEM_DEFAULT             |  use default method to handle the table item (e.g. use the parent        |
-        |                                |  table's default_action handler function)                                |
-        +--------------------------------+--------------------------------------------------------------------------+
-        | TABLE_ITEM__EXIT               |  selecting the table row should exit (used to exit a menu)               |
-        +--------------------------------+--------------------------------------------------------------------------+
-        | TABLE_ITEM__RETURN             |  selecting the table row should return (used to return from a submenu)   |
-        +--------------------------------+--------------------------------------------------------------------------+
+        +--------------------------+--------------------------------------------------------------------------+
+        | value                    | action                                                                   |
+        +--------------------------+--------------------------------------------------------------------------+
+        | TABLE_RETURN_TAG         | return the selected row's tag.                                           |
+        +--------------------------+--------------------------------------------------------------------------+
+        | TABLE_RETURN_FIRST_VAL   | return the first data column value of the selected row.                  |
+        +--------------------------+--------------------------------------------------------------------------+
+        | TABLE_RETURN_ROW         | return the list of column values for the selected row.                   |
+        +--------------------------+--------------------------------------------------------------------------+
+        | TABLE_RETURN_TABLE_ITEM  | return the TableItem instance for the selected row.                      |
+        +--------------------------+--------------------------------------------------------------------------+
+        | TABLE_ITEM_DEFAULT       |  use default method to handle the table item (e.g. use the parent        |
+        |                          |  table's default_action handler function)                                |
+        +--------------------------+--------------------------------------------------------------------------+
+        | TABLE_ITEM__EXIT         |  selecting the table row should exit (used to exit a menu)               |
+        +--------------------------+--------------------------------------------------------------------------+
+        | TABLE_ITEM__RETURN       |  selecting the table row should return (used to return from a submenu)   |
+        +--------------------------+--------------------------------------------------------------------------+
 
         In addition to the values in the table above, the action can be any callable that takes the following
         parameters:
@@ -303,17 +303,17 @@ class Table(object):
         set to TABLE_DEFAULT_ACTION, otherwise the action for the selected TableItem is called. Standard values for the
         Table default action are:
 
-        +--------------------------------+---------------------------------------------------------+
-        | value                          | action                                                  |
-        +--------------------------------+---------------------------------------------------------+
-        | TABLE_DEFAULT_ACTION_TAG       | return the selected row's tag.                          |
-        +--------------------------------+---------------------------------------------------------+
-        | TABLE_DEFAULT_ACTION_FIRST_VAL | return the first data column value of the selected row. |
-        +--------------------------------+---------------------------------------------------------+
-        | TABLE_DEFAULT_ACTION_ROW       | return the list of column values for the selected row.  |
-        +--------------------------------+---------------------------------------------------------+
-        | TABLE_DEFAULT_ACTION_ITEM      | return the TableItem instance for the selected row.     |
-        +--------------------------------+---------------------------------------------------------+
+        +--------------------------+---------------------------------------------------------+
+        | value                    | action                                                  |
+        +--------------------------+---------------------------------------------------------+
+        | TABLE_RETURN_TAG         | return the selected row's tag.                          |
+        +--------------------------+---------------------------------------------------------+
+        | TABLE_RETURN_FIRST_VAL   | return the first data column value of the selected row. |
+        +--------------------------+---------------------------------------------------------+
+        | TABLE_RETURN_ROW         | return the list of column values for the selected row.  |
+        +--------------------------+---------------------------------------------------------+
+        | TABLE_RETURN_TABLE_ITEM  | return the TableItem instance for the selected row.     |
+        +--------------------------+---------------------------------------------------------+
 
         In addition to the values in the table above, the action can be any callable that takes the following
         parameters:

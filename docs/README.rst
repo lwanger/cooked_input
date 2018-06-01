@@ -81,9 +81,10 @@ Source code and other project information available at: https://github.com/lwang
 Tutorial
 --------
 
-The best way to get started is the `tutorial`__ at: http://cooked-input.readthedocs.io/en/latest/tutorial.html
+The best way to get started is to read the quick start at: http://cooked-input.readthedocs.io/en/latest/quick_start.html
 
-__ tutorial.html
+After that, more advanced usage can be learned from the tutorial at: http://cooked-input.readthedocs.io/en/latest/tutorial.html
+
 
 Change log
 ----------

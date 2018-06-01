@@ -8,6 +8,23 @@ Cooked Input Tutorial
     This tutorial is out of date. The introduction is still valid, but the rest needs to be re-written for v0.3+. The
     new tutorial discusses: The GetInput class, table, commands.
 
+    New Tutorial outline:
+
+    introduction - motivation
+    the get_input convenience function - What is CCV paradigm
+    cleaners, convertors and validators
+    process_value and validate convenience functions (run CCV and run V in a value respectively)
+    more options (for get_input and other covnenience classes) - prompt, required, default, default_str, hidden, retries
+    example - getting a password
+    custom cleaners, convertors, and validators -- SimpleValidator for easy. Other examples (JSON Convertor)?
+    GetInput - under the covers - use when doing the same input call repeatedly.
+    get_list convenience function
+    menus and tables
+    show_table and get_table_input
+    commands
+    exceptions -- cancel, nop, use_value, page scrolling, refresh
+    get_unicode example
+
 Introduction:
 =============
 
@@ -78,7 +95,6 @@ In case your curious, the password example above can be written in cooked_input 
     good_password = PasswordValidator(min_len=8, min_upper=2, min_digits=1, min_puncts=2, disallowed='[]&')
     not_last_password = NoneOfValidator(EqualToValidator(old_password))
     password = get_input(prompt='Enter a new password', validators=[good_password, not_last_password], hidden=True, retries=3)
-
 
 Breaking down get_input:
 ========================
