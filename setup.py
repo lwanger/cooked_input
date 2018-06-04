@@ -8,7 +8,6 @@ see https://packaging.python.org/en/latest/distributing.html
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
-from distutils.core import setup
 
 
 here = path.abspath(path.dirname(__file__))
