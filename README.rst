@@ -1,18 +1,17 @@
 
 .. image:: https://img.shields.io/pypi/v/cooked_input.svg
-    :target: https://pypi.org/project/cooked-input/
-
-.. image:: https://img.shields.io/pypi/dm/cooked_input.svg
-    :target: https://pypi.org/project/cooked-input/
+    :target: https://pypi.org/project/cooked_input/
 
 .. image:: https://img.shields.io/pypi/l/cooked_input.svg
-    :target: https://pypi.org/project/cooked-input/
+    :target: https://pypi.org/project/cooked_input/
 
 .. image:: https://readthedocs.org/projects/cooked_input/badge/?version=latest
-    :target: https://pypi.org/project/cooked-input/
+    :target: https://pypi.org/project/cooked_input/
 
-.. image:: https://img.shields.io/pypi/pyversions/cooked-input.svg
-    :target: https://pypi.org/project/cooked-input/
+.. image:: https://img.shields.io/pypi/pyversions/cooked_input.svg
+    :target: https://pypi.org/project/cooked_input/
+
+
 
 Cooked Input Project
 ====================
