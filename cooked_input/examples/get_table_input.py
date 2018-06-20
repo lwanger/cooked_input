@@ -16,7 +16,8 @@ TODO -
     - navigation keys/commands
 """
 
-from cooked_input import get_table_input, Table, TableItem, get_menu, TABLE_RETURN_FIRST_VAL
+from cooked_input import get_table_input, Table, TableItem, TableStyle, get_menu, TABLE_RETURN_FIRST_VAL
+from cooked_input import RULE_ALL, RULE_FRAME, RULE_HEADER, RULE_NONE
 
 
 def return_color_str_action(row, action_dict):
@@ -41,8 +42,15 @@ if __name__ == '__main__':
         TableItem('green'),
     ]
 
+    style_1 = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
+
     # simplest way
     table = Table(table_items, col_names=['Color'])
+    tag = get_table_input(table)
+    print('\ntag={}\n'.format(tag))
+
+    # simplest way (style -- no borders)
+    table = Table(table_items, col_names=['Color'], style=style_1)
     tag = get_table_input(table)
     print('\ntag={}\n'.format(tag))
 

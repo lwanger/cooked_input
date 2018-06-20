@@ -36,6 +36,13 @@
     * add ExitMenuExpception to exit a menu. Could be used from a menu action item to exit a menu
 
 * get_table_input
+    * get_row_num returns zero if table has not been inited... test or return # of table items.
+    * refactor so all columns set in col_values and first element is tag (unless add_tag=True in which 
+        case a number is inserted)
+    * add:   header fmt str, footer fmt str, alignment, tag_alignment to TableStyle object
+    * look @ create_rows for using get and getattr to get fields automatically. Also flag for
+        adding the object to item_data (or do automatically!). Use to clean up table creation
+    * add footer w/ vformat with current row, page #, number of pages, etc. that can be put in the format string
     * lots of plans to improve tables and menus! Scheduled for v0.3+
     * Set column name for tag in tables/menus (i.e. tag_str so doesn't show 'tag' in column hdr)
     * Method to display/show table without getting input
@@ -100,7 +107,6 @@
         * allow typing unique first characters of a choice input?
         * add render_table method to allow printing other than prettytable
         * and lots more...
-
     * Can cleaners and convertor be merged to just a list of filters (i.e. a convertor is a 
     filter that changes the type)? Cleaners are always 
     on strings is easy, but could work on other types and chain. Are there filters you 
@@ -111,7 +117,7 @@
     * Alternatively, could have pre and post filters - pre-filters run on strings before
     conversion and validation; Post filters on the converted type (would this be before or
     after validation?)
-    * option to list choices in prompt_str (???)? Show hints? Create Mini-language of /cmds
+    * option to list choices in prompt_str (???)? Show hints?
     * autocomplete, readline history and color. Required or can be done already(???)
 
 

@@ -180,6 +180,37 @@ def scroll_down_one_row_cmd_action(cmd_str, cmd_vars, cmd_dict):
 #
 # Class definitions for tables
 #
+class TableStyle():
+    """
+    ``TableStyle`` is used to define the visual style of a ``Cooked_Input`` table. :class:`Table` objects take an
+    instance of ``TableStyle`` as the style parameter.
+
+    :param Bool show_cols: if **True** (default) shows a the column names at the top of the table
+    :param Bool show_border: if **True** (default) shows a border around the table
+    :param hrules: whether to draw horizontal lines between rows. See below for allowed RULE values.
+    :param vrules: whether to draw vertical lines between rows. See below for allowed RULE values.
+    :param int rows_per_page: The maximum number of rows to display in the table. Used for paginated tables.
+
+    ``hrules`` and ``vrules`` can use the following ``RULE`` values for the rows and columns respectively:
+
+        +-------------+-------------------------------------------------------------------+
+        | value       | action                                                            |
+        +-------------+-------------------------------------------------------------------+
+        | RULE_FRAME  | Draw ruled lines around the outside (frame) of the table.         |
+        | RULE_HEADER | Draw ruled lines around the header of the table.                  |
+        | RULE_ALL    | Draw ruled line around the table, header and between columns/rows.|
+        | RULE_NONE   | Do not draw any rules lines around columns/rows.                  |
+        +-------------+-------------------------------------------------------------------+
+    """
+    def __init__(self, show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL, rows_per_page=20):
+        self.show_cols = show_cols
+        self.show_border = show_border
+        self.hrules = hrules
+        self.vrules = vrules
+        self.rows_per_page = rows_per_page
+        #TODO -- add:   header fmt str, footer fmt str, alignment, tag_alignment.
+
+
 class TableItem(object):
     """
     TableItem is used to represent individual rows in a table. This is also often used for menu items.
@@ -234,8 +265,8 @@ class TableItem(object):
         self.enabled = enabled
 
     def __repr__(self):
-        return 'TableItem(col_values={}, tag={}, action={}, item_data={}, hidden={}, enabled={})'.format(self.values, self.tag,
-                                                                                                         self.action, self.item_data, self.hidden, self.enabled)
+        return 'TableItem(col_values={}, tag={}, action={}, item_data={}, hidden={}, enabled={})'.format(self.values,
+                                                    self.tag, self.action, self.item_data, self.hidden, self.enabled)
 
 
 class Table(object):
@@ -252,7 +283,7 @@ class Table(object):
     :param str default_choice: An optional default tag value to use for the table selection.
     :param str default_str: An optional string to display for the default table selection.
     :param Callable default_action: The default action function to call a table item is selected. See below for details.
-    :param int rows_per_page: The maximum number of rows to display in the table. Used to paginate tables.
+    :param TableStyle style: a :class:`TableStyle` defining the look of the table.
     :param Dict options: see below for a list of valid options
 
     Options:
@@ -285,16 +316,6 @@ class Table(object):
 
         **footer**:  a format string to print after the table, can use any values from ``action_dict`` as well as
                             pagination information
-
-        **show_border**:  if **True** (default) shows a border around the table
-
-        **show_cols**:  if **True** (default) shows a the column names at the top of the table
-        
-        **hrules**:  whether to draw horizontal lines between rows. Values allowed: **RULE_FRAME**,
-                        **RULE_HEADER**, **RULE_ALL** and **RULE_NONE**
-
-        **vrules**:  whether to draw vertical lines between rows. Values allowed: **RULE_FRAME**,
-                        **RULE_HEADER**, **RULE_ALL** and **RULE_NONE**
 
     Table default actions:
 
@@ -360,9 +381,8 @@ class Table(object):
                 TableItem('list users', action=user_list_action) ]
             menu = Table(menu_items=rows, action_dict=action_dict, item_filter=user_role_filter)
     """
-
     def __init__(self, rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None,
-                 default_action=None, rows_per_page=20, **options):
+                 default_action=None, style=None, **options):
 
         try:
             self.required = options['required']
@@ -410,16 +430,6 @@ class Table(object):
             self.item_filter = None
 
         try:
-            self.show_border = options['show_border']
-        except KeyError:
-            self.show_border = True
-
-        try:
-            self.show_cols = options['show_cols']
-        except KeyError:
-            self.show_cols = True
-
-        try:
             self.header = options['header']
         except KeyError:
             self.header = None
@@ -428,16 +438,6 @@ class Table(object):
             self.footer = options['footer']
         except KeyError:
             self.footer = None
-
-        try:
-            self.hrules = options['hrules']
-        except KeyError:
-            self.hrules = RULE_FRAME
-
-        try:
-            self.vrules = options['vrules']
-        except KeyError:
-            self.vrules = RULE_FRAME
 
         if prompt is None:
             self.prompt = 'Choose a table item'
@@ -460,7 +460,12 @@ class Table(object):
         else:
             self.default_action = default_action
 
-        self.rows_per_page = rows_per_page
+        if style is None:
+            self.style = TableStyle()
+        else:
+            self.style = style
+
+        self.rows_per_page = self.style.rows_per_page
         self._table_items = put_in_a_list(rows)  # the original, raw table items for the table
         self._rows = []  # the expanded, refreshed table items for the table used to create the pretty table
         self.table = pt.VeryPrettyTable()  # the pretty table to display
@@ -484,13 +489,13 @@ class Table(object):
 
         #self.table.set_style(pt.PLAIN_COLUMNS)
         self.table.set_style(pt.DEFAULT)
-        self.table.border = self.show_border
-        self.table.header = self.show_cols
+        self.table.border = self.style.show_border
+        self.table.header = self.style.show_cols
         self.table.align = 'l'
         self.table.align[self.tag_str] = 'r'
         # self.tbl.left_padding_width = 2
-        self.table.hrules = self.hrules
-        self.table.vrules = self.vrules
+        self.table.hrules = self.style.hrules
+        self.table.vrules = self.style.vrules
 
         if self.refresh is False:   # set up rows to start as won't be refreshed each time called
             self.refresh_items(rows=rows, add_exit=True, item_filter=self.item_filter)
@@ -974,13 +979,14 @@ def get_table_input(table, **options):
     return table.get_table_choice(**options)
 
 
-def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=False, **options):
+def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=False, style=None, **options):
     """
     :param choices: the list of text strings to use for the menu items
     :param title: a title to use for the menu
     :param prompt: the prompt string used when asking the user for the menu selection
     :param default_choice: an optional default item to select
     :param add_exit: add an exit item if `True` or not if `False` (default)
+    :param style: a :class:`TableStyle` defining the look of the menu.
     :param options: all :class:`Table` options supported, see :class:`Table` documentation for details.
 
     :return: the result of calling :func:`Table.get_table_choice` on the menu table. Will return the index (one based) of
@@ -1004,17 +1010,17 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
     # return the tag for the menu item unless the user set a specific default action.
     menu_options = dict(**options)
 
-    if 'show_cols' not in options:
-        menu_options['show_cols'] = False
-
-    if 'show_border' not in options:
-        menu_options['show_border'] = False
-
-    if 'hrule' not in options:
-        menu_options['hrules'] = RULE_NONE
-
-    if 'vrule' not in options:
-        menu_options['vrules'] = RULE_NONE
+    # if 'show_cols' not in options:
+    #     menu_options['show_cols'] = False
+    #
+    # if 'show_border' not in options:
+    #     menu_options['show_border'] = False
+    #
+    # if 'hrule' not in options:
+    #     menu_options['hrules'] = RULE_NONE
+    #
+    # if 'vrule' not in options:
+    #     menu_options['vrules'] = RULE_NONE
 
     if 'default_action' not in options:
         menu_options['default_action'] = return_tag_action
@@ -1033,7 +1039,7 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
                 pass
 
     menu = Table(menu_choices, title=title, prompt=prompt, default_choice=default_idx, default_str=default_str,
-                add_exit=add_exit, **menu_options)
+                add_exit=add_exit, style=style, **menu_options)
     result = menu.get_table_choice()
 
     if result is None:

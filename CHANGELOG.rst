@@ -10,6 +10,10 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* v0.4.0:
+
+  * added TableStyle to Tables and get_menu.
+
 * v0.3.0:
 
   * added GetInput class

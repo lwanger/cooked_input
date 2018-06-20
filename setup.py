@@ -7,7 +7,7 @@ see https://packaging.python.org/en/latest/distributing.html
 
 from setuptools import setup, find_packages
 from os import path
-
+# from io import open # Only needed for projects that want to support Python 2.7
 
 here = path.abspath(path.dirname(__file__))
 
