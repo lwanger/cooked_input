@@ -1,4 +1,3 @@
-
 """
 get_input module to get values from the command line.
 
@@ -10,7 +9,6 @@ Copyright: Len Wanger, 2017
 
 import sys
 import collections
-import veryprettytable
 
 
 def compose(value, funcs):
@@ -38,26 +36,6 @@ def compose(value, funcs):
         raise RuntimeError('funcs cannot be called')
 
     return result
-
-
-def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):
-    """
-    Take a list of tuples [(id, value), ...] and return a prettytable
-
-    :param rows: a list of tuples for the table rows. Each tuple is: (id, value).
-    :param second_col_name: the name to use for the header on the second column.
-    :param sort_by_second_col: sort by the second column if True, otherwise leave in order from rows.
-    :return: a prettytable for the table.
-    """
-    #x = prettytable.PrettyTable(['id', second_col_name])
-    x = veryprettytable.PrettyTable(['id', second_col_name])
-
-    for row in rows:
-        x.add_row([row[0], row[1]])
-
-    x.align[second_col_name] = 'l'  # left align
-    x.sortby = second_col_name if sort_by_second_col else 'id'
-    return x
 
 
 def isstring(s):

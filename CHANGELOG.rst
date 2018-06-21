@@ -12,13 +12,15 @@ see TODO.md for list of TODO items
 
 * v0.4.0:
 
-  * added TableStyle to Tables and get_menu.
+  * the big change: split cooked_input and cooked_table into separate packages
+
+  * added TableStyle to Tables and get_menu
 
 * v0.3.0:
 
   * added GetInput class
 
-  * changed **kwargs to **options for all calls. Removed options from cleaners and validators
+  * changed kwargs to options for all calls. Removed options from cleaners and validators
 
   * changed Cleaner, Convertor and Validator to abstract base classes (ABCMeta) and methods to abtract methods
 
@@ -127,7 +129,7 @@ see TODO.md for list of TODO items
 
 
  * Made a major change to how errors are handled. Added error_callbacks, convertor format strings, and
-  validation convertor strings. This changed most of the code base and some of the examples.
+    validation convertor strings. This changed most of the code base and some of the examples.
 
  * Added print_error, log_error, and ignore_error error callback routines.
 

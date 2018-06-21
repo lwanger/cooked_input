@@ -31,55 +31,6 @@ class GetInputInterrupt(KeyboardInterrupt):
     pass
 
 
-class RefreshScreenInterrupt(Exception):
-    """
-    When raised, directs ``cooked_input`` to refresh the display. Used primarily to refresh table items.
-    """
-    pass
-
-
-class PageUpRequest(Exception):
-    """
-    When raised, directs ``cooked_input`` to go to the previous page in paginated tables
-    """
-    pass
-
-
-class PageDownRequest(Exception):
-    """
-    When raised, directs ``cooked_input`` to go to the next page in paginated tables
-    """
-    pass
-
-
-class FirstPageRequest(Exception):
-    """
-    When raised, directs ``cooked_input`` to go to the first page in paginated tables
-    """
-    pass
-
-
-class LastPageRequest(Exception):
-    """
-    When raised, directs ``cooked_input`` to go to the last page in paginated tables
-    """
-    pass
-
-
-class UpOneRowRequest(Exception):
-    """
-    When raised, directs ``cooked_input`` to scroll up one row in paginated tables
-    """
-    pass
-
-
-class DownOneRowRequest(Exception):
-    """
-    When raised, directs ``cooked_input`` to scroll down one row in paginated tables
-    """
-    pass
-
-
 # Python 2/3 compatibility
 if sys.version_info[0] > 2:  # For Python 3
     def raw_input(prompt_msg):
@@ -99,6 +50,15 @@ COMMAND_ACTIONS = {
     COMMAND_ACTION_CANCEL: 'cancel_input_action',
     COMMAND_ACTION_NOP: 'nop_action',
 }
+
+
+def cancel_cmd_action(cmd_str, cmd_vars, cmd_dict):
+    """
+    Standard command action to cancel a call to a ``cooked_input`` input function. Returns **COMMAND_ACTION_CANCEL**, which
+    raises ``GetInputInterrupt``
+    """
+    print('Operation cancelled')
+    return CommandResponse(COMMAND_ACTION_CANCEL, None)
 
 
 class GetInputCommand(object):
@@ -564,7 +524,6 @@ def get_boolean(cleaners=(StripCleaner()), validators=None, **options):
     return result
 
 
-# def get_date(cleaners=(StripCleaner()), validators=None, **options):
 def get_date(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=None, **options):
     """
     :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.

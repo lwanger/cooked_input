@@ -24,7 +24,7 @@ l_desc = readme + "\n\n"
 setup(
     name='cooked-input',
     version=version['__version__'],
-    description='Get, clean, convert and validate input.',
+    description='Get, clean, convert and validate text-based input.',
     long_description=l_desc,
     long_description_content_type='text/x-rst',
     author='Len Wanger',
@@ -48,7 +48,7 @@ setup(
     ],
 
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=['setuptools-git', 'future', 'veryprettytable', 'dateparser', 'validus'],
+    install_requires=['setuptools-git', 'future', 'dateparser', 'validus'],
     python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',
 
     #extras_require={
