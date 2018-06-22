@@ -19,8 +19,11 @@ Cooked Input Tutorial
     custom cleaners, convertors, and validators -- SimpleValidator for easy. Other examples (JSON Convertor)?
     GetInput - under the covers - use when doing the same input call repeatedly.
     get_list convenience function
+    menus and tables
+    show_table and get_table_input
     commands
-    exceptions -- cancel, nop, use_value
+    exceptions -- cancel, nop, use_value, page scrolling, refresh
+    get_unicode example
 
 Introduction:
 =============

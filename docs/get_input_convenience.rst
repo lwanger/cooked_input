@@ -77,3 +77,36 @@ validate
 
 .. autofunction:: validate
 
+Table Convenience Functions
+===========================
+
+These functions create a :class:`Table` object with everything needed to display a simple menu or table. The convenience
+functions are just syntactic sugar for calls to :class:`Table`, but simpler to use. For instance, the following two
+versions do the same thing::
+
+
+    # GetInput version:
+    menu_choices = [ TableItem('red'), TableItem('green'), TableItem('blue') ]
+    menu = Table(rows=menu_choices, prompt='Pick a color')
+    result = menu.get_table_choice()
+
+    # Convenience function:
+    result = get_menu(['red', 'green', 'blue'], prompt='Pick a color')
+
+
+get_menu
+--------
+
+.. autofunction:: get_menu
+
+
+show_table
+----------
+
+.. autofunction:: show_table
+
+
+get_table_input
+---------------
+
+.. autofunction:: get_table_input

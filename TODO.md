@@ -4,9 +4,11 @@
 **TODO:**
 
 * general:
-    * Finish how-to section
-    * Use GetInput in some convenience functions (so don't have to reconstruct the GetInput everytime through the loop)
+    * Add type hint stub files (*.pyi) 
+    * _get_choice should create a GetInput instance and call get_input on it, instead of calling the GetInput.get_input
+        convenience function (so don't have to reconstruct the GetInput everytime through the loop)
     * List processing - have process done on each list element - allows ChoiceCleaner on each element, etc.
+    * Gray out visible but disabled entries in menus
     * Improve the README file
     * Add queue_errors error handler. Use for an example to send flash_messages for Flask support. Add option to 
         validators to force running all validators vs. quiting after first error found
@@ -20,25 +22,41 @@
         old password after)
 
 * get_input:
-    * add standard cancel command
-    * add minimum and maximum length parameters to get_string 
     * get_input - bug in commands entering /filter, if /f is also a command, finds /f command
     * get_list is not right! not dealing with elem and list validators (should create a ListValidator)... comments wrong
-    * add methods (or properties) for GetInput
+    * add methods (or properties) for GetInput, TableItem and Table classes (e.g. set hrules in Table)
     * show all errors for validation errors? Perform like flash messages where can have a list of them?
     * provide kwarg/option to run all validators, instead of failing on first one, so can see all errors.
     * send error messages to stderr?
     
+* get_menu:
+    * add to tutorial - get_menu and Menu.run and setting parameters
+    * add examples
+    * add coverage tests
+    * add ExitMenuExpception to exit a menu. Could be used from a menu action item to exit a menu
+
+* get_table_input
+    * get_row_num returns zero if table has not been inited... test or return # of table items.
+    * refactor so all columns set in col_values and first element is tag (unless add_tag=True in which 
+        case a number is inserted)
+    * add:   header fmt str, footer fmt str, alignment, tag_alignment to TableStyle object
+    * look @ create_rows for using get and getattr to get fields automatically. Also flag for
+        adding the object to item_data (or do automatically!). Use to clean up table creation
+    * add footer w/ vformat with current row, page #, number of pages, etc. that can be put in the format string
+    * lots of plans to improve tables and menus! Scheduled for v0.3+
+    * Set column name for tag in tables/menus (i.e. tag_str so doesn't show 'tag' in column hdr)
+    * Method to display/show table without getting input
 
 * tutorial:
+    * change to quick start?
+    * Add tables (build-a-burger) to tutorial
     * add part 2 (and part 3?) to tutorial to show more examples: passwords (get_user_info), tables,
         menus, and databases?
     * more how-to examples (pick from examples)
     * move `more examples` to `how-to` in a separate file?
-    * show how to make custom cleaners, convertors and validators
+    * show how to get an object back - put in item data, return table item and get from item data.
            
 * examples/tests:
-    * replace command.py with example that doesn't use cooked_table
     * clean up examples. With test coverage don't need to show so many cases.
     * add example for: DateConvertor and validators (e.g. RangeValidator)
     * example runner (install as an entry point script.) Use get_input for menus.
@@ -85,6 +103,10 @@
     * For FloatValidators have a eta parameter for inexact comparisons (i.e. 2.0 +/- 0.000001)
 
 * v0.3 and beyond:
+    * Revamp tables and menus
+        * allow typing unique first characters of a choice input?
+        * add render_table method to allow printing other than prettytable
+        * and lots more...
     * Can cleaners and convertor be merged to just a list of filters (i.e. a convertor is a 
     filter that changes the type)? Cleaners are always 
     on strings is easy, but could work on other types and chain. Are there filters you 

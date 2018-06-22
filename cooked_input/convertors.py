@@ -15,6 +15,11 @@ from abc import ABCMeta, abstractmethod
 from .error_callbacks import ConvertorError
 
 
+TABLE_ID = 0
+TABLE_VALUE = 1
+TABLE_ID_OR_VALUE = -1
+
+
 ###
 ### Convertors:
 ###

@@ -22,10 +22,10 @@ This is documentation for cooked_input |my_version|, generated |my_date|.
    convertors
    validators
    get_input
+   get_table
    get_input_exceptions
    error_callbacks
    get_input_commands
-   CHANGELOG
 
 
 Indices and tables
