@@ -62,7 +62,8 @@ def return_table_item_action(row, action_dict):
 
 def return_row_action(row, action_dict):
     """
-    Default action function for Tables. This function returns the whole row of data. Used by the **TABLE_RETURN_ROW** action.
+    Default action function for Tables. This function returns the whole row of data including the tag. Used by
+    the **TABLE_RETURN_ROW** action.
 
     :param List row: the data associated with the selected row
     :param Dict action_dict: the dictionary of values associated with the action - ignored in this function
@@ -70,7 +71,7 @@ def return_row_action(row, action_dict):
     :return: A list containing all of the data values for the selected row of the table.
     :rtype: List
     """
-    return row.values
+    return [row.tag] + row.values
 
 
 def return_tag_action(row, action_dict):
@@ -954,35 +955,88 @@ class Table(object):
         return True
 
 
-def _create_rows(items, fields, gen_tags=None, item_data=None, add_item_to_item_data=False):
+def create_rows(items, fields, gen_tags=None, item_data=None, add_item_to_item_data=False):
     """
-    Create a list of TableItems from an iterable (items) of objects (i.e. has getattr defined).
-     If gen_tags is True, creates a numbered tag for the item. If False uses the first field as the tag.
+    Create a list of TableItems from an iterable (items) of objects
 
-    :param items: query or iterable containing items for the table.
-    :param fields: list of field/attribute names to use for column values for each item.
-    :param gen_tags: if True will generate sequentially numbered tags for table items, if False (default) uses first column value.
-    :return: list of table items
+    :param items: iterable containing items for the table.
+    :param List[str] fields: list of field/attribute names to use as column values for each item.
+    :param bool gen_tags: if **True** will generate sequentially numbered tags for table items, if False (default) uses
+            first column value of each item for the row's tag.
+    :param Dict item_data: An optional dictionary to be copied and  attached to the :class:`TableItem` for the row.
+    :param bool add_item_to_item_data: if **True** ``item_data['item']`` is set to `item`.
 
-    fetch_method is a goofy way of getting data items... in 2.7 there's no typing module so can't check on Mapping,
-    Iterable, etc. Instead check if getattr is defined, else fallback to get (dicctionary) or __getitem__ (lists).
-    Note: fetch_method is set in the first iteration of the loop as some items are not re-entrant (generators and
-    queries from some databases.) If can only use __get_item__ (indexing into a list/array) it assumes the fields
-    are in order of the list.
+    :return: List[TableItem] of  table items (:class:`TableItem`)
+
+    ``create_rows`` is a convenience function used to create a list of table items (:class:`TableItem`) for a
+    ``cooked_input`` :class:`Table`. ``create_rows`` tries to make it easy to create the rows for a table from
+    a list of data or a query.
+
+    ``create_rows`` takes an iterable of ``items``, such as a list, dictionary or query. The items in ``items``
+    can be just about anything too: objects, lists, dictionaries, tuples, or namedtuples.  ``create_rows`` also
+    takes a list of ``fields`` with each item in the list the name of a field or attribute in the items. ``create_rows``
+    iterates through ``items`` and add the value for each field as a column value for the table row.
+
+    ``create_rows`` fetches the field data based on the following::
+
+        1. If ``hasattr`` for the fields returns **True** (**__getattr__** is defined), uses ``getattr`` to retreive
+            field values. This works nicely for class instances, named tuples, and database query results from an
+            object-relationship mapper (ORM).
+        2. If the items are dictionaries, uses ``get`` to retreive the value for the key matching the field name.
+        3. If both of the previous methods fail, the first len(fields) values of the item are used (requires
+            **__get_item__** to be defined.)
+
+    .. note::
+
+        Care is taken to make a single pass through the ``items`` iterable as some iterables are non-reentrant
+        (e.g. generators and some database queries)
+
+
+    Example usage - get a list of integers between 3 and 5 numbers long, separated by colons (:)::
+
+        class Person(object):
+            def __init__(self, first, last, age, shoe_size):
+                self.first = first
+                self.last = last
+                self.age = age
+                self.shoe_size = shoe_size
+
+        people = [
+            Person('John', 'Cleese', 78, 14),
+            Person('Terry', 'Gilliam', 77, 10),
+            Person('Eric', 'Idle', 75, 12),
+        ]
+
+        rows = create_rows(people, ['last', 'first', 'shoe_size'])
+        Table(rows, ['First', 'Shoe Size'], tag_str='Last').show_table()
+
+    ``create_rows`` is called by :func:`create_table` to create the table rows.
     """
     tis = []
     GET_ATTR, GET, GET_ITEM = range(3)
-    use_item_data = fetch_method = None
+    fetch_method = None
 
-    if item_data:
-        use_item_data = dict(item_data)
-
+    """
+    This is a goofy way of doing things, and it would be a lot cleaner to check the types (Iterable, Mapping, etc.) But
+    you can't do that in legacy Python (e.g. v2.7) as there is no Typing module. This will be cleaned this up when legacy 
+    Python support is dropped.
+    """
     if isinstance(items, dict):
         use_items = items.values()
     else:
         use_items = items
 
     for item in use_items:
+        """
+        Note: fetch_method is set in the first iteration of the loop as some items are not re-entrant (generators and
+        queries from some databases.) If can only use __get_item__ (indexing into a list/array) it assumes the fields
+        are in order of the list.
+        """
+        if item_data is None:
+            use_item_data = None
+        else:
+            use_item_data = dict(item_data)
+
         if fetch_method is None:    # determine method to fetch items.
             if hasattr(item, fields[0]):
                 fetch_method = GET_ATTR
@@ -997,8 +1051,11 @@ def _create_rows(items, fields, gen_tags=None, item_data=None, add_item_to_item_
             row_data = [ getattr(item, name) for name in fields ]
         elif fetch_method == GET:
             row_data = [ item.get(name) for name in fields ]
-        elif fetch_method == GET_ITEM:
-            row_data = item
+        elif fetch_method == GET_ITEM and len(item) >= len(fields):
+            row_data = item[:len(fields)]
+        else:
+            raise RuntimeError(
+                'create_rows cannot fetch field values - getattr, get, and __getitem__ all failed.')
 
         if gen_tags is True:
             tag = None
@@ -1021,34 +1078,61 @@ def create_table(items, fields, field_names=None, gen_tags=None, item_data=None,
                  add_item_to_item_data=False, title=None, prompt=None, default_choice=None,
                  default_str=None, default_action=TABLE_RETURN_TABLE_ITEM, style=None, **options):
     """
-    Convenience function to create ``cooked_input`` tables.
+    Convenience function to create ``cooked_input`` a table.
 
-    :param items: an iterable containing items to use for each row of the table. See below for more details.
-    :param fields: a list of the attributes to use for the columns of the table. See below for more details.
-    :param field_names: a list of strings to use for the names of the table columns.
-    :param gen_tags: if False (default) the first field of the item will be used to select the item, if True
-            sequentially ordered numbers are used for the table item tags.
-    :param item_data: an optional dictionary of values to be attached as item_data to each TableItem.
-    :param add_item_to_item_data: if True item_data['item'] is set to the item
-    :param title: an optional string to use as the title for the table.
-    :param prompt: an optional string to use for the table prompt.
-    :param default_choice:
-    :param default_str:
-    :param default_action:
-    :param TableStyle style:
-    :param options: a dictionary of optional values for the table. See Table for details.
+    :param items: iterable containing items for the table.
+    :param List[str] fields: list of field/attribute names to use as column values for each item.
+    :param List[str] field_names: a list of strings to use for the names of the table columns.
+    :param bool gen_tags: if **True** will generate sequentially numbered tags for table items, if False (default) uses
+            first column value of each item for the row's tag.
+    :param Dict item_data: An optional dictionary to be copied and  attached to the :class:`TableItem` for the row.
+    :param bool add_item_to_item_data: if **True** ``item_data['item']`` is set to `item`.
+    :param str title: an optional string to use as the title for the table.
+    :param str prompt: an optional string to use for the table prompt.
+    :param str default_choice: an optional default value to use for when getting input from the table.
+    :param str default_str: an optional string to display for the default choice value.
+    :param default_action: the default action to take when a table item is picked. Defaults to **TABLE_RETURN_TABLE_ITEM***.
+    :param TableStyle style: an optional :class:`TableStyle` to use for the table.
+    :param options: a dictionary of optional values for the table. See :class:`Table` for details.
+
     :return: an instance of a ``cooked_input`` :class:`Table`
 
-    items can be anything reasonable. If the item is an object, namedtuple, pr has __getattr__ defined, ``create_table``
-    will try to use getattr to get the field values for the item. if getaatr cannot be used (for example dictionaries), get
-    will be tried. If both getattr and get fail, getitem will be tried (e.g. lists and tuples).
+    ``create_table`` is a convenience function used to create a ``cooked_input`` table (:class:`Table`) from
+    a list of data or a query.
 
-    all items use the same default_action and item_data (with exception of addding object to item data)
-    hidden and enabled through item_filter if any.
+    ``create_table`` calls :func:`create_rows` to create the table rows. See :func:`create_rows` for an explanation
+    of the: ``items``, ``fields``, ``gen_tags``, ``item_data``, and ``add_item_to_item_data`` parameters.
 
-    TODO: clean up documentation, finish tests. Problem with default action -- doesn't return tag by default (row doesn't include it)
+    See :class:`Table` for an explanation of the: ``title``, ``prompt``, ``default_choice``, ``default_str``,
+        ``default_action``, ``style`` and ``options`` parameters.
 
+    .. note::
+
+        all items are created with the same ``default_action`` and ``item_data`` (with exception of adding the item
+        to ``item_data['item']`` if ``add_item_to_item_data`` is **True**.)
+
+    .. note::
+
+        By default all items (rows) are visible and enabled. Rows can be hidden or disabled by setting an
+        ``item_filter`` value in the ``options`` dictionary.
+
+    Example usage - get a list of integers between 3 and 5 numbers long, separated by colons (:)::
+
+        items = {
+            1: {"episode": 1, "name": "Whither Canada?", "date": "5 October, 1969", "season": 1},
+            2: {"episode": 4, "name": "Owl Stretching Time", "date": "26 October, 1969", "season": 1},
+            3: {"episode": 15, "name": "The Spanish Inquisition", "date": "22 September, 1970", "season": 2},
+            4: {"episode": 35, "name": "The Nude Organist", "date": "14 December, 1972", "season": 2}
+        }
+
+        fields = 'episode name date'.split()
+        field_names = 'Episode Name Date'.split()
+        tbl = create_table(items, fields, field_names, add_item_to_item_data=True, title='Episode List')
+        choice = tbl.get_table_choice()
+        item = choice.item_data["item"]
+        print('{}: {}'.format(item['name'], item['season']))
     """
+    use_field_names = None
     new_options = dict(**options)
     if 'tag_str' in options:
         use_tag_str = options['tag_str']
@@ -1060,18 +1144,27 @@ def create_table(items, fields, field_names=None, gen_tags=None, item_data=None,
     else:
         use_style = style
 
+    if field_names is None:
+        use_field_names = fields
+
     if gen_tags is True:
-        use_field_names = field_names
+        if use_field_names is None:
+            use_field_names = field_names
+
         if use_tag_str is None:
             use_tag_str = ' '
     else:
-        use_field_names = field_names[1:]
+        if use_field_names is None:
+            use_field_names = field_names[1:]
+        else:
+            use_field_names = use_field_names[1:]
+
         if use_tag_str is None:
             use_tag_str = field_names[0]
 
     new_options['tag_str'] = use_tag_str
 
-    tis = _create_rows(items, fields, gen_tags, item_data, add_item_to_item_data)
+    tis = create_rows(items, fields, gen_tags, item_data, add_item_to_item_data)
     tbl = Table(tis, col_names=use_field_names, default_choice=default_choice,
                 default_str=default_str, default_action=default_action, prompt=prompt, title=title,
                 show_cols=use_style.show_cols, show_border=use_style.show_border, style=style, **new_options)

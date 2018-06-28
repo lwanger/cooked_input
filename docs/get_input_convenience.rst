@@ -100,6 +100,18 @@ get_menu
 .. autofunction:: get_menu
 
 
+create_rows
+-----------
+
+.. autofunction:: create_rows
+
+
+create_table
+------------
+
+.. autofunction:: create_table
+
+
 show_table
 ----------
 

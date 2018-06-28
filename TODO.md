@@ -14,12 +14,12 @@
         validators to force running all validators vs. quiting after first error found
     * get to 100% coverage and add badge
     * For consistency with wtform, should 'cleaners' be changed to 'filters'?
-    * Changelog link broken in README. Add TODO too?
     * change put_in_a_list to tolist (consistent with memoryview)
     * Add bytearray type to isstring (doesn't match bytes, str, unicode or basestring)
     * Add get_password convenience function. Allow validating before and after calling a provided hashing function.
         (eg. check length, lower and uper case, etc. before hashing, then post-validation, such as comparing to 
         old password after)
+    * Lock requirements to values suggested from PyUp.io 
 
 * get_input:
     * get_input - bug in commands entering /filter, if /f is also a command, finds /f command
@@ -28,6 +28,10 @@
     * show all errors for validation errors? Perform like flash messages where can have a list of them?
     * provide kwarg/option to run all validators, instead of failing on first one, so can see all errors.
     * send error messages to stderr?
+
+* get_string:
+    * add minimum and maximum length paraeters
+    * add allowed/disallowed characters parameter. Nice to prevent SQL injection (i.e. no " or ;)
     
 * get_menu:
     * add to tutorial - get_menu and Menu.run and setting parameters
@@ -40,12 +44,8 @@
     * refactor so all columns set in col_values and first element is tag (unless add_tag=True in which 
         case a number is inserted)
     * add:   header fmt str, footer fmt str, alignment, tag_alignment to TableStyle object
-    * look @ create_rows for using get and getattr to get fields automatically. Also flag for
-        adding the object to item_data (or do automatically!). Use to clean up table creation
     * add footer w/ vformat with current row, page #, number of pages, etc. that can be put in the format string
-    * lots of plans to improve tables and menus! Scheduled for v0.3+
-    * Set column name for tag in tables/menus (i.e. tag_str so doesn't show 'tag' in column hdr)
-    * Method to display/show table without getting input
+    * Option to clip table values (maximum length and append '...')
 
 * tutorial:
     * change to quick start?
@@ -60,6 +60,7 @@
     * clean up examples. With test coverage don't need to show so many cases.
     * add example for: DateConvertor and validators (e.g. RangeValidator)
     * example runner (install as an entry point script.) Use get_input for menus.
+    * note to use sectets.compare.digest to compare passwords in get_password and other hidden values
 
 * cleaners:
     * add swapcase and casefold styles to Capitalization
@@ -68,9 +69,13 @@
     * Unicode support:
         * cleaner for Unicode normalization and character encodings
     * cleaner for html quoting/unquoting
-    * strip sql injection when dealing with tables
+    * cleaner for cross-site scripting (XSS)
+    * strip sql injection when dealing with tables. See: https://pyup.io/posts/don-t-trust-user-input/ 
+        Also see: https://github.com/JasonHinds13/hackable. https://xkcd.com/327/ Also: https://sqlparse.readthedocs.io/en/latest/
     * add: simple cleaner - take a callable in and clean. Like SimpleValidator. Useful for cleaning from
         large set of items. For example ChoiceCleaner on a large database table
+    * make default cleaning do: strip, normalize Unicode, block sql injection, etc. Make a DefaultCleaner 
+        class (subset of Cleaner) that can be used.
 
 * convertors:
     * NameTuple convertor - pass in a NamedTuple type (from typing.NamedTuple if want default values)
@@ -87,6 +92,8 @@
         large set of items. For example a database table
  
 * validators:
+    * validators to allow/disallow specific elements in a string or list. Nice for preventing quote or ;
+         in a string to prevent SQL injection
     * add intersection_validator? See get_menu example. useful for filtering user roles.
     * add: date range, date day of week
     * allow forcing to validate all validators instead of stopping on first failure

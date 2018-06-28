@@ -1,6 +1,7 @@
 # test create_table:
 from collections import namedtuple
-from cooked_input import create_table, TableStyle, TABLE_RETURN_ROW, TABLE_RETURN_TABLE_ITEM, RULE_FRAME, RULE_ALL
+from cooked_input import create_table, create_rows, Table, TableStyle
+from cooked_input import TABLE_RETURN_ROW, TABLE_RETURN_TABLE_ITEM, RULE_FRAME, RULE_ALL
 
 def test_create_table(items, fields, field_names, gen_tags, tag_str, item_data=None, add_item_to_item_data=False,
         add_exit=False, prompt=None, style=None, default_choice=None, default_action=TABLE_RETURN_ROW):
@@ -13,6 +14,7 @@ def test_create_table(items, fields, field_names, gen_tags, tag_str, item_data=N
     print()
     recipe_ti = tbl.get_table_choice(commands=None)
     print(recipe_ti)
+    return recipe_ti
 
 
 prompt = None
@@ -24,6 +26,42 @@ default_choice=None
 table_style = TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
 
 # test different type of items lists...
+
+if True:
+    class Person(object):
+        def __init__(self, first, last, age, shoe_size):
+            self.first = first
+            self.last = last
+            self.age = age
+            self.shoe_size = shoe_size
+
+    people = [
+        Person('John', 'Cleese', 78, 14),
+        Person('Terry', 'Gilliam', 77, 10),
+        Person('Eric', 'Idle', 75, 12),
+    ]
+
+    rows = create_rows(people, ['last', 'first', 'shoe_size'])
+    Table(rows, ['First', 'Shoe Size'], tag_str='Last').show_table()
+    print()
+
+if True:
+    items = {
+        1: {"episode": 1, "name": "Whither Canada?", "date": "5 October, 1969", "season": 1},
+        2: {"episode": 4, "name": "Owl Stretching Time", "date": "26 October, 1969", "season": 1},
+        3: {"episode": 15, "name": "The Spanish Inquisition", "date": "22 September, 1970", "season": 2},
+        4: {"episode": 35, "name": "The Nude Organist", "date": "14 December, 1972", "season": 2}
+    }
+
+    fields = 'episode name date'.split()
+    field_names = 'Episode Name Date'.split()
+    tbl = create_table(items, fields, field_names, add_item_to_item_data=True,
+                       title='And Now For Something Completely different')
+    choice = tbl.get_table_choice()
+    item = choice.item_data["item"]
+    print('{}: {}'.format(item['name'], item['season']))
+
+
 if True:  # single item list, generate tags
     print('\nTest list of single items - autogen tags\n')
     items = [["Beast"], ["Deuce"], ["Seth"]]  # single item list
@@ -108,7 +146,9 @@ if True:
     item_data = {'foo': 'I am foo', 'bar': [1, 2, 3]}
     aitid = True
     default_action = TABLE_RETURN_TABLE_ITEM
-    test_create_table(items, fields, field_names, gen_tags, tag_str, item_data=None, add_item_to_item_data=aitid,
+    ti = test_create_table(items, fields, field_names, gen_tags, tag_str, item_data=None, add_item_to_item_data=aitid,
                       style=table_style, default_action=default_action)
+
+    print(f'name={ti.item_data["item"].name},  other={ti.item_data["item"].other}')
 
 
