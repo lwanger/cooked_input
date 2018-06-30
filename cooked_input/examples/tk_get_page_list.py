@@ -13,6 +13,25 @@ import itertools
 from tkinter import Tk, Label, Button, Entry, Text, LEFT, RIGHT, StringVar
 import cooked_input as ci
 
+def tk_error_factory(str_var):
+    # Factory returns an instance of tk_error with str_var (a tk string variable) as a closure. This allows
+    # cooked_input to set error messages in a GUI by setting the string variable.
+    def tk_error(fmt_str, value, error_content):
+        """
+        send errors to a Tk Stringvar.
+
+        :param int fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
+          for the error. Can use arguments **{value}** and **{error_content}** in the format string
+        :param Any value: the value the caused the error
+        :param str error_content: additional information for the error
+
+        :return: None
+        """
+        str_var.set(fmt_str.format(value=value, error_content=error_content))
+
+    return tk_error
+
+
 class IntervalConvertor(ci.Convertor):
     """
     A cooked_input convertor to convert an integer or a range of integers ("x - y") and return the expanded
@@ -102,6 +121,7 @@ class App(object):
         self.pages_entry.grid(row=1, column=1)
 
         self.error_msg_var = StringVar()
+        self.tk_error = tk_error_factory(self.error_msg_var)
         self.error_msg_var.set('')
         self.error_msg = Label(self.root, textvariable=self.error_msg_var)
         self.error_msg.grid(row=2, column=0)
@@ -112,18 +132,16 @@ class App(object):
     def process_entry(self):
         max_val = int(self.max_val_var.get())
         page_entry_val = self.pages_entry.get()
-
-        interval_gi = ci.GetInput(convertor=IntervalConvertor(min_val=1, max_val=max_val), error_callback=ci.silent_error)
+        interval_gi = ci.GetInput(convertor=IntervalConvertor(min_val=1, max_val=max_val), error_callback=self.tk_error)
         list_gi = ci.GetInput(convertor=ci.ListConvertor(interval_gi),
-                validators=ci.ListValidator(len_validators=ci.RangeValidator(min_val=1)), error_callback=ci.silent_error)
+                  validators=ci.ListValidator(len_validators=ci.RangeValidator(min_val=1)), error_callback=self.tk_error)
         valid, result = list_gi.process_value(page_entry_val)
 
         if valid is True:
             page_list = sorted(set(itertools.chain.from_iterable(result)))
             print(f'page_list={page_list}')
             self.root.destroy()
-        else:
-            self.error_msg_var.set('Error: Bad list of pages')
+
 
 app = App()
 app.root.mainloop()
