@@ -10,7 +10,7 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
-* v0.4.0:
+* v0.5.0:
 
   * added TableStyle to Tables and get_menu.
 
