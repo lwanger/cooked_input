@@ -18,6 +18,10 @@ see TODO.md for list of TODO items
 
   * return_row_action (TABLE_RETURN_ROW) changed to return the whole row including the tag.
 
+  * fixed bug in ListConvertor to catch StopIteration exception caused by empty list
+
+  * added tk_get_page example.
+
 * v0.3.0:
 
   * added GetInput class
@@ -128,7 +132,6 @@ see TODO.md for list of TODO items
  * Added pytest tests for getting ints and floats. A lot more case to add.
 
 * v0.2.0:
-
 
  * Made a major change to how errors are handled. Added error_callbacks, convertor format strings, and
     validation convertor strings. This changed most of the code base and some of the examples.

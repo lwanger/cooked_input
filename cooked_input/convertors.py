@@ -161,12 +161,16 @@ class ListConvertor(Convertor):
             csv.register_dialect('my_dialect', delimiter=self._delimeter, quoting=csv.QUOTE_MINIMAL, skipinitialspace=True)
             dialect = csv.get_dialect('my_dialect')
 
+        converted_list = []
         reader = csv.reader(buffer, dialect)
-        lst = next(reader)
+
+        try:
+            lst = next(reader)
+        except (StopIteration):
+            return converted_list
 
         try:
             if self._elem_get_input:
-                converted_list = []
                 for item in lst:
                     valid, value = self._elem_get_input.process_value(item)
 
