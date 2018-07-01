@@ -18,7 +18,7 @@ case looks like::
             # initialize any specific state for the cleaner.
             pass
 
-        def __call__(self, value, error_callback, convertor_fmt_str):
+        def __call__(self, value):
             return value.lower()
 
 Cleaners
