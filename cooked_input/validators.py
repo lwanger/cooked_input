@@ -576,7 +576,7 @@ class ListValidator(Validator):
     .. note::
 
         ``len_validators`` is usually an instance of :class:`EqualToValidator` for a list of a specific length, or
-        :class:`RangeValidator` for a list who's length is in a range. :class:`LengthValidator` is not used as the ``value``
+        :class:`RangeValidator` for a list whose length is in a range. :class:`LengthValidator` is not used as the ``value``
         passed to the validator is the length of the list, not the list itself.
 
     Example::

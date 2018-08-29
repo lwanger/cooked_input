@@ -245,7 +245,7 @@ class TableItem(object):
         | TABLE_ITEM_DEFAULT       |  use default method to handle the table item (e.g. use the parent        |
         |                          |  table's default_action handler function)                                |
         +--------------------------+--------------------------------------------------------------------------+
-        | TABLE_ITEM__EXIT         |  selecting the table row should exit (used to exit a menu)               |
+        | TABLE_ITEM_EXIT          |  selecting the table row should exit (used to exit a menu)               |
         +--------------------------+--------------------------------------------------------------------------+
         | TABLE_ITEM__RETURN       |  selecting the table row should return (used to return from a submenu)   |
         +--------------------------+--------------------------------------------------------------------------+
@@ -293,8 +293,8 @@ class Table(object):
         
         **tag_str**:     string to use for the tag column name. Defaults to an empty string ("").
 
-        **add_exit**:    automatically adds a :class:`TableItem` to exit the table menu (``TABLE_ITEM__EXIT``) or
-                            return to the parent table/menu (``MENU_ADD_RETURN``), or not to add a :class:`TableItem` at all (**False**).
+        **add_exit**:    automatically adds a :class:`TableItem` to exit the table menu (``TABLE_ITEM_EXIT``) or
+                            return to the parent table/menu (``TABLE_ADD_RETURN``), or not to add a :class:`TableItem` at all (**False**).
                             Used to exit menus or return from sub-menus.
 
         **action_dict**: a dictionary of values to pass to action functions. Used to provide context to

@@ -5,25 +5,21 @@ Cooked Input Tutorial
 
 .. note::
 
-    This tutorial is out of date. The introduction is still valid, but the rest needs to be re-written for v0.3+. The
-    new tutorial discusses: The GetInput class, table, commands.
+    Many users will to start with the `quick start <quick_start.html>`_ guide to get up and running with
+    `cooked_input` quickly.
 
-    New Tutorial outline:
+.. note::
 
-    introduction - motivation
-    the get_input convenience function - What is CCV paradigm
-    cleaners, convertors and validators
-    process_value and validate convenience functions (run CCV and run V in a value respectively)
-    more options (for get_input and other covnenience classes) - prompt, required, default, default_str, hidden, retries
-    example - getting a password
-    custom cleaners, convertors, and validators -- SimpleValidator for easy. Other examples (JSON Convertor)?
-    GetInput - under the covers - use when doing the same input call repeatedly.
-    get_list convenience function
-    menus and tables
-    show_table and get_table_input
-    commands
-    exceptions -- cancel, nop, use_value, page scrolling, refresh
-    get_unicode example
+    This tutorial is is still a work in progress... stayed tuned for discussions of:
+
+    * custom cleaners, convertors, and validators -- SimpleValidator for easy. Other examples (JSON Convertor)?
+    * GetInput class - under the covers - use when doing the same input call repeatedly.
+    * get_list convenience function
+    * menus and tables
+    * show_table and get_table_input
+    * commands
+    * exceptions -- cancel, nop, use_value, page scrolling, refresh
+    * get_unicode example
 
 Introduction:
 =============
@@ -38,7 +34,8 @@ The first program in an introduction to Python usually looks something like this
     import random
     number = random.randint(1, 10)
     print('I am thinking of a number between 1 and 10.')
-    guess = int(input('Guess what number I am thinking of: '))
+    guess_str = input('Guess what number I am thinking of: ')
+    guess = int(guess_str)
 
     if guess < number:
         print('Buzz.... you guessed too low.')
@@ -47,7 +44,7 @@ The first program in an introduction to Python usually looks something like this
     else:
         print('Ding ding... you guessed it!')
 
-Looks simple enough right? What happens when the user responds with 'a'::
+Looks simple enough right? We get input from the user and convert it to an integer. But what happens when the user responds with 'a'::
 
     I am thinking of a number between 1 and 10.
     Guess what number I am thinking of: a
@@ -76,33 +73,85 @@ within the correct range, works with legacy Python (ie. version 2) and 3, etc. b
             except ValueError:
                 print('That is not an integer, try again.')
 
-That's a lot of code to handle the simplest of inputs. This boiler plate code is replicated and expanded for each input from the
+That's a lot of code to handle the simplest of inputs. This also forces a beginer to deal with advanced concepts such
+as exceptions and versions of Python. This boiler plate code
+is replicated and expanded for each input from the
 command line. Just think of how much code you would need to get and validate a new password from a user --
-making sure the input is hidden, doesn't match the previous password, is at least 8 characters long,
-has at least 2 upper case letters, has at least 2 punctuation marks, has at least 1 number, doesn't use the characters '[', ']', or '&', and
+making sure the input is hidden, is at least 8 characters long, has at least 2 upper case letters, has at least 2
+punctuation marks, has at least 1 number, doesn't use the characters '[', ']', or '&', and
 exits after 3 failed attempts.
 
-The purpose of the cooked_input module is to make it easier to get command line input from the user. It
+The purpose of ``cooked_input`` is to make it easier to get command line input from the user. It
 takes care of cleaning, converting, and validating the input. It also helps put together the prompt message and error
 messages. In cooked_input, safely getting the value from the user in the guessing game becomes::
 
-    guess = get_int(prompt='Guess what number I am thinking of', minimum=0, maximum=10)
+    prompt_str ='Guess what number I am thinking of'
+    guess = get_int(prompt=prompt_str, minimum=0, maximum=10)
 
 For a complete listing of the guessing game code using cooked_input, see simple_input.py in the examples directory.
 
 In case your curious, the password example above can be written in cooked_input as::
 
+    prompt_str = 'Enter a new password'
     good_password = PasswordValidator(min_len=8, min_upper=2, min_digits=1, min_puncts=2, disallowed='[]&')
-    not_last_password = NoneOfValidator(EqualToValidator(old_password))
-    password = get_input(prompt='Enter a new password', validators=[good_password, not_last_password], hidden=True, retries=3)
+    password = get_input(prompt=prompt_str, validators=[good_password], hidden=True, retries=3)
+
+The CCV paradigm:
+=================
+
+``Cooked_input`` processes input using the Clean, Convert, Validate (CCV) paradigm. This is the underlying principal
+used for getting input in ``cooked_input``.
+
+.. figure:: CCV.svg
+    :width: 375px
+    :align: center
+    :height: 100px
+    :alt: "the clean, convert, validate (CCV) pipeline"
+    :figclass: align-center
+
+    The "clean, convert, validate" (CCV) paradigm
+
+In CCV, an input string is processed by first running it through a set of ``cleaners``. This is a set of zero or more
+functions which clean the input string. For instance a cleaning function may convert a string from to upper case or
+strip off white space from the ends of the string.
+
+Next the cleaned string is run through a ``convertor`` function, which converts the string into the desired output
+type. ``Cooked_input`` includes convertors for many types, such as integers, floating point numbers, Booleans, and dates.
+
+Finally the cleaned, converted value is run through a set of ``validators``. This is a set of zero or more validation
+functions which verify the value is acceptable. For instance, a validator may check that a value in a specified range.
+
+If the value gets through the CCV pipeline without generating an error, the cleaned,
+converted value is returned. Otherwise an error message is presented and the user is prompted to re-enter the value.
+
+By combining ``cooked_input's`` rich set of cleaners, convertors and validators complicated inputs can be processed
+easily. It is also easy to create your own custom cleaners, convertors and validators to expand ``cooked_input's``
+functionality.
+
+Using CCV in Convenience Functions:
+===================================
+
+In the `quick start <quick_start.html>`_ we saw how to use the ``cooked_input``
+`convenience functions <get_input_convenience.html>`_ to process simple values. The convenience functions are
+wrappers that set useful default values for the cleaners, convertor and validators. For instance, the
+:func:`get_int` sets the convertor to :class:`IntConvertor` and has parameters for setting the minimum and
+maximum values for validating the value is within a range :class:`RangeValidator`.
+
+All of the convenience functions also take an optional set of cleaners and validators. For instance, a
+:class:`NoneOfValidator` can be sent to ``get_int`` to get a value between -10 and 10, but not zero::
+
+    not_zero_validator = NoneOfValidator([0])
+    get_int(minimum=-10, maximum=10, validators=[not_zero_validator])
+
 
 Breaking down get_input:
 ========================
 
-The centerpoint of cooked_input is a function called `get_input`. In the guessing game we used a call to `get_int` which is
-just a friendly wrapper around get_input that automatically fills in some of the values required to get an integer.
-Similarly, all of the other convenience functions (such as `get_float`, `get_boolean`, `get_date`, etc.) are just wrappers
-around get_input too.
+The `convenience functions <get_input_convenience.html>`_ are wrappers around the `get_input` function. For instance,
+``get_int`` is a wrapper around :func:`get_input` that automatically fills in some of the values required to get an integer
+(e.g. set the convertor function to :class:`IntConvertor`).
+Similarly, all of the other convenience functions (such as :func:`get_float`, :func:`get_boolean`, :func:`get_date`,
+etc.) are just wrappers around get_input too.
 
 The simplest call to `get_input` is:
 
@@ -112,62 +161,194 @@ The simplest call to `get_input` is:
 
 This will prompt the user for their name and return a non-blank string. If the user types in a blank value (a zero
 length string) they will receive an error message and be prompted to re-enter the value until a non-zero length string
-is entered (note: white space/spaces is not a zero length string!)
+is entered
+
+.. note::
+
+    By default get_input does not strip out white space, so typing a space or other whitespace characters would not be
+    considered a blank string. This differs from ``get_string`` which defaults to stripping whitespace meaning a space
+    would be cleaned to be a blank string
 
 Let's look at a more complicated example. The get_int call in the guessing game makes a call to get_input that looks
 something like this:
 
 .. code-block:: python
 
-    result = get_input(prompt='Guess what number I am thinking of',
-        convertor=IntConvertor(),
-        validators=RangeValidator(min_val=1, max_val=None), retries=3)
+    prompt_str = 'Guess what number I am thinking of'
+    range_validator = RangeValidator(min_val=1, max_val=None)
+    result = get_input(prompt=prompt_str, convertor=IntConvertor(),
+        validators=range_validator, retries=3)
 
-* *prompt*: the string to print to prompt the user.
 
-* *convertor*: the `Convertor` is called to convert the string entered into the type of value we want. `IntConvertor`
-  converts the value to an integer (`int`).
+This call passes several parameters to ``get_input``:
 
-* *validators*: the `Validator` function (or list of `Validator` functions) used to check the entered string meets the
-  criteria we want. If the input doesn't pass the validation, an error message is produced, and the user is prompted to
-  re-enter a value.
+ **prompt**: the string to print to prompt the user.
 
-  `RangeValidator` takes a minimum and maximum value and checks that the input value is in the
-  interval between the two. For example,  `RangeValidator(min_val=1, max_val=10)` would make sure the value is between
-  `1` and `10`. (i.e. `1<=value<=10`). In the case above, `max_val` is set to `None`, so no maximum value is applied
-  (i.e. checks `1<=value`)
+ **convertor**: the `Convertor` is called to convert the string entered into the type of value we want.
+        `IntConvertor` converts the value to an integer (`int`).
 
-* *options*: there are a number of optional parameters that get_input can take (see `get_input` for more information).
-  By default, get_input will keep asking for values until a valid value is entered. The `retries` option specifies the
-  maximum number of times to ask. If no valid input is entered within the maximum number of tries a MaxRetriesError is raised.
+ **validators**: the `Validator` function (or list of `Validator` functions) are used to check the entered
+        string meets the criteria we want. If the input doesn't pass the validation, an error message is
+        produced, and the user is prompted to re-enter a value.
 
-* *return value*: the cleaned, converted, validated value is returned. The returned value is safe to use as we know it
-  meets all the criteria we requested.
+        :class:`RangeValidator` takes a minimum and maximum value and checks that the input value is in the
+        interval between the two. For example, `RangeValidator(min_val=1, max_val=10)` would make sure the value
+        is between `1` and `10`. (i.e. `1<=value<=10`). In the case above, `max_val` is set to `None`, so no
+        maximum value is applied (i.e. checks `1<=value`)
+
+ **options**: there are a number of optional parameters that get_input can take (see `get_input` for more
+        information). By default, get_input will keep asking for values until a valid value is entered. The
+        `retries` option specifies the maximum number of times to ask. If no valid input is entered within
+        the maximum number of tries a :class:`MaxRetriesError` exception is raised.
+
+ **return value**: the cleaned, converted, validated value is returned. The returned value is safe to use as we
+    know it meets all the criteria we requested. In this case, an integer value that is greater than or equal to `0`.
 
 The general flow of `get_input` is:
 
-1) Prompt the user and get the input from the keyboard (sys.stdin)
+    1) Prompt the user and get the input from the keyboard (sys.stdin)
 
-2) Apply the entered string through the specified cleaners.
+    2) Apply the cleaner functions to the string.
 
-3) Apply the convertor to the cleaned string.
+    3) Apply the convertor function to the cleaned string.
 
-4) Apply the specified validators to the converted value. The converted value needs to pass all of the validators (i.e.
-   they are AND'd together). Other combinations of validators can be achieved by using the `AnyOfValidator` (OR)
-   and `NoneOfValidator` (NOT) validators.
+    4) Apply the validator functionss to the converted value. The converted value needs to pass all of the
+        validators (i.e. they are AND'd together). Other combinations of validators can be achieved by using
+        the :class:`AnyOfValidator` (OR) and :class:`NoneOfValidator` (NOT) validators.
 
-5) Return the cleaned, converted, validated value.
-
-.. note::
-
-    The order of the cleaners and validators is maintained. For example, if the list of cleaners is
-    `cleaners=[StripCleaner(), CapitalizationCleaner(style='lower')]`, then the strip operation is performed before
-    conversion to lower case. Applying these cleaners to the value `"  Yes "` is equivalent to the Python
-    statement: `"  Yes ".strip().lower()` (strip, then convert to lower case), which would produce the cleaned value: `"yes"`
+    5) Return the cleaned, converted, validated value.
 
 .. note::
 
-    The `process` function take an input value as a parameter and runs all of the `get_input` processing steps on
+    The order of the cleaners and validators is maintained and applied from left-to-right. For example, if
+    the list of cleaners is `cleaners=[StripCleaner(), CapitalizationCleaner(style='lower')]`, then the
+    strip operation is performed before conversion to lower case. Applying these cleaners to the value `"  Yes "`
+    is equivalent to the Python statement: `"  Yes ".strip().lower()` (strip, then convert to lower case), which
+    would produce the cleaned value: `"yes"`.
+
+.. note::
+
+    The :func:`process_value` function take an input value as a parameter and runs all of the `get_input` processing steps on
     the value (i.e. runs steps 2--5 above.) This is useful for applying the same cooked_input cleaning, conversion and
     validation to value from GUI forms, web forms or for data cleaning. The `validate_tk` example shows how
     `process` can be used to validate an input in a GUI.
+
+    Similarly, the :func:`validate` function can be used to just the validation step on a value. These two functions are
+    very handy as it allows you to use the same business logic (i.e. ``cooked_input`` code) between the command line
+    and a GUI.
+
+
+Custom Cleaners, Convertors and Validators:
+===========================================
+
+TODO
+
+The following example is a custom ``cooked_input`` convertor to convert an integer or a range of integers ("x:y") to
+a list of the integers in the range. for example, `"10:12"` is converted to `[10, 11, 12]`.
+
+The __init__ function should call super on the baseclass. Cleaners, convertors and validators are callable objects in
+Python (i.e. define a __call__ method.) The __call__ method takes three parameters:
+
+    * **value**: the value to validate
+    * **error_callback**: an error callback function used to report validation problems
+    * **convertor_fmt_str**: a format string used by the error callback function
+
+.. note::
+
+    ``Cooked_input`` allows a lot of flexibility on how errors are reported and displayed to the user. For more
+    information see: `error_callback <error_callbacks.html>`_
+
+.. code-block:: python
+
+    class IntervalConvertor(ci.Convertor):
+        def __init__(self, value_error_str='a range of numbers("x:y")'):
+            super(IntervalConvertor, self).__init__(value_error_str)
+
+        def __call__(self, value, error_callback, convertor_fmt_str):
+            use_val = value.strip()
+            dash_idx = use_val.find(':')
+
+            if dash_idx == -1:
+                try:
+                    return [int(use_val)]
+                except (ValueError):
+                    error_callback(convertor_fmt_str, value, 'an int')
+                    raise ci.ConvertorError
+            else:
+                lower_val = use_val[:dash_idx]
+                upper_val = use_val[(dash_idx+1):]
+
+            try:
+                low = int(lower_val)
+                high = int(upper_val) + 1
+            except (ValueError):
+                error_callback(convertor_fmt_str, value, 'a range of ints ("x:z")')
+                raise ci.ConvertorError
+
+            if low > high:
+                error_callback(convertor_fmt_str, value, 'a range - the low value is higher than the high value')
+                raise ci.ConvertorError
+
+            if high < low:
+                error_callback(convertor_fmt_str, value, 'a range - the high value is lower than the low value')
+                raise ci.ConvertorError
+
+            return list(range(low, high))
+
+
+The GetInput class:
+===================
+
+TODO
+
+Peeling back another layer of the onion, :func:`get_input` creates an instance of the :class:`GetInput` class
+and calls the ``get_input`` method on the instance. There are two reasons you might want to skip the convenience
+function and create and instance of ``GetInput`` directly:
+
+    #) If you are going to ask for the same input repeatedly, you can save the overhead of re-creating
+        the instance by creating the ``GetInput`` instance once and calling the ``get_input`` method directly.
+    #) To use the :func:`get_list` convenience function.
+
+get_list:
+=========
+
+TODO
+
+The :func:`get_list` convenience function is used to get a list of values from the user. The ``cleaners``,
+``convertor``, and ``validators`` parameters are applied to the list returned. For example, using
+:class:`LengthValidator` as the validator will check the length of the list, not the length of an element.
+There are two additional parameters used by ``get_list``:
+
+    * **delimiter**: the string (generally a single character) used to separate the elements in the list. By
+        default a comma (',') is used as the delimiter.
+
+    * **elem_get_input**: an instance of :class:`GetInput` to apply to each element of the list.
+
+The ``elem_get_input`` parameter runs a complete CCV process for each element.
+
+For example, to get a list of exactly three integers:
+
+.. code-block:: python
+
+    prompt_str = 'Enter a list of 3 integers'
+    elem_int_gi = GetInput(convertor=IntConvertor())
+    length_3_validator = LengthValidator(min_len=3, max_len=3)
+    result = get_list(prompt=prompt_str, elem_get_input=elem_int_gi, validators=length_3_validator)
+
+A second example is to get a list of at least two integers between `-5` and `5`
+
+.. code-block:: python
+
+    prompt_str = 'Enter a list of at least 2 integers (between -5 and 5)'
+    elem_int_gi = GetInput(convertor=IntConvertor(), validators=[RangeValidator(min_val=-5, max_val=5)])
+    length_validator = LengthValidator(min_len=2)
+    result = get_list(prompt=prompt_str, elem_get_input=elem_int_gi, validators=length_validator)
+
+.. note::
+
+    The use of ``elem_get_input`` is a little strange to think about at first, but allows a lot of flexibility
+    for getting list input. For instance, you can create a list where each element is a list itself by using
+    :class:`ListConvertor` as the ``convertor`` to ``elem_get_input``.
+
+    However, :func:`get_list` is currently limited to creating homogenous lists (i.e. each element must pass the same
+    CCV chain) as `get_elem_input`` takes a single instance of ``GetInput``.
