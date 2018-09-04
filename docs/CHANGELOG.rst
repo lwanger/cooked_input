@@ -12,6 +12,10 @@ see TODO.md for list of TODO items
 
 * v0.5.0:
 
+  * updated tutorial
+
+  * added min_len and max_len parameters to get_string.
+
   * added TableStyle to Tables and get_menu.
 
   * added create_table convenience function for creating tables.

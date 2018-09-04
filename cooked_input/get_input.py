@@ -16,7 +16,7 @@ import getpass
 
 from .error_callbacks import MaxRetriesError, ValidationError, ConvertorError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
-from .validators import RangeValidator, in_all
+from .validators import Validator, RangeValidator, in_all, LengthValidator
 from .convertors import IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor
 from .convertors import YesNoConvertor, ListConvertor
 from .cleaners import StripCleaner
@@ -454,10 +454,12 @@ def process_value(value, cleaners=None, convertor=None, validators=None, error_c
     return gi.process_value(value)
 
 
-def get_string(cleaners=(StripCleaner()), validators=None, **options):
+def get_string(cleaners=(StripCleaner()), validators=None, min_len=None, max_len=None, **options):
     """
     :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value.
     :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param int min_len: the minimum allowable length for the string. No minimum length if None (default)
+    :param int max_len: the maximum allowable length for the string. No maximum length if None (default)
     :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
 
     :return: the cleaned, converted, validated string
@@ -470,7 +472,16 @@ def get_string(cleaners=(StripCleaner()), validators=None, **options):
     if 'prompt' not in options:
         new_options['prompt'] = 'Enter some text'
 
-    result = GetInput(cleaners, None, validators, **new_options).get_input()
+    use_validators = []
+    if min_len is not None or max_len is not None:
+        use_validators.append(LengthValidator(min_len=min_len, max_len=max_len))
+
+    if isinstance(validators, Validator):
+        use_validators.append(validators)
+    elif validators is not None:
+        use_validators.extend(validators)
+
+    result = GetInput(cleaners, None, use_validators, **new_options).get_input()
     return result
 
 

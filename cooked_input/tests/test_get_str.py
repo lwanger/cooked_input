@@ -25,7 +25,7 @@ else:
 
 from .utils import redirect_stdin
 
-from cooked_input import get_input
+from cooked_input import get_input, get_string
 from cooked_input.validators import LengthValidator, ChoiceValidator, NoneOfValidator
 from cooked_input.cleaners import StripCleaner, CapitalizationCleaner, UPPER_CAP_STYLE, ALL_WORDS_CAP_STYLE
 from cooked_input.convertors import YesNoConvertor
@@ -46,6 +46,32 @@ class TestGetStr(object):
 
             result = get_input(prompt='Enter any string', required=False)
             assert (result is None)
+
+
+    def test_get_string(self):
+        input_str = 'foo\n\nbar\nblat\n'
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_string(prompt='Enter any string', required=True)
+            assert (result == 'foo')
+
+            result = get_string(prompt='Enter any string at least 3 letters long', min_len=3, required=True)
+            assert (result == 'bar')
+
+            result = get_string(prompt='Enter any string at least 3 letters long', max_len=3, required=True)
+            assert (result == None)
+
+
+        with redirect_stdin(StringIO(input_str)):
+            result = get_string(prompt='Enter any string less than 4 letters long', max_len=3, required=True)
+            assert (result == 'foo')
+
+            result = get_string(prompt='Enter any string less than 4 letters long', min_len=2, max_len=3, required=True)
+            assert (result == 'bar')
+
+            result = get_string(prompt='Enter any string less than 4 letters long', max_len=3, required=True)
+            assert (result == None)
+
 
     def test_capitalize(self):
         input_str = '  \t  bOb JoNeS\t  \t '

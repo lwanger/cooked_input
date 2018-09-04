@@ -12,9 +12,6 @@ Cooked Input Tutorial
 
     This tutorial is is still a work in progress... stayed tuned for discussions of:
 
-    * custom cleaners, convertors, and validators -- SimpleValidator for easy. Other examples (JSON Convertor)?
-    * GetInput class - under the covers - use when doing the same input call repeatedly.
-    * get_list convenience function
     * menus and tables
     * show_table and get_table_input
     * commands
@@ -241,59 +238,98 @@ The general flow of `get_input` is:
 Custom Cleaners, Convertors and Validators:
 ===========================================
 
-TODO
+Writing custom cleaners, convertors and validators is easy in cooked_input. For this example we will create a
+custom class to represent an interval (i.e. a range of numbers).
 
-The following example is a custom ``cooked_input`` convertor to convert an integer or a range of integers ("x:y") to
-a list of the integers in the range. for example, `"10:12"` is converted to `[10, 11, 12]`.
+.. code-block:: python
+    class Interval(object):
+        def __init__(self, min_val, max_val):
+            # Interval is a complex number with the minimum and maximum values in the real imaginary parts respectively
+            self.interval = complex(min_val, max_val)
 
-The __init__ function should call super on the baseclass. Cleaners, convertors and validators are callable objects in
-Python (i.e. define a __call__ method.) The __call__ method takes three parameters:
+We can create a convertor function to convert strings of the format "x:y" (where x and y are integers) to an Interval.
+A cooked_input convertor function has two methods. The __init__ method sets up any context variables for the convertor
+(none in this case) and calls super on the baseclass. All Cleaners, convertors and validators are callable objects in
+Python, meaning they define a __call__ method. The __call__ method is called to convert the value, and takes three
+parameters:
 
-    * **value**: the value to validate
-    * **error_callback**: an error callback function used to report validation problems
+    * **value**: the value string to convert
+    * **error_callback**: an error callback function used to report conversion problems
     * **convertor_fmt_str**: a format string used by the error callback function
 
 .. note::
 
-    ``Cooked_input`` allows a lot of flexibility on how errors are reported and displayed to the user. For more
+    The error_callback function and convertor_fmt string are used to set how errors are reported. For more
     information see: `error_callback <error_callbacks.html>`_
+
+When a conversion error is found, the __call__ method should call the error callback function (i.e. error_callback) and
+raise a ConvertorError exception. If the conversion is sucessful, the __call__ methods returns the converted Value. The
+following code implements our Interval convertor:
 
 .. code-block:: python
 
-    class IntervalConvertor(ci.Convertor):
+    class IntervalConvertor(Convertor):
         def __init__(self, value_error_str='a range of numbers("x:y")'):
             super(IntervalConvertor, self).__init__(value_error_str)
 
         def __call__(self, value, error_callback, convertor_fmt_str):
+            # interval is of the format "min : max"
             use_val = value.strip()
             dash_idx = use_val.find(':')
 
-            if dash_idx == -1:
-                try:
-                    return [int(use_val)]
-                except (ValueError):
-                    error_callback(convertor_fmt_str, value, 'an int')
-                    raise ci.ConvertorError
+            if dash_idx == -1:  # No ":" was found to separate the min and max values
+                error_callback(convertor_fmt_str, value, 'an interval -- ":" not found between the minimum and maximum values')
+                raise ConvertorError
             else:
-                lower_val = use_val[:dash_idx]
-                upper_val = use_val[(dash_idx+1):]
+                try:
+                    min_val = int(value[:dash_idx])
+                except (IndexError, TypeError, ValueError):
+                    error_callback(convertor_fmt_str, value, 'an interval -- invalid minimum value')
+                    raise ConvertorError
 
-            try:
-                low = int(lower_val)
-                high = int(upper_val) + 1
-            except (ValueError):
-                error_callback(convertor_fmt_str, value, 'a range of ints ("x:z")')
-                raise ci.ConvertorError
+                try:
+                    max_val = int(value[dash_idx + 1:])
+                except (IndexError, TypeError, ValueError):
+                    error_callback(convertor_fmt_str, value, 'an interval -- invalid maximum value')
+                    raise ConvertorError
 
-            if low > high:
-                error_callback(convertor_fmt_str, value, 'a range - the low value is higher than the high value')
-                raise ci.ConvertorError
+            if min_val > max_val:
+                error_callback(convertor_fmt_str, value, 'an interval -- the low value is higher than the high value')
+                raise ConvertorError
 
-            if high < low:
-                error_callback(convertor_fmt_str, value, 'a range - the high value is lower than the low value')
-                raise ci.ConvertorError
+            return Interval(min_val, max_val)
 
-            return list(range(low, high))
+
+Validator classes follow a similar structure to convertors. They implement the same two methods - __init__ and __call__.
+Here the __init__ method takes a valid interval range to check against (range_interval) and saves it as class member.
+Note: no call to super is required for validators.
+__call__ takes the same three parameters as it does in a convertor (value, error_callback, validator_fmt_str) and
+returns True if the value passed validation and False if it did not. Here is what our Interval validator looks like:
+
+.. code-block:: python
+
+    class IntervalValidator(Validator):
+        # Validate an interval is within a specified range (min_val, max_val).
+        def __init__(self, range_interval):
+            # range_interval specifies the minimum and maximum values allowed for the interval to be valid
+            self.range = range_interval
+
+        def __call__(self, value, error_callback, validator_fmt_str):
+            if not isinstance(value, Interval):
+                error_callback(validator_fmt_str, value, 'Not an interval')
+                return False
+
+            if value.interval.real < self.range.interval.real:
+                err_string = 'Low end of the interval is below the minimum ({})'.format(self.range.interval.real)
+                error_callback(validator_fmt_str, value.interval.real, err_string)
+                return False
+
+            if value.interval.imag > self.range.interval.imag:
+                err_string = 'High end of the interval is above the maximum ({})'.format(self.range.interval.imag)
+                error_callback(validator_fmt_str, value.interval.imag, err_string)
+                return False
+
+            return True # passed validation!
 
 
 The GetInput class:
@@ -302,15 +338,16 @@ The GetInput class:
 TODO
 
 Peeling back another layer of the onion, :func:`get_input` creates an instance of the :class:`GetInput` class
-and calls the ``get_input`` method on the instance. There are two reasons you might want to skip the convenience
+and calls the ``get_input`` method on the instance. There are three reasons you might want to skip the convenience
 function and create and instance of ``GetInput`` directly:
 
     #) If you are going to ask for the same input repeatedly, you can save the overhead of re-creating
         the instance by creating the ``GetInput`` instance once and calling the ``get_input`` method directly.
+    #) You want to call the ``process_value`` method directly.
     #) To use the :func:`get_list` convenience function.
 
-get_list:
-=========
+Using get_list:
+===============
 
 TODO
 
