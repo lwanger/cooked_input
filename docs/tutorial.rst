@@ -8,15 +8,6 @@ Cooked Input Tutorial
     Many users will to start with the `quick start <quick_start.html>`_ guide to get up and running with
     `cooked_input` quickly.
 
-.. note::
-
-    This tutorial is is still a work in progress... stayed tuned for discussions of:
-
-    * menus and tables
-    * show_table and get_table_input
-    * commands
-    * exceptions -- cancel, nop, use_value, page scrolling, refresh
-    * get_unicode example
 
 Introduction:
 =============
@@ -172,7 +163,7 @@ something like this:
 .. code-block:: python
 
     prompt_str = 'Guess what number I am thinking of'
-    range_validator = RangeValidator(min_val=1, max_val=None)
+    range_validator = RangeValidator(min_val=1, max_val=10)
     result = get_input(prompt=prompt_str, convertor=IntConvertor(),
         validators=range_validator, retries=3)
 
@@ -225,33 +216,35 @@ The general flow of `get_input` is:
 
 .. note::
 
-    The :func:`process_value` function take an input value as a parameter and runs all of the `get_input` processing steps on
-    the value (i.e. runs steps 2--5 above.) This is useful for applying the same cooked_input cleaning, conversion and
-    validation to value from GUI forms, web forms or for data cleaning. The `validate_tk` example shows how
-    `process` can be used to validate an input in a GUI.
+    The :func:`process_value` function runs all of the `get_input` processing steps on a value (i.e. runs
+    steps 2--5 above.) This is useful for applying the same cooked_input cleaning, conversion and
+    validation to values received from GUI forms, web forms or for data cleaning (from files or databases.) The
+    `validate_tk` example shows how `process` can be used to validate an input in a GUI.
 
-    Similarly, the :func:`validate` function can be used to just the validation step on a value. These two functions are
-    very handy as it allows you to use the same business logic (i.e. ``cooked_input`` code) between the command line
-    and a GUI.
+    Similarly, the :func:`validate` function can be used to just perform the validation step on a value. These two
+    functions are very handy as they allow the same business logic (i.e. ``cooked_input`` code) to be used between
+    input from the command line and other sources.
 
 
 Custom Cleaners, Convertors and Validators:
 ===========================================
 
-Writing custom cleaners, convertors and validators is easy in cooked_input. For this example we will create a
-custom class to represent an interval (i.e. a range of numbers).
+Writing custom cleaners, convertors and validators is easy in ``cooked_input``. To demonstrate, we will create a custom
+convertor and validator for a simple class to represent an interval (i.e. a range of numbers):
 
 .. code-block:: python
+
     class Interval(object):
         def __init__(self, min_val, max_val):
-            # Interval is a complex number with the minimum and maximum values in the real imaginary parts respectively
+            # represent the interval as a complex number with the minimum
+            # and maximum values as the real imaginary parts respectively
             self.interval = complex(min_val, max_val)
 
-We can create a convertor function to convert strings of the format "x:y" (where x and y are integers) to an Interval.
-A cooked_input convertor function has two methods. The __init__ method sets up any context variables for the convertor
-(none in this case) and calls super on the baseclass. All Cleaners, convertors and validators are callable objects in
-Python, meaning they define a __call__ method. The __call__ method is called to convert the value, and takes three
-parameters:
+We can create a convertor function to convert a string with the format "x:y" (where x and y are integers) to an Interval.
+Cooked_input convertor functions are inherited from the :class:`Convertor` baseclass and implement two methods.
+The ``__init__`` method sets up any context variables for the convertor (none in this case) and calls super on the
+Convertor baseclass. All cleaners, convertors and validators are callable objects in Python, meaning they define
+the ``__call__`` method. The __call__ method is called to convert the value, and takes three parameters:
 
     * **value**: the value string to convert
     * **error_callback**: an error callback function used to report conversion problems
@@ -259,12 +252,12 @@ parameters:
 
 .. note::
 
-    The error_callback function and convertor_fmt string are used to set how errors are reported. For more
+    The ``error_callback`` function and ``convertor_fmt string`` are used to set how errors are reported. For more
     information see: `error_callback <error_callbacks.html>`_
 
-When a conversion error is found, the __call__ method should call the error callback function (i.e. error_callback) and
-raise a ConvertorError exception. If the conversion is sucessful, the __call__ methods returns the converted Value. The
-following code implements our Interval convertor:
+If an error occurs during the conversion, the ``__call__`` method should call the error callback function
+(i.e. ``error_callback``) and raise a :class:`ConvertorError` exception. If the conversion is sucessful,
+the __call__ methods returns the converted Value. The following code implements our Interval convertor:
 
 .. code-block:: python
 
@@ -273,45 +266,58 @@ following code implements our Interval convertor:
             super(IntervalConvertor, self).__init__(value_error_str)
 
         def __call__(self, value, error_callback, convertor_fmt_str):
-            # interval is of the format "min : max"
+            # convert an interval formatted as "min : max"
             use_val = value.strip()
             dash_idx = use_val.find(':')
 
-            if dash_idx == -1:  # No ":" was found to separate the min and max values
-                error_callback(convertor_fmt_str, value, 'an interval -- ":" not found between the minimum and maximum values')
+            if dash_idx == -1:  # ":" not found
+                error_callback(convertor_fmt_str, value,
+                    'an interval -- ":" not found to separate values')
                 raise ConvertorError
             else:
                 try:
                     min_val = int(value[:dash_idx])
                 except (IndexError, TypeError, ValueError):
-                    error_callback(convertor_fmt_str, value, 'an interval -- invalid minimum value')
+                    error_callback(convertor_fmt_str, value,
+                        'an interval -- invalid minimum value')
                     raise ConvertorError
 
                 try:
                     max_val = int(value[dash_idx + 1:])
                 except (IndexError, TypeError, ValueError):
-                    error_callback(convertor_fmt_str, value, 'an interval -- invalid maximum value')
+                    error_callback(convertor_fmt_str, value,
+                        'an interval -- invalid maximum value')
                     raise ConvertorError
 
             if min_val > max_val:
-                error_callback(convertor_fmt_str, value, 'an interval -- the low value is higher than the high value')
+                error_callback(convertor_fmt_str, value,
+                    'an interval -- low value is higher than the high value')
                 raise ConvertorError
 
             return Interval(min_val, max_val)
 
 
-Validator classes follow a similar structure to convertors. They implement the same two methods - __init__ and __call__.
-Here the __init__ method takes a valid interval range to check against (range_interval) and saves it as class member.
-Note: no call to super is required for validators.
-__call__ takes the same three parameters as it does in a convertor (value, error_callback, validator_fmt_str) and
-returns True if the value passed validation and False if it did not. Here is what our Interval validator looks like:
+Validators have a similar structure to convertors. They are inherited from the :class:`Validator` base class and
+implement the same two methods: ``__init__`` and ``__call__``. The ``__init__`` method has parameters defining
+the attributes for valid values. The Interval validator is initialized with the minimum and maximum values (i.e.
+an interval) and saves it as class member.
+
+.. note::
+
+    validators do not need to call to super on the Validator base class.
+
+The ``__call__`` method verifies that the value is an Instance of the Interval class and that
+it's minimum and maximum values are within the valid range specified in the ``__init__`` function. ``__call__`` takes
+the same three parameters as convertors (``value``, ``error_callback``, ``validator_fmt_str``.) ``True`` is returned if
+the value passes validation. If the value fails validation, ``error_callback`` is called to report the error
+and ``False`` is returned. The Interval validator looks like:
 
 .. code-block:: python
 
     class IntervalValidator(Validator):
-        # Validate an interval is within a specified range (min_val, max_val).
+        # validate an interval is within a specified range
         def __init__(self, range_interval):
-            # range_interval specifies the minimum and maximum values allowed for the interval to be valid
+            # range_interval specifies minimum and maximum input values
             self.range = range_interval
 
         def __call__(self, value, error_callback, validator_fmt_str):
@@ -320,13 +326,17 @@ returns True if the value passed validation and False if it did not. Here is wha
                 return False
 
             if value.interval.real < self.range.interval.real:
-                err_string = 'Low end of the interval is below the minimum ({})'.format(self.range.interval.real)
-                error_callback(validator_fmt_str, value.interval.real, err_string)
+                err_string = 'Low end below the minimum ({})'.format(
+                    self.range.interval.real)
+                error_callback(validator_fmt_str, value.interval.real,
+                    err_string)
                 return False
 
             if value.interval.imag > self.range.interval.imag:
-                err_string = 'High end of the interval is above the maximum ({})'.format(self.range.interval.imag)
-                error_callback(validator_fmt_str, value.interval.imag, err_string)
+                err_string = 'High end above the maximum ({})'.format(
+                    self.range.interval.imag)
+                error_callback(validator_fmt_str, value.interval.imag,
+                    err_string)
                 return False
 
             return True # passed validation!
@@ -335,51 +345,68 @@ returns True if the value passed validation and False if it did not. Here is wha
 The GetInput class:
 ===================
 
-TODO
-
-Peeling back another layer of the onion, :func:`get_input` creates an instance of the :class:`GetInput` class
-and calls the ``get_input`` method on the instance. There are three reasons you might want to skip the convenience
-function and create and instance of ``GetInput`` directly:
+Peeling back the final layer the onion, the :func:`get_input` convenience function just creates an instance of
+the :class:`GetInput` class and calls the ``get_input`` method on the instance. There are two times you might
+may want to skip the ``get_input`` convenience function and create an instance of ``GetInput`` directly:
 
     #) If you are going to ask for the same input repeatedly, you can save the overhead of re-creating
-        the instance by creating the ``GetInput`` instance once and calling the ``get_input`` method directly.
-    #) You want to call the ``process_value`` method directly.
+        the instance by creating the ``GetInput`` instance once and calling its ``get_input`` and ``process_value``
+        methods directly.
     #) To use the :func:`get_list` convenience function.
+
+Creating an instance of teh GetInput class is easy; it takes the same parameters at the :func:`get_input` function:
+
+    * **cleaners**: list of `cleaners <cleaners.html>`_ to apply to clean the value
+    * **convertor**: the `convertor <convertors.html>`_ to apply to the cleaned value
+    * **validators**: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    * **\*\*options**: optional values. see the :class:`GetInput` documentation for details.
 
 Using get_list:
 ===============
-
-TODO
 
 The :func:`get_list` convenience function is used to get a list of values from the user. The ``cleaners``,
 ``convertor``, and ``validators`` parameters are applied to the list returned. For example, using
 :class:`LengthValidator` as the validator will check the length of the list, not the length of an element.
 There are two additional parameters used by ``get_list``:
 
-    * **delimiter**: the string (generally a single character) used to separate the elements in the list. By
+    * **delimiter**: the string (generally a single character) used to separate the elements of the list. By
         default a comma (',') is used as the delimiter.
 
     * **elem_get_input**: an instance of :class:`GetInput` to apply to each element of the list.
 
-The ``elem_get_input`` parameter runs a complete CCV process for each element.
+``Get_list`` cleans the input string, then calls :class:`ListConvertor` to split the input string by the delimiter
+and runs the CCV process defined in the ``elem_get_input`` parameter on each each element of the list. Finally the
+validator functions are run on the converted (list) value.
+
+.. figure:: CCV_get_list.svg
+    :width: 550px
+    :align: center
+    :height: 150px
+    :alt: "the get_list pipeline"
+    :figclass: align-center
+
+    The get_list pipeline
 
 For example, to get a list of exactly three integers:
 
 .. code-block:: python
 
     prompt_str = 'Enter a list of 3 integers'
-    elem_int_gi = GetInput(convertor=IntConvertor())
-    length_3_validator = LengthValidator(min_len=3, max_len=3)
-    result = get_list(prompt=prompt_str, elem_get_input=elem_int_gi, validators=length_3_validator)
+    elem_gi = GetInput(convertor=IntConvertor())
+    len_validator = LengthValidator(min_len=3, max_len=3)
+    result = get_list(prompt=prompt_str, elem_get_input=elem_gi,
+        validators=len_validator)
 
 A second example is to get a list of at least two integers between `-5` and `5`
 
 .. code-block:: python
 
     prompt_str = 'Enter a list of at least 2 integers (between -5 and 5)'
-    elem_int_gi = GetInput(convertor=IntConvertor(), validators=[RangeValidator(min_val=-5, max_val=5)])
+    elem_gi = GetInput(convertor=IntConvertor(),
+        validators=[RangeValidator(min_val=-5, max_val=5)])
     length_validator = LengthValidator(min_len=2)
-    result = get_list(prompt=prompt_str, elem_get_input=elem_int_gi, validators=length_validator)
+    result = get_list(prompt=prompt_str, elem_get_input=elem_gi,
+        validators=length_validator)
 
 .. note::
 
@@ -389,3 +416,19 @@ A second example is to get a list of at least two integers between `-5` and `5`
 
     However, :func:`get_list` is currently limited to creating homogenous lists (i.e. each element must pass the same
     CCV chain) as `get_elem_input`` takes a single instance of ``GetInput``.
+
+From Here:
+==========
+
+That completes the ``cooked_input`` tutorial. For more information take a look at the `how-to/FAQ <how_to.html>`_
+section of the documentation. You can also look at the various examples.
+
+.. note::
+
+    This tutorial is is still a work in progress... stayed tuned for discussions of:
+
+    * menus and tables
+    * show_table and get_table_input
+    * commands
+    * exceptions -- cancel, nop, use_value, page scrolling, refresh
+    * get_unicode example
