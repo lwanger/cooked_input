@@ -35,7 +35,7 @@ Running this code produces::
 
     >>> ci.get_string(prompt="What is your name?")
 
-    What is your name?: john Cleese
+    What is your name?: john cleese
     'john cleese'
 
 This acts just like the Python `input <https://docs.python.org/3/library/functions.html?highlight=input#input>`_
@@ -50,7 +50,7 @@ keep on asking until you enter valid input. `Get_string` will not accept a blank
         ci.get_string(prompt="What is your name?", required=False)
 
 Since we are entering a name, we want to make sure the value is capitalized. `Cooked_input` provides a number of `cleaners <cleaners.html>`_
-that can be used to clean up the in put value. :class:`CapitalizationCleaner` can be used to change the case of the
+that can be used to clean up the input value. :class:`CapitalizationCleaner` can be used to change the case of the
 value. It takes a ``style`` parameter to say how you want the value changed. In this case we want use use ``ALL_WORDS_CAP_STYLE``
 to capitalize the first letter of each of the words in the value::
 
@@ -64,6 +64,8 @@ Now the input will be cleaned up with the proper capitalization::
     What is your name?: jOhn CLeEse
     'John Cleese'
 
+This is just one of the capitalization options. For the full list see the documentation for :class:`CapitalizationCleaner`.
+
 Getting Integers:
 -----------------
 
@@ -73,8 +75,8 @@ Integers can be fetched using the
 
     ci.get_int(prompt="How old are you?", minimum=1)
 
-`get_int` will take input and return a whole number (i.e. an integer.) If the input cannot be converted to an integer
-it will print an error message and ask the user again. In addition, `get_int` can take parameters for the ``minimum``
+`get_int` requests the input and returns a whole number (i.e. an integer.) If the input cannot be converted to an integer
+it will print an error message and ask the user again. `Get_int` can also take parameters for the ``minimum``
 and ``maximum`` values allowed. Since we are asking for a person's age, we want to make sure the number is a positive
 number (i.e. the person is at least 1 year old.) Since no ``maximum`` value is given in this example there is no
 maximum age for this input::
@@ -89,7 +91,8 @@ maximum age for this input::
     67
 
 This is just the tip of the iceberg of what `get_int` can do. There are a lot of examples of using `get_int` in
-`get_ints.py` in the `cooked_input` examples directory, such as more complex validators and customized error messages.
+`get_ints.py` in the `cooked_input` examples directory. `Get_ints.py` shows examples of more complicated restrictions
+on the allowed number (validators), suggesting default values, and other more advanced usages of `get_int`.
 The `examples` directory is a good place to look to see how to use many of `cooked_input`'s features.
 
 Getting Dates:
@@ -97,8 +100,9 @@ Getting Dates:
 
 A good example of how `cooked_input` can be helpful is
 `get_date <file:///C:/Users/len_w/OneDrive/Documents/IO/code/cooked_input/build/sphinx/html/get_input_convenience.html#get-date>`_.
-`get_date` is used to get dates and times (more specifically a Python
-`datetime <https://docs.python.org/3/library/datetime.html#time-objects>`_ value.) Today's date is used in the example
+`Get_date` is used to get dates and times (more specifically a Python
+`datetime <https://docs.python.org/3/library/datetime.html#time-objects>`_ value.) The following code shows how to
+ask the user for their birthday. Today's date is used in the example
 below as the ``maximum`` beause it doesn't make sense that the user's birthday is in the future::
 
     import datetime
@@ -128,7 +132,7 @@ Produces::
 More Convenience Functions:
 ---------------------------
 
-`Cooked_input` provides the following convenience functions:
+`Cooked_input` provides several more convenience functions for getting different input types:
 
 
     +----------------+-------------------------------+
@@ -151,11 +155,17 @@ There are also convenience functions for a number of other `cooked_input` featur
 choosing values from a table or showing a menu. For more information see the `convenience functions <get_input_convenience.html>`_
 documentation,
 
+.. note::
+
+    It is easy to add support for input types not included with `cooked_input`. See the `tutorial <tutorial.html>`_ for
+    examples of adding custom types (convertors) and validators.
+
 Menus:
 ------
 
-To give you a teaser of some of the further features in `Cooked_input` lets look at menu. `Cooked_input` has a lot more
-functionality for menus and tables, but this will show you a little of what you have to look forward to.
+To give you a teaser of some of the further features in `Cooked_input` let's look a quick look at menus.
+`Cooked_input` has a lot more functionality for menus and tables, but this will show you a little of what you
+have to look forward to.
 
 `Cooked_input` menus have two parts: a `tag` (the thing you type in to choose the menu item) and the `item data` (the
 data for the menu item.) The simplest way to make a menu is to use the `get_menu` convenience function. This creates
@@ -191,7 +201,8 @@ produces::
     Choose a color: 1
     result=red
 
-This just scratches the surface of what can be done with `Cooked_input` menus and tables.
+This just scratches the surface of what can be done with `Cooked_input` menus and tables. For more examples,
+see `get_menu.py`, `get_table_input.py`, and `get_unicode.py` in the examples folder.
 
 Further Reading:
 ----------------

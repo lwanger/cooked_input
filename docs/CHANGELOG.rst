@@ -24,7 +24,7 @@ see TODO.md for list of TODO items
 
   * fixed bug in ListConvertor to catch StopIteration exception caused by empty list
 
-  * added tk_get_page example.
+  * added custom_ccv and tk_get_page examples.
 
 * v0.3.0:
 
