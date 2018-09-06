@@ -1,6 +1,5 @@
 # test create_table:
 import sys
-import pytest
 
 if sys.version_info[0] > 2:  # For Python 3
     from io import StringIO
@@ -25,7 +24,7 @@ class Person(object):
 def use_create_table(items, fields, field_names, gen_tags, tag_str, item_data=None, add_item_to_item_data=False,
                      add_exit=False, prompt=None, style=None, default_choice=None, default_action=TABLE_RETURN_ROW):
 
-    prompt = None
+    # prompt = None
     tbl = create_table(items, fields, field_names=field_names, gen_tags=gen_tags, tag_str=tag_str,
                        item_data=item_data,
                        add_item_to_item_data=add_item_to_item_data, add_exit=add_exit, style=style,
@@ -128,7 +127,8 @@ class TestTables(object):
             result = use_create_table(items, fields, field_names, gen_tags, tag_str, add_exit=add_exit, prompt=prompt, style=table_style)
 
         print('result is...' + str(result))
-        assert (result is None)
+        assert (result.action == 'exit')
+
 
     def test_single_item_table(self):
         input_str = 'Beast'
@@ -236,7 +236,6 @@ class TestTables(object):
         table_style = TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
         gen_tags = True
         tag_str = None
-        item_data = {'foo': 'I am foo', 'bar': [1, 2, 3]}
         aitid = True
         default_action = TABLE_RETURN_TABLE_ITEM
         with redirect_stdin(StringIO(input_str)):
@@ -246,25 +245,3 @@ class TestTables(object):
         print(f'name={ti.item_data["item"].name},  other={ti.item_data["item"].other}')
         assert (ti.item_data['item'].name == 'Seth')
         assert (ti.tag == 3)
-
-
-# prompt = None
-# item_data = None
-# add_exit = False
-# aitid = False  # Add item data to item data
-# default_action = TABLE_RETURN_ROW
-# default_choice=None
-# table_style = TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
-
-# test different type of items lists...
-
-"""
-
-
-
-
-
-if True:
-
-
-"""

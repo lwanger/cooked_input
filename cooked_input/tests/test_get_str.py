@@ -49,7 +49,7 @@ class TestGetStr(object):
 
 
     def test_get_string(self):
-        input_str = 'foo\n\nbar\nblat\n'
+        input_str = 'foo\n\nbar\nblat\n\nGo\n'
 
         with redirect_stdin(StringIO(input_str)):
             result = get_string(prompt='Enter any string', required=True)
@@ -59,7 +59,7 @@ class TestGetStr(object):
             assert (result == 'bar')
 
             result = get_string(prompt='Enter any string at least 3 letters long', max_len=3, required=True)
-            assert (result == None)
+            assert (result == 'Go')
 
 
         with redirect_stdin(StringIO(input_str)):
@@ -69,7 +69,7 @@ class TestGetStr(object):
             result = get_string(prompt='Enter any string less than 4 letters long', min_len=2, max_len=3, required=True)
             assert (result == 'bar')
 
-            result = get_string(prompt='Enter any string less than 4 letters long', max_len=3, required=True)
+            result = get_string(prompt='Enter any string less than 4 letters long', max_len=3, required=False)
             assert (result == None)
 
 
