@@ -109,9 +109,14 @@ if __name__ == '__main__':
     name_cleaners = [StripCleaner(), CapitalizationCleaner(style='all_words')]
     strong_password_validator = PasswordValidator(disallowed='[]', min_len=5, max_len=15, min_lower=2, min_puncts=2)
     email_validator = SimpleValidator(isemail, name='email')    # validator from validus function
-    role_validtor = ListValidator(elem_validators=ChoiceValidator(roles_list))
+    role_validator = ListValidator(elem_validators=ChoiceValidator(roles_list))
     role_prompt = 'Roles ({}, separated by commas)'.format(sorted(roles_list))
     password_confirm_fmt_str = 'password does not match'
+
+    # Give a hint to new users...
+    print('\n\nThis is an example of using cooked_input to simulate getting login information for a user.')
+    print('\nFor test purposes, you can log in as user: gc with password: IWasBrian2!\n')
+    print('\nFor more examples look at the source code\n\n')
 
     # Simulate logging the user in:
     try:
@@ -134,8 +139,10 @@ if __name__ == '__main__':
 
     first_name = get_input(prompt='First name', cleaners=name_cleaners, default=old_data['first_name'])
     last_name = get_input(prompt='Last name', cleaners=name_cleaners, default=old_data['last_name'])
-    email = get_input(prompt='Email', cleaners=default_cleaners, validators=email_validator, default=old_data['email'])
-    roles = get_input(prompt=role_prompt, cleaners=default_cleaners, convertor=ListConvertor(), validators=role_validtor, default=old_data['roles'])
+    email_err_fmt_str = '"{value}" is not a valid email address'
+    email = get_input(prompt='Email', cleaners=default_cleaners, validators=email_validator,
+                        validator_error_fmt=email_err_fmt_str, default=old_data['email'])
+    roles = get_input(prompt=role_prompt, cleaners=default_cleaners, convertor=ListConvertor(), validators=role_validator, default=', '.join(old_data['roles']))
 
     print('\nUpdated user profile info: user_name: {}, password: {}, first_name: {}, last_name: {}, email: {}, roles: {}'.format(
         user_name, password, first_name, last_name, email, roles))

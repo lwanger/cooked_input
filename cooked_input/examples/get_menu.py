@@ -19,7 +19,7 @@ from sqlalchemy.orm import sessionmaker
 
 from cooked_input import get_menu, get_string, get_int, get_list, validate, Validator, ChoiceValidator
 from cooked_input import Table
-from cooked_input import TableItem, TABLE_ITEM_DEFAULT, TABLE_ITEM_EXIT, TABLE_ITEM_RETURN, TABLE_ADD_RETURN, TABLE_ADD_EXIT
+from cooked_input import TableItem, TableStyle, TABLE_ITEM_DEFAULT, TABLE_ITEM_EXIT, TABLE_ITEM_RETURN, TABLE_ADD_RETURN, TABLE_ADD_EXIT
 from cooked_input import TABLE_RETURN_FIRST_VAL, RULE_NONE, RULE_ALL
 
 
@@ -38,7 +38,6 @@ def test_get_menu_2():
     print('\nwith options...\n')
     prompt_str = 'Enter a menu choice'
     result = get_menu(choices, title='My Menu', prompt=prompt_str, default_choice='red',  add_exit=TABLE_ADD_EXIT,
-                      #case_sensitive=True, default_action='first_value')
                       case_sensitive=True, default_action=TABLE_RETURN_FIRST_VAL)
     print('result={}'.format(result))
 
@@ -66,23 +65,28 @@ def test_action_table():
         TableItem("STOP the menu!", 'stop', TABLE_ITEM_EXIT),
     ]
 
+
     print('\nget_table_choice - add_exit=True\n')
-    menu = Table(menu_choices[:-1], add_exit=True, tag_str="")
+    use_style = TableStyle(show_cols=False, show_border=False, vrules=RULE_NONE)
+    menu = Table(menu_choices[:-1], add_exit=True, tag_str="", style=use_style)
     choice = menu.get_table_choice()
     show_choice(menu, choice)
 
     print('\nget_table_choice - add_exit=False (no exit!), case_sensitive=True, with title, no columns\n')
-    menu = Table(menu_choices[:-1], title='My Menu:', add_exit=False, case_sensitive=True, show_cols=False)
+    use_style = TableStyle(show_cols=False, show_border=True, vrules=RULE_NONE)
+    menu = Table(menu_choices[:-1], title='My Menu:', add_exit=False, case_sensitive=True, style=use_style)
     choice = menu.get_table_choice()
     show_choice(menu, choice)
 
     print('\nget_table_choice - add_exit=False, w/ prompt, default="stop", hrule=ALL, vrule=NONE\n')
+    use_style = TableStyle(show_cols=False, hrules=RULE_ALL, vrules=RULE_NONE)
     menu = Table(menu_choices, prompt='Choose or die!', default_choice='stop', default_action=default_action,
-                 add_exit=False, hrules=RULE_ALL, vrules=RULE_NONE)
+                 add_exit=False, style=use_style)
     choice = menu.get_table_choice()
     show_choice(menu, choice)
 
     print('\nget_table_choice - add_exit=False, w/ prompt, default="stop", no columns, no border\n')
+    use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
     menu = Table(menu_choices, prompt='Choose or die!', default_choice='stop', default_action=default_action, add_exit=False, show_border=False , show_cols=False)
     choice = menu.get_table_choice()
     show_choice(menu, choice)
@@ -100,7 +104,8 @@ def sub_menu_action(row, action_dict):
         TableItem("sub menu 2: Choice 1", 1, TABLE_ITEM_DEFAULT),
         TableItem("sub menu 2: Choice 2", 2, TABLE_ITEM_DEFAULT),
     ]
-    sub_menu = Table(sub_menu_choices, title="Sub-Menu 2", show_cols=False, add_exit=TABLE_ADD_RETURN)
+    use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
+    sub_menu = Table(sub_menu_choices, title="Sub-Menu 2", add_exit=TABLE_ADD_RETURN, style=use_style)
     sub_menu.run()
 
 
@@ -109,7 +114,8 @@ def test_sub_table():
         TableItem("sub menu 1: Choice 1", 1, TABLE_ITEM_DEFAULT),
         TableItem("sub menu 1: Choice 2", 2, TABLE_ITEM_DEFAULT),
     ]
-    sub_menu_1 = Table(sub_menu_1_items, title="Sub-Menu 2", show_cols=False, add_exit=TABLE_ADD_RETURN)
+    use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
+    sub_menu_1 = Table(sub_menu_1_items, title="Sub-Menu 2", add_exit=TABLE_ADD_RETURN, style=use_style)
 
     # call submenus two different ways. First by using it as a callable, which calls run on the sub_menu, and second
     # with an explicit action handler
@@ -120,7 +126,8 @@ def test_sub_table():
     ]
 
     print('\nmenu.run - with sub-menu\n')
-    menu = Table(menu_choices, show_cols=False, add_exit=True)
+    use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
+    menu = Table(menu_choices, add_exit=True, style=use_style)
     menu.run()
     print('done')
 
@@ -153,7 +160,8 @@ def test_args_table():
     my_profile = {'first': 'Len', 'last': 'Wanger'}
 
     print('\nmenu.run - with sub-menu\n')
-    menu = Table(menu_choices, add_exit=True, default_action=default_action, action_dict=my_profile)
+    use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
+    menu = Table(menu_choices, add_exit=True, style=use_style, default_action=default_action, action_dict=my_profile)
     menu.run()
     print('done')
 
@@ -179,7 +187,8 @@ def test_refresh_table():
     ]
 
     print('\nmenu.run - dynamic labels - now w/ refresh\n')
-    menu = Table(menu_choices, add_exit=True, default_action=default_action, action_dict=my_profile, refresh=True)
+    use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
+    menu = Table(menu_choices, add_exit=True, style=use_style, default_action=default_action, action_dict=my_profile, refresh=True)
     menu.run()
 
     print('done')
@@ -244,7 +253,8 @@ def test_item_filter():
 
     print('\nmenu.run\n')
     my_profile = {'first': 'Len', 'last': 'Wanger', 'roles': ['user'] }
-    menu = Table(menu_choices, add_exit=True, default_action=default_action, action_dict=my_profile, refresh=True, item_filter=role_item_filter)
+    use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
+    menu = Table(menu_choices, add_exit=True, style=use_style, default_action=default_action, action_dict=my_profile, refresh=True, item_filter=role_item_filter)
     menu.run()
 
     print('done')
@@ -297,11 +307,12 @@ def test_dynamic_menu_from_db(filter_items=False):
     print('adding foo')  # show that the stored query will update with data changes
     session.add(User(name='foo', fullname='Foo Winn', password='foospassword'))
     session.commit()
+    use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
 
     if filter_items:
-        menu = Table(rows=tis, add_exit=True, item_filter=user_filter)
+        menu = Table(rows=tis, add_exit=True, style=use_style, item_filter=user_filter)
     else:
-        menu = Table(rows=tis, add_exit=True)
+        menu = Table(rows=tis, add_exit=True, style=use_style)
 
     menu()
 #### End of Dynamic menu from DB stuff ####
@@ -345,7 +356,8 @@ def test_dynamic_menu_from_list(filter_items=False):
 
     header = 'Showing users with user length > {min_len}\n'
     footer = 'type "filter" to change minimum length'
-    menu = Table(rows=tis, add_exit=True, action_dict=action_dict, header=header, footer=footer, item_filter=user_filter2)
+    use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
+    menu = Table(rows=tis, add_exit=True, style=use_style, action_dict=action_dict, header=header, footer=footer, item_filter=user_filter2)
     menu()
 
 

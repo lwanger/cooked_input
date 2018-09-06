@@ -1224,6 +1224,11 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
 
     default_idx = None
 
+    if style is None:
+        use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
+    else:
+        use_style = style
+
     # return the tag for the menu item unless the user set a specific default action.
     menu_options = dict(**options)
 
@@ -1244,7 +1249,7 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
                 pass
 
     menu = Table(menu_choices, title=title, prompt=prompt, default_choice=default_idx, default_str=default_str,
-                add_exit=add_exit, style=style, **menu_options)
+                add_exit=add_exit, style=use_style, **menu_options)
     result = menu.get_table_choice()
 
     if result is None:

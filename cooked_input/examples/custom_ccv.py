@@ -12,6 +12,9 @@ class Interval(object):
         # Interval is a complex number with the minimum and maximum values in the real imaginary parts respectively
         self.interval = complex(min_val, max_val)
 
+    def __repr__(self):
+        return "{}:{}".format(self.interval.real, self.interval.imag)
+
 
 class IntervalConvertor(Convertor):
     def __init__(self, value_error_str='a range of numbers("x:y")'):
@@ -75,4 +78,5 @@ if __name__ == '__main__':
     prompt = 'Enter an interval between 1 and 100'
 
     int_gi = get_input(prompt=prompt, convertor=interval_convertor, validators=[interval_validator])
+    print(int_gi)
 

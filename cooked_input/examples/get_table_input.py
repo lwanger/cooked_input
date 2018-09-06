@@ -3,9 +3,7 @@ cooked input examples of getting inputs from tables
 
 Len Wanger, 2017
 
-TODO -
-    - basic table
-    - basic table with tags
+TODO - show examples of
     - dynamic table
     - title, header and footer
     - item_data
@@ -67,6 +65,7 @@ if __name__ == '__main__':
 
     # running the table (loop until exit)
     print('running table...')
+    table = Table(table_items, col_names=['Color'], add_exit=True, default_action=TABLE_RETURN_FIRST_VAL, prompt='Color? (Table prompt) ')
     table.run()
     print('\ndone running table...\n')
 
