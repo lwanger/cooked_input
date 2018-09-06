@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="17cm" height="3cm" viewBox="10 14 325 41" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g>
+    <g>
+      <g>
+        <rect style="fill: #add8e6" x="262.327" y="26.532" width="40" height="21" rx="2" ry="2"/>
+        <rect style="fill: none; fill-opacity:0; stroke-width: 0.508; stroke-linejoin: round; stroke: #000000" x="262.327" y="26.532" width="40" height="21" rx="2" ry="2"/>
+      </g>
+      <text font-size="10.16" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="264.473" y="40.853">
+        <tspan x="264.473" y="40.853">Validate</tspan>
+      </text>
+    </g>
+    <g>
+      <g>
+        <rect style="fill: #add8e6" x="43.2225" y="26.603" width="40" height="21" rx="2" ry="2"/>
+        <rect style="fill: none; fill-opacity:0; stroke-width: 0.508; stroke-linejoin: round; stroke: #000000" x="43.2225" y="26.603" width="40" height="21" rx="2" ry="2"/>
+      </g>
+      <text font-size="10.16" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="50.4725" y="40.853">
+        <tspan x="50.4725" y="40.853">Clean</tspan>
+      </text>
+    </g>
+    <g>
+      <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke-linejoin: round; stroke: #000000" x1="30.7803" y1="36.998" x2="38.7227" y2="37.065"/>
+      <polygon style="fill: #000000" points="38.7058,39.065 42.7226,37.0988 38.7396,35.0651 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="38.7058,39.065 42.7226,37.0988 38.7396,35.0651 "/>
+    </g>
+    <g>
+      <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="302.327" y1="37.032" x2="309.896" y2="37.1206"/>
+      <polygon style="fill: #000000" points="309.872,39.1205 313.895,37.1674 309.919,35.1207 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="309.872,39.1205 313.895,37.1674 309.919,35.1207 "/>
+    </g>
+    <text font-size="7.90222" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="323.223" y="34.5902">
+      <tspan x="323.223" y="34.5902">Output</tspan>
+      <tspan x="323.223" y="44.468">value</tspan>
+    </text>
+    <text font-size="7.90222" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="20.352" y="35.09">
+      <tspan x="20.352" y="35.09">Input</tspan>
+      <tspan x="20.352" y="44.9678">string</tspan>
+    </text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="171.129" y="34.407">
+      <tspan x="171.129" y="34.407"></tspan>
+    </text>
+    <g>
+      <rect style="fill: #add8e6" x="90.004" y="14.282" width="162.25" height="40.25" rx="2" ry="2"/>
+      <rect style="fill: none; fill-opacity:0; stroke-width: 0.508; stroke-linejoin: round; stroke: #000000" x="90.004" y="14.282" width="162.25" height="40.25" rx="2" ry="2"/>
+    </g>
+    <g>
+      <g>
+        <rect style="fill: #add8e6" x="152.907" y="26.194" width="40" height="21" rx="2" ry="2"/>
+        <rect style="fill: none; fill-opacity:0; stroke-width: 0.508; stroke-linejoin: round; stroke: #000000" x="152.907" y="26.194" width="40" height="21" rx="2" ry="2"/>
+      </g>
+      <text font-size="10.16" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="155.053" y="40.515">
+        <tspan x="155.053" y="40.515">Convert</tspan>
+      </text>
+    </g>
+    <g>
+      <g>
+        <rect style="fill: #add8e6" x="205.334" y="26.194" width="40" height="21" rx="2" ry="2"/>
+        <rect style="fill: none; fill-opacity:0; stroke-width: 0.508; stroke-linejoin: round; stroke: #000000" x="205.334" y="26.194" width="40" height="21" rx="2" ry="2"/>
+      </g>
+      <text font-size="10.16" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="207.48" y="40.515">
+        <tspan x="207.48" y="40.515">Validate</tspan>
+      </text>
+    </g>
+    <g>
+      <g>
+        <rect style="fill: #add8e6" x="100.48" y="26.265" width="40" height="21" rx="2" ry="2"/>
+        <rect style="fill: none; fill-opacity:0; stroke-width: 0.508; stroke-linejoin: round; stroke: #000000" x="100.48" y="26.265" width="40" height="21" rx="2" ry="2"/>
+      </g>
+      <text font-size="10.16" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="107.73" y="40.515">
+        <tspan x="107.73" y="40.515">Clean</tspan>
+      </text>
+    </g>
+    <g>
+      <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke-linejoin: round; stroke: #000000" x1="140.48" y1="36.765" x2="148.407" y2="36.7197"/>
+      <polygon style="fill: #000000" points="148.418,38.7197 152.407,36.6969 148.396,34.7197 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="148.418,38.7197 152.407,36.6969 148.396,34.7197 "/>
+    </g>
+    <g>
+      <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="192.907" y1="36.694" x2="200.834" y2="36.694"/>
+      <polygon style="fill: #000000" points="200.834,38.694 204.834,36.694 200.834,34.694 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="200.834,38.694 204.834,36.694 200.834,34.694 "/>
+    </g>
+    <g>
+      <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="83.2225" y1="37.103" x2="95.7324" y2="36.9895"/>
+      <polygon style="fill: #000000" points="95.7505,38.9894 99.7322,36.9532 95.7142,34.9896 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="95.7505,38.9894 99.7322,36.9532 95.7142,34.9896 "/>
+    </g>
+    <g>
+      <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="245.334" y1="36.694" x2="257.827" y2="36.9425"/>
+      <polygon style="fill: #000000" points="257.788,38.9421 261.827,37.0221 257.867,34.9429 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="257.788,38.9421 261.827,37.0221 257.867,34.9429 "/>
+    </g>
+    <text font-size="6.20879" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="102.752" y="24.782">
+      <tspan x="102.752" y="24.782">ListConvertor</tspan>
+    </text>
+  </g>
+</svg>
