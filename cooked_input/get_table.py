@@ -190,7 +190,8 @@ class TableStyle():
     :param Bool show_border: if **True** (default) shows a border around the table
     :param hrules: whether to draw horizontal lines between rows. See below for allowed RULE values.
     :param vrules: whether to draw vertical lines between rows. See below for allowed RULE values.
-    :param int rows_per_page: The maximum number of rows to display in the table. Used for paginated tables.
+    :param int rows_per_page: The maximum number of rows to display in the table. Used for paginated tables (None
+        for no maximum).
 
     ``hrules`` and ``vrules`` can use the following ``RULE`` values for the rows and columns respectively:
 
@@ -570,7 +571,7 @@ class Table(object):
         """
         # set the starting and ending rows to show
         table_max_rows = self.get_num_rows()
-        if start_row > table_max_rows - self.rows_per_page:
+        if self.rows_per_page and start_row > (table_max_rows - self.rows_per_page):
             start_row = table_max_rows - self.rows_per_page
 
         if start_row < 1:
@@ -578,7 +579,11 @@ class Table(object):
         else:
             self.table.start = start_row
 
-        table_end = self.table.start + self.rows_per_page
+        if self.rows_per_page:
+            table_end = self.table.start + self.rows_per_page
+        else:
+            table_end = table_max_rows
+
         if table_end > table_max_rows:
             table_end = table_max_rows
 
@@ -882,7 +887,10 @@ class Table(object):
             start_row = max(self.get_num_rows() - self.rows_per_page, 0)
             self.show_rows(start_row)
 
-        self.table.end = self.table.start + self.rows_per_page
+        if self.rows_per_page:
+            self.table.end = self.table.start + self.rows_per_page
+        else:
+            self.table.end = self.get_num_rows()
 
 
     def __call__(self, choice=None, action_dict=None):
