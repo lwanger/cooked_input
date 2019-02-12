@@ -1,4 +1,4 @@
 future==0.16.0
 veryprettytable==0.8.1
-dateparser==0.7.0
+dateparser==0.7.1
 validus==0.3.0
