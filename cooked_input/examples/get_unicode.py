@@ -161,7 +161,7 @@ def make_table(start=32, end=0x007F, cat_filter='**', name_filter=''):
         block elements: 2580-259F
         misc symbols: 2600-26FF
         dingbats: 2700-27BF
-        muscial symbols: 1D100-1D1FF
+        musical symbols: 1D100-1D1FF
         emoticons: 1F600-1F64F
 
     utf-8 is: https://en.wikipedia.org/wiki/UTF-8, single octet - 0000-007F
@@ -201,6 +201,8 @@ def make_table(start=32, end=0x007F, cat_filter='**', name_filter=''):
 if __name__ == '__main__':
     print('\nUnicode Picker... type "?" for help\n')
     table = make_table(0x00080, 0x007FF, cat_filter='**', name_filter='')
+    #table = make_table(0x00080, 0x1F64F, cat_filter='**', name_filter='')
+    #table = make_table(0x1F600, 0x1F64F, cat_filter='**', name_filter='')
     result = ci.get_table_input(table)
 
     if USE_CLIPBOARD is True: # put character on the clipboard

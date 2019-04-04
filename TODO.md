@@ -4,6 +4,8 @@
 **TODO:**
 
 * general:
+    * Create extension directory (can add things with extra pip requirements like viridus)
+    * Add profanity-check extension (https://github.com/vzhou842/profanity-check)
     * Add type hint stub files (*.pyi) 
     * _get_choice should create a GetInput instance and call get_input on it, instead of calling the GetInput.get_input
         convenience function (so don't have to reconstruct the GetInput everytime through the loop)

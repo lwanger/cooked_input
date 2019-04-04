@@ -10,11 +10,11 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* v0.5.1:
+
+  * num_rows_per_page in style accepts None (no limit)
+
 * v0.5.0:
-
-  * updated tutorial
-
-  * added min_len and max_len parameters to get_string.
 
   * added TableStyle to Tables and get_menu.
 
@@ -24,7 +24,7 @@ see TODO.md for list of TODO items
 
   * fixed bug in ListConvertor to catch StopIteration exception caused by empty list
 
-  * added custom_ccv and tk_get_page examples.
+  * added tk_get_page example.
 
 * v0.3.0:
 
@@ -141,4 +141,5 @@ see TODO.md for list of TODO items
     validation convertor strings. This changed most of the code base and some of the examples.
 
  * Added print_error, log_error, and ignore_error error callback routines.
+
 

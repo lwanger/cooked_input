@@ -10,7 +10,7 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
-* > v0.5.0:
+* v0.5.1:
 
   * num_rows_per_page in style accepts None (no limit)
 
