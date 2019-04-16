@@ -17,26 +17,35 @@ table Event - id date type description
 how to do recurring - recurring boolean, date is first date, then frequency and unit
 how to do date?
 
-menu item to add an event
-menu item to add an event type
-menu item to list events -- with filter
 submenu to erase, load or dump the DB?
 commands - /help, /cancel, /dayofweek (dow) date (day of week?)
 
 """
 
+from datetime import datetime
 import sqlite3
 import cooked_input as ci
 
 def help_cmd_action(cmd_str, cmd_vars, cmd_dict):
     print('\nCommands:')
     print('\t/?, /h\tDisplay this help message')
-    print('\t/cancel\tCancel the current operation\n')
+    print('\t/cancel\tCancel the current operation')
+    print('\t/dow [date]\tGet the day of the week for a date\n')
     return ci.COMMAND_ACTION_NOP, None
 
 def cancel_cmd_action(cmd_str, cmd_vars, cmd_dict):
     print('\nCommand cancelled...')
     return ci.COMMAND_ACTION_CANCEL, None
+
+def day_of_week_cmd_action(cmd_str, cmd_vars, cmd_dict):
+    if len(cmd_vars) > 0:
+        date_str = cmd_vars
+        valid, date = ci.process_value(date_str, convertor=ci.DateConvertor())
+        if valid is False:
+            return ci.COMMAND_ACTION_CANCEL, None
+    else:
+        date = ci.get_date(prompt='Date to get day of week from: ')
+    return ci.COMMAND_ACTION_USE_VALUE, date.strftime('%A')
 
 def reset_db_action(row, action_item):
     raise NotImplementedError
@@ -86,7 +95,8 @@ if __name__ == '__main__':
 
     help_cmd = ci.GetInputCommand(help_cmd_action)
     cancel_cmd = ci.GetInputCommand(cancel_cmd_action)
-    commands_std = { '/?': help_cmd, '/h': help_cmd, '/cancel': cancel_cmd }
+    dow_cmd = ci.GetInputCommand(day_of_week_cmd_action)
+    commands_std = { '/?': help_cmd, '/h': help_cmd, '/cancel': cancel_cmd, '/dow': dow_cmd }
     menu_style = ci.TableStyle(show_cols=False, show_border=False)
     action_dict = { 'conn': conn, 'cursor': cursor, 'commands': commands_std }
 
