@@ -8,7 +8,6 @@ from datetime import date
 import sqlite3
 import cooked_input as ci
 
-
 def help_cmd_action(cmd_str, cmd_vars, cmd_dict):
     help_str = """
         Commands:
@@ -64,17 +63,13 @@ def list_event_action(row, action_item):
     tbl.show_table()
     print('\n')
 
-
 def database_submenu_action(row, action_item):
-    menu_items = [
-        ci.TableItem(col_values='reset database (delete all events)', tag=None, action=reset_db_action),
-    ]
-    menu = ci.Table(rows=menu_items, add_exit=ci.TABLE_ADD_RETURN, style=menu_style, action_dict=action_dict, commands=action_dict['commands'])
+    menu_items = [ ci.TableItem('reset database (delete all events)', action=reset_db_action) ]
+    menu = ci.Table(rows=menu_items, add_exit=ci.TABLE_ADD_RETURN, style=menu_style, action_dict=action_dict)
     menu.run()
 
-
 def make_db():
-    # Create an in memory sqlite database of hamburger options
+    # Create an in memory sqlite database with tables for event types and events
     conn = sqlite3.connect(':memory:')
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -88,11 +83,8 @@ def make_db():
     conn.commit()
     return conn, cursor
 
-
 if __name__ == '__main__':
     conn, cursor = make_db()
-    menu_style = ci.TableStyle(show_cols=False, show_border=False)
-
     help_cmd = ci.GetInputCommand(help_cmd_action)
     cancel_cmd = ci.GetInputCommand(cancel_cmd_action)
     commands_std = { '/?': help_cmd, '/h': help_cmd, '/cancel': cancel_cmd }
@@ -100,10 +92,9 @@ if __name__ == '__main__':
     action_dict = { 'conn': conn, 'cursor': cursor, 'commands': commands_std, 'num_events': 0 }
 
     menu_items = [
-            ci.TableItem(col_values='Add an event', tag=None, action=add_event_action),
-            ci.TableItem(col_values='List events', tag=None, action=list_event_action),
-            ci.TableItem(col_values='Database submenu', tag=None, action=database_submenu_action)
+            ci.TableItem('Add an event', action=add_event_action),
+            ci.TableItem('List events', action=list_event_action),
+            ci.TableItem('Database submenu', action=database_submenu_action)
         ]
-
-    menu = ci.Table(rows=menu_items, add_exit=ci.TABLE_ADD_EXIT, style=menu_style, action_dict=action_dict, commands=commands_std)
+    menu = ci.Table(rows=menu_items, add_exit=ci.TABLE_ADD_EXIT, style=menu_style, action_dict=action_dict)
     menu.run()
