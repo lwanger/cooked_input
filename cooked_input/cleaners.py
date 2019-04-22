@@ -201,7 +201,7 @@ class RemoveCleaner(Cleaner):
     """
     :param List[str] patterns: a list of strings to remove
     :param int count: (optional) the maximum number of substitutions to perform on the input value. Default
-      is to remove all occurences
+      is to remove all occurrences
 
     :return: the cleaned (``patterns`` removed) value
     :rtype: str
@@ -231,13 +231,13 @@ class ReplaceCleaner(Cleaner):
     :param str old: string to replace
     :param str new: string to substitute for occurrences of ``old``
     :param int count: (optional) the maximum number of substitutions to perform on the input value. Default
-      is to replace all occurences
+      is to replace all occurrences
 
     :return: the cleaned (``old`` replaced with ``new``) value
     :rtype: str
 
     Replaces occurrences of ``old`` string with ``new`` string from the input value. If `count` is specified the first
-    ``count`` occurences, from left to right, are replaced. If count is **0**, or not speciffied, all occurences are replaced.
+    ``count`` occurrences, from left to right, are replaced. If count is **0**, or not speciffied, all occurrences are replaced.
     """
     def __init__(self, old, new, count=0):
         self._old = str(old)
@@ -259,9 +259,9 @@ class ReplaceCleaner(Cleaner):
 class RegexCleaner(Cleaner):
     """
     :param Pattern[str] pattern: regular expression to search for
-    :param str repl: string to substitute for occurences of ``pattern``
+    :param str repl: string to substitute for occurrences of ``pattern``
     :param int count: (optional) the maximum number of substitutions to perform on the input value. Default is to replace
-      all occurences
+      all occurrences
     :param flags: (optional) flags. Default is no flags. See below for details
     
     :return: the cleaned (**pattern** replaced with **repl**) value
@@ -269,7 +269,7 @@ class RegexCleaner(Cleaner):
 
     Return the string obtained by replacing the leftmost non-overlapping occurrences of `pattern` in the input value
     by the replacement `repl`. If the pattern isn’t found in the input value, the value is returned unchanged.
-    ``Count`` occurences, from left to right, are replaced. If count is **0**, or not speciffied, all occurences are replaced.
+    ``Count`` occurrences, from left to right, are replaced. If count is **0**, or not specified, all occurrences are replaced.
 
     For more information on regular expressions and the meaning of count and flags. See the 
     `re.sub <https://docs.python.org/3/library/re.html#re.sub>`_ function in the `re <https://docs.python.org/3/library/re.html>`_
