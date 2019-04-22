@@ -85,6 +85,8 @@ The best way to get started is to read the quick start at: http://cooked-input.r
 
 After that, more advanced usage can be learned from the tutorial at: http://cooked-input.readthedocs.io/en/latest/tutorial.html
 
+Finally,, part two of the tutorial can be found at: http://cooked-input.readthedocs.io/en/latest/tutorial2.html
+
 
 Change log
 ----------

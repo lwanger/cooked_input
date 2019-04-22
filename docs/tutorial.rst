@@ -420,15 +420,7 @@ A second example is to get a list of at least two integers between `-5` and `5`
 From Here:
 ==========
 
-That completes the ``cooked_input`` tutorial. For more information take a look at the `how-to/FAQ <how_to.html>`_
+That completes the first part of the ``cooked_input`` tutorial. You can continue with
+the `second part <tutorial2.html>`_ of the
+tutorial. Or, for more information take a look at the `how-to/FAQ <how_to.html>`_
 section of the documentation. You can also look at the various examples.
-
-.. note::
-
-    This tutorial is is still a work in progress... stayed tuned for discussions of:
-
-    * menus and tables
-    * show_table and get_table_input
-    * commands
-    * exceptions -- cancel, nop, use_value, page scrolling, refresh
-    * get_unicode example

@@ -16,6 +16,7 @@ This is documentation for cooked_input |my_version|, generated |my_date|.
    README
    quick_start
    tutorial
+   tutorial2
    how_to
    get_input_convenience
    cleaners
