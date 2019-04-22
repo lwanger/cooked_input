@@ -8,6 +8,8 @@ import sqlite3
 from collections import Counter
 import cooked_input as ci
 
+
+
 def create_db():
     # Create an in memory sqlite database of hamburger options
     conn = sqlite3.connect(':memory:')

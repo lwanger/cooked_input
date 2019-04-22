@@ -10,6 +10,12 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* v0.5.2:
+
+  * added part two of the tutorial
+
+  * fixed bug in create_table when neither tag_str or field_names is provided
+  
 * v0.5.1:
 
   * num_rows_per_page in style accepts None (no limit)

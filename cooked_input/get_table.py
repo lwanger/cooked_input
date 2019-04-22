@@ -1168,7 +1168,10 @@ def create_table(items, fields, field_names=None, gen_tags=None, item_data=None,
             use_field_names = use_field_names[1:]
 
         if use_tag_str is None:
-            use_tag_str = field_names[0]
+            if field_names is None:
+                use_tag_str = fields[0]
+            else:
+                use_tag_str = field_names[0]
 
     new_options['tag_str'] = use_tag_str
 
