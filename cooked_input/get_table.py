@@ -724,12 +724,13 @@ class Table(object):
 
         :return:  the table row for the choice picked
         """
-        gi_options = {}
-        gi_options['prompt'] = self.prompt
-        gi_options['required'] = self.required
-        gi_options['default'] = self.default_choice
-        gi_options['default_str'] = self.default_str
-        gi_options['commands'] = self.commands
+        gi_options = {
+            'prompt': self.prompt,
+            'required': self.required,
+            'default': self.default_choice,
+            'default_str': self.default_str,
+            'commands': self.commands,
+        }
         for k,v in options.items():
             gi_options[k] = v
 

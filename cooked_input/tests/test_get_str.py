@@ -70,7 +70,7 @@ class TestGetStr(object):
             assert (result == 'bar')
 
             result = get_string(prompt='Enter any string less than 4 letters long', max_len=3, required=False)
-            assert (result == None)
+            assert (result is None)
 
 
     def test_capitalize(self):

@@ -1,3 +1,4 @@
+# -*- coding: latin-1 -*-
 """
 This file contains cleaner classes for cooked_input
 
@@ -237,7 +238,7 @@ class ReplaceCleaner(Cleaner):
     :rtype: str
 
     Replaces occurrences of ``old`` string with ``new`` string from the input value. If `count` is specified the first
-    ``count`` occurrences, from left to right, are replaced. If count is **0**, or not speciffied, all occurrences are replaced.
+    ``count`` occurrences, from left to right, are replaced. If count is **0**, or not specified, all occurrences are replaced.
     """
     def __init__(self, old, new, count=0):
         self._old = str(old)
@@ -268,7 +269,7 @@ class RegexCleaner(Cleaner):
     :rtype: str
 
     Return the string obtained by replacing the leftmost non-overlapping occurrences of `pattern` in the input value
-    by the replacement `repl`. If the pattern isn’t found in the input value, the value is returned unchanged.
+    by the replacement `repl`. If the pattern is not found in the input value, the value is returned unchanged.
     ``Count`` occurrences, from left to right, are replaced. If count is **0**, or not specified, all occurrences are replaced.
 
     For more information on regular expressions and the meaning of count and flags. See the 
