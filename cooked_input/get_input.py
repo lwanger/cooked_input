@@ -300,7 +300,10 @@ class GetInput(object):
             if not self.required and not self.default_val:
                 self.default_string = ' (enter to leave blank)'
             elif self.default_val:
-                self.default_string = ' (enter for: %s)' % self.default_val
+                if self.hidden:
+                    self.default_string = ' (enter for: ***)' 
+                else:
+                    self.default_string = ' (enter for: %s)' % self.default_val
             else:
                 self.default_string = ''
 
@@ -607,7 +610,6 @@ def get_date(cleaners=(StripCleaner()), validators=None, minimum=None, maximum=N
             val_list = validators + [irv]
 
     result = GetInput(cleaners, DateConvertor(), val_list, **new_options).get_input()
-    # result = GetInput(cleaners, DateConvertor(), validators, **new_options).get_input()
     return result
 
 

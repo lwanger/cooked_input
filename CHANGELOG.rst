@@ -10,6 +10,9 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* v0.5.3:
+  * hidden input was showing default value in prompt string. Replaced with "***"
+
 * v0.5.2:
 
   * added part two of the tutorial

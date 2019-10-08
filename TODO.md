@@ -32,7 +32,7 @@
     * send error messages to stderr?
 
 * get_string:
-    * add minimum and maximum length paraeters
+    * add minimum and maximum length parameters
     * add allowed/disallowed characters parameter. Nice to prevent SQL injection (i.e. no " or ;)
     
 * get_menu:
