@@ -40,7 +40,7 @@ The documentation is available at: http://cooked-input.readthedocs.io/en/latest/
 Python 2/3 Support
 ------------------
 
-cooked_input has been tested on Python: 2.7. 3.5, and 3.6
+cooked_input has been tested on Python: 2.7. 3.5+ (with 3.9 being the latest tested)
 
 
 Installation
