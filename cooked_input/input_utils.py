@@ -9,9 +9,12 @@ Copyright: Len Wanger, 2017
 """
 
 import sys
-import collections
 import veryprettytable
 
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
 
 def compose(value, funcs):
     """
@@ -27,7 +30,7 @@ def compose(value, funcs):
 
     if callable(funcs):
         result = funcs(value)
-    elif isinstance(funcs, collections.Iterable):
+    elif isinstance(funcs, Iterable):
         for func in funcs:
             if first_func:
                 result = func(value)
@@ -93,7 +96,7 @@ def put_in_a_list(values):
         result = []
     elif isstring(values):
         result = [values]
-    elif isinstance(values, collections.Iterable):  # list or other iterable
+    elif isinstance(values, Iterable):  # list or other iterable
         result = list(values)
     else:  # single non-iterable value
         result = [values]

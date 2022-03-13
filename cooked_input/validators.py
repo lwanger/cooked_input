@@ -14,9 +14,16 @@ import os
 import sys
 import string
 import re
-import collections
-from abc import ABCMeta, abstractmethod
 
+try:
+    from abc import ABCMeta, abstractmethod
+except ImportError:
+    from collections import ABCMeta, abstractmethod
+
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
 
 from .error_callbacks import print_error, silent_error, DEFAULT_VALIDATOR_ERROR
 from .input_utils import put_in_a_list, isstring
@@ -36,7 +43,7 @@ def in_any(value, validators, error_callback, validator_fmt_str):
 
     if validators is None:
         result = True
-    elif isinstance(validators, collections.Iterable):  # list of validators (or other iterable)
+    elif isinstance(validators, Iterable):  # list of validators (or other iterable)
         for validator in validators:
             if callable(validator):
                 result = validator(value, error_callback, validator_fmt_str)
@@ -66,7 +73,7 @@ def in_all(value, validators, error_callback, validator_fmt_str):
 
     if validators is None:
         result = True
-    elif isinstance(validators, collections.Iterable):
+    elif isinstance(validators, Iterable):
         result = all(validator(value, error_callback, validator_fmt_str) for validator in validators)
     elif callable(validators):
         result = validators(value, error_callback, validator_fmt_str)
@@ -91,7 +98,7 @@ def not_in(value, validators, error_callback, validator_fmt_str):
 
     if validators is None:
         result = True
-    elif isinstance(validators, collections.Iterable):  # list of validators (or other iterable)
+    elif isinstance(validators, Iterable):  # list of validators (or other iterable)
         for validator in validators:
             if callable(validator):
                 result = validator(value, silent_error, validator_fmt_str)

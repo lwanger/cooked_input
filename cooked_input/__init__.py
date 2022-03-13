@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .get_input import GetInput, get_input, process_value
-from .get_input import get_string, get_int, get_float, get_boolean, get_date, get_yes_no, get_list
+from .get_input import get_string, get_int, get_float, get_boolean, get_date, get_yes_no, get_money, get_list
 from .get_input import GetInputInterrupt
 from .get_input import RefreshScreenInterrupt
 from .get_input import PageUpRequest, PageDownRequest, FirstPageRequest, LastPageRequest, UpOneRowRequest, DownOneRowRequest
@@ -20,7 +20,7 @@ from .error_callbacks import MaxRetriesError, ConvertorError, ValidationError
 from .error_callbacks import print_error, log_error, silent_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
 from .convertors import TABLE_ID, TABLE_VALUE, TABLE_ID_OR_VALUE
 from .convertors import Convertor, IntConvertor, FloatConvertor, BooleanConvertor
-from .convertors import ListConvertor, DateConvertor, YesNoConvertor, ChoiceConvertor
+from .convertors import ListConvertor, DateConvertor, YesNoConvertor, ChoiceConvertor, DecimalConvertor
 from .validators import Validator, LengthValidator, EqualToValidator, RangeValidator
 from .validators import AnyOfValidator, NoneOfValidator, ChoiceValidator, RegexValidator, PasswordValidator
 from .validators import IsFileValidator, ListValidator, SimpleValidator

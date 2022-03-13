@@ -3,6 +3,12 @@
 
 **TODO:**
 
+* add dash/zeal docset (add to: https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets) - https://kapeli.com/docsets#python
+* expand tutorials
+* remove Python 3 support
+* test for 3.10/3.11
+* add support for rich consoles, rich tables?
+
 * general:
     * Create extension directory (can add things with extra pip requirements like viridus)
     * Add profanity-check extension (https://github.com/vzhou842/profanity-check)

@@ -10,6 +10,11 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* v0.5.4:
+  * added get_money
+  * fixed import error on collections.Iterable (may be collections.abc.Iterable in old versions of Python).
+  * fixed __repr__ method of RemoveCleaner (said it was ReplaceCleaner)
+
 * v0.5.3:
   * hidden input was showing default value in prompt string. Replaced with "***"
 

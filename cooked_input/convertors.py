@@ -5,8 +5,9 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
-import dateparser
 import csv
+import dateparser
+import decimal
 from io import StringIO
 from future.utils import raise_from
 from abc import ABCMeta, abstractmethod
@@ -287,3 +288,52 @@ class ChoiceConvertor(Convertor):
 
     def __repr__(self):
         return 'ChoiceConvertor(choices={}, value_error_str={})'.format(self._choices, self.value_error_str)
+
+
+class DecimalConvertor(Convertor):
+    """
+    convert the cleaned input to a Decimal value.
+
+    :param int precision: the fixed number of digits after the decimal point (default=28)
+    :param int rounding:  R (default: ROUND_HALF_UP)
+    :param str value_error_str: (optional) the error string to use when an improper value is input
+
+    :return: ``value`` converted to `Decimal`
+    :rtype: Decimal
+    :raises ConvertorError: if ``value`` cannot be converted to `Decimal`
+
+    Converts the value to a Decimal value (see the Python standard library Decimal module for me details.)
+
+    The rounding parameter sets the rules for rounding the value. The default rounding rule is `ROUND_HALF_UP`. Legal
+    values for the `rounding` parameter are: `ROUND_CEILING`, `ROUND_DOWN`, `ROUND_FLOOR`, `ROUND_HALF_DOWN`,
+    `ROUND_HALF_EVEN`, `ROUND_HALF_UP`, `ROUND_UP`, and `ROUND_05UP`.
+
+    See the Python `Decimal <https://docs.python.org/3/library/decimal.html>`_
+    """
+    def __init__(self, precision=28, rounding=decimal.ROUND_HALF_UP, value_error_str='a decimal number'):
+        self._precision = precision
+        self._rounding = rounding
+        self._context= decimal.Context(prec=precision, rounding=rounding)
+        super(DecimalConvertor, self).__init__(value_error_str)
+
+    def __call__(self, value, error_callback, convertor_fmt_str):
+        try:
+            return decimal.Decimal(value, self._context)
+        except (ValueError) as ve:
+            error_callback(convertor_fmt_str, value, self.value_error_str)
+            raise_from(ConvertorError(str(ve)), ve)
+
+    def __repr__(self):
+        rounding_dict = {
+            decimal.ROUND_CEILING: "ROUND_CEILING",
+            decimal.ROUND_DOWN: "ROUND_DOWN",
+            decimal.ROUND_FLOOR: "ROUND_FLOOR",
+            decimal.ROUND_HALF_DOWN: "ROUND_HALF_DOWN",
+            decimal.ROUND_HALF_EVEN: "ROUND_HALF_EVEN",
+            decimal.ROUND_HALF_UP: "ROUND_HALF_UP",
+            decimal.ROUND_UP: "ROUND_UP",
+            decimal.ROUND_05UP: "ROUND_05UP"
+        }
+        rounding_str = rounding_dict[self._rounding]
+
+        return 'DecimalConvertor(precision=%d, rounding=%s, value_error_str=%s)' % (self._precision, rounding_str, self.value_error_str)

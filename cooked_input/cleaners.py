@@ -224,7 +224,7 @@ class RemoveCleaner(Cleaner):
         return result
 
     def __repr__(self):
-        return 'ReplaceCleaner(patterns={})'.format(self._patterns)
+        return 'RemoveCleaner(patterns={})'.format(self._patterns)
 
 
 class ReplaceCleaner(Cleaner):
