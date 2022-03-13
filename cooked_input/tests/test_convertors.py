@@ -154,6 +154,21 @@ class TestConvertors(object):
             assert (result == good_result)
         print(dc)
 
+    def test_decimal2(self):
+        input_str = u"""
+            10.1
+            10.10
+            10.100
+            """
+
+        dc = DecimalConvertor(precision=2, rounding="ROUND_UP")
+        good_result = decimal.Decimal('10.10')
+        with redirect_stdin(StringIO(input_str)):
+            result = get_input(cleaners=StripCleaner(), convertor=dc)
+            print(result)
+            assert (result == good_result)
+        print(dc)
+
     def test_get_money(self):
         input_str = u"""
             $10.17

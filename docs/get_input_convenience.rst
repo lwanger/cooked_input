@@ -56,6 +56,11 @@ get_yes_no
 
 .. autofunction:: get_yes_no
 
+get_money
+----------
+
+.. autofunction:: get_money
+
 get_list
 --------
 
