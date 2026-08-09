@@ -39,7 +39,7 @@ Running this code produces::
     'john cleese'
 
 This acts just like the Python `input <https://docs.python.org/3/library/functions.html?highlight=input#input>`_
-command (or `raw_input` in legacy Python.) Unlike `input` `cooked_input` will
+command. Unlike `input` `cooked_input` will
 keep on asking until you enter valid input. `Get_string` will not accept a blank line.
 
 .. note::

@@ -1,7 +1,73 @@
 
-# cooked_input TODO list
+# TODO
 
-**TODO:**
+This is a list of changes I want to make to the project. These should be
+made one at a time, not all at once. After each change, the code should be
+reviewed by me, tests should be run to verify that the change does not break
+anything, documentation should be updated, and the project should be committed
+to git. Just before committing the code to git, move the TODO item to the "Completed" section. 
+
+When the version number is incremented, move the items from the "Completed" section of this list into
+a CHANGELOG.md file. The CHANGELOG.md file should be updated with the version number and date.
+
+
+## First Things:
+
+Two things I'd still flag before you cut 0.6.0:
+
+- [ ] get_table.py sits at 66% coverage — 158 uncovered lines, mostly the interactive menu and pagination navigation. That's the weakest spot in the package and it's the module the migration touched most.
+- [ ] Update copyright statements (to 2026 from 2017)
+- [ ] Push to github master
+- [ ] Push to PYPI
+
+**Second**:
+
+- [ ] Add type hints
+- [ ] Improve documentation and examples
+- [ ] Improve test cases and coverage
+- [ ] Update documentation to great-docs?
+
+## Completed:
+
+Items here move into CHANGELOG.md when the version number is incremented.
+
+- [X] Replace setup.py/Pipfile/requirements.txt with a pyproject.toml.
+      Removed `setup.py`, `setup.cfg`, `Pipfile`, `Pipfile.lock` and
+      `requirements.txt`; `tox.ini` now takes its dependencies from the
+      `test` extra. Also finished the earlier `install_requires` pruning by
+      dropping `setuptools-git`, a build-time plugin that was declared as a
+      runtime dependency. Wheel tag narrows `py2.py3-none-any` ->
+      `py3-none-any`, matching the drop of Python 2 support.
+
+## more features:
+
+- Split into sub-packages (input, menus, etc.)
+- Simplify API? Emphasize convenience functions
+- Add emoji support
+- Work better with Unicode
+- Add themes (**dict) so less verbose for calling with similar settings
+- Bundles of inputs for forms? Relatonships/constraints between inputs?
+- Make work better (extension?) to Pydantic?
+
+## time-tracker plan:
+
+- [X] Replace `veryprettytable` with `prettytable` (`get_table.py:17`, `input_utils.py:18,58`)
+- [X] Prune `install_requires` (`setup.py:54`): drop `future` (Python 2 compat) and `setuptools-git`; confirm `validus`/`dateparser` are still needed
+- [X] Declare and test a `>=3.12` floor (3.12 / 3.13 / 3.14)
+- [ ] Push the 2 pending commits; release to PyPI (`0.5.5` or `0.6.0`)
+
+**Others**:
+
+* Focus on ease-of-use -- get_* functions.
+* Restructure layers: ci_cleaners, ci_convertors, ci_validators, ci (get_*), ci_tables and ci_menus (TUI)
+* Add model tooling (uv? lock files? Poetry?)
+* add dash/zeal docset (add to: https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets) - https://kapeli.com/docsets#python
+* add support for Rich (text color, tables, etc)
+* full type hinting (run through mypy?)
+* expand tutorials
+* remove Python 2 support
+* test for 3.10/3.11/...
+* add support for rich consoles, rich tables?
 
 * general:
     * Create extension directory (can add things with extra pip requirements like viridus)

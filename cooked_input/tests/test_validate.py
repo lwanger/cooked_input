@@ -6,12 +6,8 @@ Len Wanger, 2017
 """
 
 import pytest
-import sys
 
-if sys.version_info[0] > 2:  # For Python 3
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from io import StringIO
 
 from cooked_input import validate, Validator, RangeValidator, NoneOfValidator
 from cooked_input import GetInput, get_input, print_error, StripCleaner, IntConvertor, ListConvertor, AnyOfValidator
@@ -221,7 +217,7 @@ class TestValidate(object):
         disallowed_chars_password_val = PasswordValidator(disallowed=disallowed_chars)
 
         with redirect_stdin(StringIO(input_str)):
-            result = get_input(validators=[disallowed_chars_password_val], prompt='type in a password (type in a password(no vowels, even digits or !, *, \ %)')
+            result = get_input(validators=[disallowed_chars_password_val], prompt='type in a password (type in a password(no vowels, even digits or !, *, \\ %)')
             print(result)
             assert (result == 'fbr^')
 

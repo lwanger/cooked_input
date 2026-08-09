@@ -1,0 +1,82 @@
+name: tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+  # Lets release.yml run this exact workflow as a release gate, so the
+  # published artifacts are the ones that were built and tested here.
+  workflow_call:
+
+# Supersede in-flight runs for the same branch rather than queueing them.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: py${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Mirrors the envlist in tox.ini.
+        os: [ubuntu-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        # cooked_input reads from the console, so the oldest and newest
+        # supported versions also get checked on the other two platforms.
+        include:
+          - os: windows-latest
+            python-version: "3.13"
+          - os: macos-latest
+            python-version: "3.13"
+          - os: windows-latest
+            python-version: "3.10"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install package and test dependencies
+        run: python -m pip install --upgrade pip && python -m pip install ".[test]"
+
+      - name: Run tests
+        run: pytest cooked_input/
+
+  build:
+    name: build and check distributions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build twine
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: Verify distribution metadata
+        run: twine check dist/*
+
+      - name: Confirm the wheel imports from a clean environment
+        run: |
+          python -m venv /tmp/clean
+          /tmp/clean/bin/python -m pip install dist/*.whl
+          cd /tmp
+          /tmp/clean/bin/python -c "import cooked_input; print(cooked_input.__version__)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: distributions
+          path: dist/

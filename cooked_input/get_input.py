@@ -7,9 +7,7 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
-from __future__ import unicode_literals
 
-import sys
 import collections
 import logging
 import getpass
@@ -18,8 +16,8 @@ from .error_callbacks import MaxRetriesError, ValidationError, ConvertorError
 from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
 from .validators import Validator, RangeValidator, in_all, LengthValidator
 from .convertors import IntConvertor, FloatConvertor, BooleanConvertor, DateConvertor
-from .convertors import YesNoConvertor, ListConvertor
-from .cleaners import StripCleaner
+from .convertors import YesNoConvertor, ListConvertor, DecimalConvertor
+from .cleaners import StripCleaner, RegexCleaner, RemoveCleaner
 from .input_utils import compose, isstring
 
 
@@ -78,12 +76,6 @@ class DownOneRowRequest(Exception):
     When raised, directs ``cooked_input`` to scroll down one row in paginated tables
     """
     pass
-
-
-# Python 2/3 compatibility
-if sys.version_info[0] > 2:  # For Python 3
-    def raw_input(prompt_msg):
-        return input(prompt_msg)
 
 
 # Named tuple and action types for GetInput commands
@@ -325,7 +317,7 @@ class GetInput(object):
             if self.hidden:
                 response = getpass.getpass(prompt=input_str)
             else:
-                response = raw_input(input_str)
+                response = input(input_str)
 
             if self.commands:
                 command_action = None
@@ -631,6 +623,45 @@ def get_yes_no(cleaners=(StripCleaner()), validators=None, **options):
         new_options['prompt'] = 'Enter yes or no'
 
     result = GetInput(cleaners, YesNoConvertor(), validators, **new_options).get_input()
+    return result
+
+def get_money(symbol="$", separator=",", cleaners=(StripCleaner(),), validators=None, **options):
+    """
+    :param str symbol: Symbol for the currency used (default: "$").
+    :param str separator: Thousands separator (default: ",").
+    :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
+    :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
+    :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
+
+    :return: a Decimal value for the cleaned, converted currency value entered.
+    :rtype: `Decimal <https://docs.python.org/3/library/decimal.html>`_
+
+    Convenience function for getting values for money. See :class:`DecimalConvertor` for a list of values accepted
+    for `rounding`. The currency symbol is stripped off and the `Decimal` value returned.
+    """
+    new_options = dict(options)
+
+    decimal_options = {}
+
+    if 'precision' in options:
+        decimal_options['precision'] = options['precision']
+
+    if 'rounding' in options:
+        decimal_options['rounding'] = options['rounding']
+
+    if 'prompt' not in options:
+        new_options['prompt'] = 'Enter an amount of money'
+
+    if symbol == "$":
+        pattern = r"^\$"
+    else:
+        pattern = "^" + symbol
+
+    symbol_cleaner = RegexCleaner(pattern, '', 1)
+    thousands_cleaner = RemoveCleaner(separator)
+    new_cleaners = list(cleaners) + [symbol_cleaner, thousands_cleaner]
+
+    result = GetInput(new_cleaners, DecimalConvertor(**decimal_options), validators, **new_options).get_input()
     return result
 
 

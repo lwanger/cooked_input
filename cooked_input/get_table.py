@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 """
 get_table - table/menu system for cooked_input
 
@@ -14,7 +12,7 @@ Len Wanger, 2017
 import sys
 import string
 
-import veryprettytable as pt
+import prettytable as pt  # note: pt.TableStyle is prettytable's style enum, not our TableStyle class below
 
 from cooked_input import get_input
 from cooked_input import GetInputInterrupt, RefreshScreenInterrupt
@@ -40,10 +38,10 @@ TABLE_RETURN_FIRST_VAL = 'first_value'
 TABLE_RETURN_ROW = 'row'
 TABLE_RETURN_TABLE_ITEM = 'table_item'
 
-RULE_FRAME = pt.FRAME
-RULE_HEADER = pt.HEADER
-RULE_ALL = pt.ALL
-RULE_NONE = pt.NONE
+RULE_FRAME = pt.HRuleStyle.FRAME
+RULE_HEADER = pt.HRuleStyle.HEADER
+RULE_ALL = pt.HRuleStyle.ALL
+RULE_NONE = pt.HRuleStyle.NONE
 
 
 # Supplied table actions
@@ -470,7 +468,7 @@ class Table(object):
         self.rows_per_page = self.style.rows_per_page
         self._table_items = put_in_a_list(rows)  # the original, raw table items for the table
         self._rows = []  # the expanded, refreshed table items for the table used to create the pretty table
-        self.table = pt.VeryPrettyTable()  # the pretty table to display
+        self.table = pt.PrettyTable()  # the pretty table to display
 
         if col_names is None:
             num_cols = len(self._table_items[0].values)
@@ -489,8 +487,8 @@ class Table(object):
         self.field_names = [self.tag_str] + field_names
         self.table.field_names = [self.tag_str] + field_names + ['action']
 
-        #self.table.set_style(pt.PLAIN_COLUMNS)
-        self.table.set_style(pt.DEFAULT)
+        #self.table.set_style(pt.TableStyle.PLAIN_COLUMNS)
+        self.table.set_style(pt.TableStyle.DEFAULT)
         self.table.border = self.style.show_border
         self.table.header = self.style.show_cols
         self.table.align = 'l'

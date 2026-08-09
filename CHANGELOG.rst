@@ -10,6 +10,24 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* v0.6.0:
+  * updated dateparser to 1.4.2. The old 0.7.6 pin cannot run on modern Python: it
+    raises "bad escape \\d" from the regex module while building its relative-date
+    patterns, which broke DateConvertor entirely.
+  * dropped Python 2 support: cooked_input now requires Python 3.10 or later.
+  * removed the future dependency (raise_from replaced by native raise ... from ...).
+  * switched from the abandoned veryprettytable to prettytable. RULE_* constants keep
+    the same values, but are now prettytable HRuleStyle members.
+  * fixed make_pretty_table, which raised AttributeError on every call.
+  * removed the validus dependency; the get_user_info example now uses a local is_email.
+  * fixed a Python 3.13 deprecation (re.sub count/flags passed positionally) and several
+    invalid escape sequences that emitted SyntaxWarning.
+
+* v0.5.4:
+  * added get_money
+  * fixed import error on collections.Iterable (may be collections.abc.Iterable in old versions of Python).
+  * fixed __repr__ method of RemoveCleaner (said it was ReplaceCleaner)
+
 * v0.5.3:
   * hidden input was showing default value in prompt string. Replaced with "***"
 

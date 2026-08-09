@@ -5,14 +5,10 @@ pytest tests for cooked_input cleaning functions
 Len Wanger, 2017
 """
 
-import sys
 import pytest
 import re
 
-if sys.version_info[0] > 2:  # For Python 3
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from io import StringIO
 
 from pytest import approx
 

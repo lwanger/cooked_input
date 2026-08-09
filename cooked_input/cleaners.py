@@ -224,7 +224,7 @@ class RemoveCleaner(Cleaner):
         return result
 
     def __repr__(self):
-        return 'ReplaceCleaner(patterns={})'.format(self._patterns)
+        return 'RemoveCleaner(patterns={})'.format(self._patterns)
 
 
 class ReplaceCleaner(Cleaner):
@@ -283,7 +283,7 @@ class RegexCleaner(Cleaner):
         self._flags = flags
 
     def __call__(self, value):
-        result = re.sub(self._pattern, self._repl, value, self._count, self._flags)
+        result = re.sub(self._pattern, self._repl, value, count=self._count, flags=self._flags)
         return result
 
     def __repr__(self):

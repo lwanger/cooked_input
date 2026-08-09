@@ -37,10 +37,11 @@ Documentation
 The documentation is available at: http://cooked-input.readthedocs.io/en/latest/
 
 
-Python 2/3 Support
-------------------
+Python Support
+--------------
 
-cooked_input has been tested on Python: 2.7. 3.5+ (with 3.9 being the latest tested)
+cooked_input requires Python 3.10 or later, and has been tested through Python 3.13.
+Python 2 is no longer supported (the last release supporting it is v0.5.4).
 
 
 Installation

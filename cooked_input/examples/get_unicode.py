@@ -87,7 +87,7 @@ def print_filter_usage(cmd_str):
 
 
 def filter_cmd_action(cmd_str, cmd_vars, cmd_dict):
-    """
+    r"""
     filter command filter category name
     modifiers:
         Lu - letter, u - uppercase, l - lowercase, t - titlecase, m - modifier, 0 - other
@@ -103,7 +103,7 @@ def filter_cmd_action(cmd_str, cmd_vars, cmd_dict):
     """
     cat_arg = name_arg = None
     variables = cmd_vars.split(' ') if len(cmd_vars) else []
-    cat_regex = '\*\*|L[ultmo\*]|M[nce\*]|N[dlo\*]|P[cdseifo\*]|S[mcko\*]|Z[slp\*]|C[cfson\*]'
+    cat_regex = r'\*\*|L[ultmo\*]|M[nce\*]|N[dlo\*]|P[cdseifo\*]|S[mcko\*]|Z[slp\*]|C[cfson\*]'
     category_validator = ci.RegexValidator(pattern=cat_regex)
 
     if len(variables) > 2:

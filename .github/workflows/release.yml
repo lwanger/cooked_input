@@ -1,0 +1,92 @@
+name: release
+
+# Publishing uses PyPI Trusted Publishing (OIDC): GitHub mints a short-lived
+# identity token for this workflow and PyPI exchanges it for an upload token.
+# There is no API token stored in repository secrets.
+#
+# One-time setup on PyPI (Manage project -> Publishing -> Add a new publisher):
+#   Owner:       lwanger
+#   Repository:  cooked_input
+#   Workflow:    release.yml
+#   Environment: pypi
+# Repeat on test.pypi.org with environment "testpypi" to use the dry-run path.
+# The owner/repo/workflow/environment must match exactly or PyPI rejects the
+# token exchange.
+#
+# The publish action is pinned to a commit SHA rather than the mutable
+# release/v1 tag: these jobs can mint a PyPI upload token, so a moving ref
+# would let an upstream tag change alter what runs with that privilege.
+# To upgrade, resolve the tag you want to a commit and update both jobs plus
+# the trailing version comment:
+#   gh api repos/pypa/gh-action-pypi-publish/commits/<tag> --jq .sha
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Runs the full test matrix and the build/twine check from tests.yml, and
+  # leaves the checked distributions behind as the "distributions" artifact.
+  ci:
+    uses: ./.github/workflows/tests.yml
+
+  publish-pypi:
+    name: publish to PyPI
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: ci
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/cooked-input
+    permissions:
+      # Required for OIDC. Scoped to this job so no other job in the
+      # repository can request a publishing identity.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tag must match cooked_input/version.py
+        run: |
+          set -euo pipefail
+          tag_version="${GITHUB_REF_NAME#v}"
+          pkg_version="$(python -c 'import re, pathlib; print(re.search(r"__version__\s*=\s*.([^\x27\"]+)", pathlib.Path("cooked_input/version.py").read_text()).group(1))')"
+          echo "tag=${tag_version} package=${pkg_version}"
+          if [ "${tag_version}" != "${pkg_version}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match __version__ ${pkg_version}; refusing to publish."
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+
+  publish-testpypi:
+    name: publish to TestPyPI
+    # Manual dry run: exercises the OIDC handshake without spending a version
+    # number on PyPI, which cannot be reused once uploaded.
+    if: github.event_name == 'workflow_dispatch'
+    needs: ci
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/cooked-input
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          repository-url: https://test.pypi.org/legacy/

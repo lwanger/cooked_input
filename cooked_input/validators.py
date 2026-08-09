@@ -1,22 +1,17 @@
 """
 This file contains validator classes for cooked_input
 
-For more validators: look at using validus:
-    https://shopnilsazal.github.io/validus/readme.html
-
 Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
-
-from __future__ import print_function
 
 import os
 import sys
 import string
 import re
-import collections
-from abc import ABCMeta, abstractmethod
 
+from abc import ABCMeta, abstractmethod
+from collections.abc import Iterable
 
 from .error_callbacks import print_error, silent_error, DEFAULT_VALIDATOR_ERROR
 from .input_utils import put_in_a_list, isstring
@@ -36,7 +31,7 @@ def in_any(value, validators, error_callback, validator_fmt_str):
 
     if validators is None:
         result = True
-    elif isinstance(validators, collections.Iterable):  # list of validators (or other iterable)
+    elif isinstance(validators, Iterable):  # list of validators (or other iterable)
         for validator in validators:
             if callable(validator):
                 result = validator(value, error_callback, validator_fmt_str)
@@ -66,7 +61,7 @@ def in_all(value, validators, error_callback, validator_fmt_str):
 
     if validators is None:
         result = True
-    elif isinstance(validators, collections.Iterable):
+    elif isinstance(validators, Iterable):
         result = all(validator(value, error_callback, validator_fmt_str) for validator in validators)
     elif callable(validators):
         result = validators(value, error_callback, validator_fmt_str)
@@ -91,7 +86,7 @@ def not_in(value, validators, error_callback, validator_fmt_str):
 
     if validators is None:
         result = True
-    elif isinstance(validators, collections.Iterable):  # list of validators (or other iterable)
+    elif isinstance(validators, Iterable):  # list of validators (or other iterable)
         for validator in validators:
             if callable(validator):
                 result = validator(value, silent_error, validator_fmt_str)
@@ -397,8 +392,8 @@ class IsFileValidator(Validator):
 class SimpleValidator(Validator):
     """
     use a simple function as a `validator <validators.html>`_. ``validator_func`` is any callable that takes a single
-    value as input and returns **True** if the value passes (and **False** otherwise.) Used to wrap functions (e.g.
-    `validus <https://shopnilsazal.github.io/validus/>`_ functions. Can also be used with `func.partial
+    value as input and returns **True** if the value passes (and **False** otherwise.) Used to wrap boolean
+    validation functions, whether your own or from a third-party library. Can also be used with `func.partial
     <https://docs.python.org/3/library/functools.html#partial-objects>`_ to wrap validation functions that take more complex parameters.
 
     :param Callable validator_func: a function (or other callable) called to validate the value
@@ -432,7 +427,7 @@ class SimpleValidator(Validator):
 
 
 class RegexValidator(Validator):
-    """
+    r"""
     check if a value matches a `regular expression <https://docs.python.org/3/library/re.html?highlight=re#module-re>`_.
 
     :param str pattern: the `regular expression <https://docs.python.org/3/library/re.html?highlight=re#module-re>`_ to match

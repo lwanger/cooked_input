@@ -8,10 +8,9 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
-import sys
-import collections
-import veryprettytable
+import prettytable
 
+from collections.abc import Iterable
 
 def compose(value, funcs):
     """
@@ -27,7 +26,7 @@ def compose(value, funcs):
 
     if callable(funcs):
         result = funcs(value)
-    elif isinstance(funcs, collections.Iterable):
+    elif isinstance(funcs, Iterable):
         for func in funcs:
             if first_func:
                 result = func(value)
@@ -49,8 +48,7 @@ def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):
     :param sort_by_second_col: sort by the second column if True, otherwise leave in order from rows.
     :return: a prettytable for the table.
     """
-    #x = prettytable.PrettyTable(['id', second_col_name])
-    x = veryprettytable.PrettyTable(['id', second_col_name])
+    x = prettytable.PrettyTable(['id', second_col_name])
 
     for row in rows:
         x.add_row([row[0], row[1]])
@@ -62,20 +60,15 @@ def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):
 
 def isstring(s):
     """
-    An annoyance in Pythons is you can't easily tell something is a string-like thing (string, unicode, bytes, etc.)
+    An annoyance in Pythons is you can't easily tell something is a string-like thing (string, bytes, etc.)
     For instance, both 'abc' and ['a', 'b', 'c'] are iterators, but the latter is not a valid password! Further, in
-    some cases strings can be of type bytes, which is not caught as a str (Python 3) or basestring (legacy Python) This
-    function checks if the value can be treated like a string.
+    some cases strings can be of type bytes, which is not caught as a str. This function checks if the value can be
+    treated like a string.
 
     :param s: the value to check
-    :return: True if value is a string-like thing (string, unicode, bytes, etc.), otherwise False
+    :return: True if value is a string-like thing (string, bytes, etc.), otherwise False
     """
-
-    # if we use Python 3
-    if (sys.version_info[0] >= 3):
-        return isinstance(s, (str, bytes))
-    else:  # we use Legacy Python (2.x)
-        return isinstance(s, (basestring, bytes))
+    return isinstance(s, (str, bytes))
 
 
 def put_in_a_list(values):
@@ -93,7 +86,7 @@ def put_in_a_list(values):
         result = []
     elif isstring(values):
         result = [values]
-    elif isinstance(values, collections.Iterable):  # list or other iterable
+    elif isinstance(values, Iterable):  # list or other iterable
         result = list(values)
     else:  # single non-iterable value
         result = [values]

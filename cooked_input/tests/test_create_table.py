@@ -1,10 +1,6 @@
 # test create_table:
-import sys
 
-if sys.version_info[0] > 2:  # For Python 3
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from io import StringIO
 
 
 from collections import namedtuple
