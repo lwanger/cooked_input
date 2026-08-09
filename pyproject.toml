@@ -1,0 +1,55 @@
+[build-system]
+# setuptools >= 77 is required for the PEP 639 SPDX `license` field below.
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cooked-input"
+description = "Get, clean, convert and validate input."
+readme = { file = "README.rst", content-type = "text/x-rst" }
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE", "LICENSE.txt"]
+keywords = ["command line", "tool development", "input", "raw_input"]
+authors = [{ name = "Len Wanger", email = "len_wanger@hotmail.com" }]
+
+# Single source of truth stays cooked_input/version.py; see [tool.setuptools.dynamic].
+dynamic = ["version"]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Database :: Front-Ends",
+    "Topic :: Software Development",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+]
+
+# Lower bounds, not the hard pins the old requirements.txt used: a library
+# should not force an exact version on the applications that depend on it.
+# These are the earliest releases cooked_input is known to work against.
+dependencies = [
+    "prettytable>=3.18.0",
+    "dateparser>=1.4.2",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.urls]
+Homepage = "https://github.com/lwanger/cooked_input"
+Source = "https://github.com/lwanger/cooked_input"
+Documentation = "https://cooked-input.readthedocs.io"
+
+[tool.setuptools.dynamic]
+version = { attr = "cooked_input.version.__version__" }
+
+[tool.setuptools.packages.find]
+# Matches the old find_packages() result: cooked_input and cooked_input.tests.
+# cooked_input/examples has no __init__.py, so it is not an importable package;
+# its sources reach the sdist through MANIFEST.in instead.
+include = ["cooked_input*"]
