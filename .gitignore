@@ -12,3 +12,10 @@ mk_build
 # Local AI agent configuration (not part of the package)
 CLAUDE.md
 docs/agents/
+
+# Credential downloads. PyPI hands recovery codes over as a timestamped file
+# that lands in whatever directory the browser saves to, so match the pattern
+# rather than one filename. See also .pypirc above.
+*Recovery-Codes*
+*recovery-codes*
+*.recovery-codes.txt
