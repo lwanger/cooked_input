@@ -10,7 +10,7 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
-* unreleased:
+* v0.6.0:
   * dropped Python 2 support: cooked_input now requires Python 3.10 or later.
   * removed the future dependency (raise_from replaced by native raise ... from ...).
   * switched from the abandoned veryprettytable to prettytable. RULE_* constants keep
