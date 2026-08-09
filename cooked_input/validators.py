@@ -5,22 +5,13 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
-from __future__ import print_function
-
 import os
 import sys
 import string
 import re
 
-try:
-    from abc import ABCMeta, abstractmethod
-except ImportError:
-    from collections import ABCMeta, abstractmethod
-
-try:
-    from collections.abc import Iterable
-except ImportError:
-    from collections import Iterable
+from abc import ABCMeta, abstractmethod
+from collections.abc import Iterable
 
 from .error_callbacks import print_error, silent_error, DEFAULT_VALIDATOR_ERROR
 from .input_utils import put_in_a_list, isstring

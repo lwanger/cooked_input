@@ -59,11 +59,11 @@ Read the full documentation at readthedocs.org:
 
   - cooked_input documentation at: http://cooked-input.readthedocs.io/en/latest/
 
-Python 2/3 Support
-------------------
+Python Support
+--------------
 
-  - Python 2.7
-  - Python 3.3/3.4/3.5/3.6
+  - Python 3.10 or later (tested through Python 3.13)
+  - Python 2 is no longer supported (the last release supporting it is v0.5.4)
 
 Installation
 ------------

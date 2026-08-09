@@ -7,9 +7,7 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
-from __future__ import unicode_literals
 
-import sys
 import collections
 import logging
 import getpass
@@ -78,12 +76,6 @@ class DownOneRowRequest(Exception):
     When raised, directs ``cooked_input`` to scroll down one row in paginated tables
     """
     pass
-
-
-# Python 2/3 compatibility
-if sys.version_info[0] > 2:  # For Python 3
-    def raw_input(prompt_msg):
-        return input(prompt_msg)
 
 
 # Named tuple and action types for GetInput commands
@@ -325,7 +317,7 @@ class GetInput(object):
             if self.hidden:
                 response = getpass.getpass(prompt=input_str)
             else:
-                response = raw_input(input_str)
+                response = input(input_str)
 
             if self.commands:
                 command_action = None

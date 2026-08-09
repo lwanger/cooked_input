@@ -6,12 +6,8 @@ Len Wanger, 2017
 """
 
 import pytest
-import sys
 
-if sys.version_info[0] > 2:  # For Python 3
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from io import StringIO
 
 from cooked_input import validate, Validator, RangeValidator, NoneOfValidator
 from cooked_input import GetInput, get_input, print_error, StripCleaner, IntConvertor, ListConvertor, AnyOfValidator

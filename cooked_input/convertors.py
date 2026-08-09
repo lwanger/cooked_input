@@ -9,7 +9,6 @@ import csv
 import dateparser
 import decimal
 from io import StringIO
-from future.utils import raise_from
 from abc import ABCMeta, abstractmethod
 
 
@@ -60,7 +59,7 @@ class IntConvertor(Convertor):
             return int(value, self._base)
         except (ValueError) as ve:
             error_callback(convertor_fmt_str, value, self.value_error_str)
-            raise_from(ConvertorError(str(ve)), ve)
+            raise ConvertorError(str(ve)) from ve
 
     def __repr__(self):
         return 'IntConvertor(base=%d, value_error_str=%s)' % (self._base, self.value_error_str)
@@ -84,7 +83,7 @@ class FloatConvertor(Convertor):
             return float(value)
         except ValueError as ve:
             error_callback(convertor_fmt_str, value, self.value_error_str)
-            raise_from(ConvertorError(str(ve)), ve)
+            raise ConvertorError(str(ve)) from ve
 
     def __repr__(self):
         return 'FloatConvertor(%s)' % self.value_error_str
@@ -284,7 +283,7 @@ class ChoiceConvertor(Convertor):
             return self._choices[value]
         except (KeyError) as ve:
             error_callback(convertor_fmt_str, value, self.value_error_str)
-            raise_from(ConvertorError(str(ve)), ve)
+            raise ConvertorError(str(ve)) from ve
 
     def __repr__(self):
         return 'ChoiceConvertor(choices={}, value_error_str={})'.format(self._choices, self.value_error_str)
@@ -347,7 +346,7 @@ class DecimalConvertor(Convertor):
             return decimal.Decimal(value, self._context)
         except (ValueError) as ve:
             error_callback(convertor_fmt_str, value, self.value_error_str)
-            raise_from(ConvertorError(str(ve)), ve)
+            raise ConvertorError(str(ve)) from ve
 
     def __repr__(self):
         rounding_str = self._rounding_int_to_str(self._rounding)

@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 """
 get_table - table/menu system for cooked_input
 

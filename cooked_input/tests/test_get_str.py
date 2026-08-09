@@ -16,12 +16,8 @@ pytest stuff
 Len Wanger, 2017
 """
 
-import sys
 
-if sys.version_info[0] > 2:  # For Python 3
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from io import StringIO
 
 from .utils import redirect_stdin
 

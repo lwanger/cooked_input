@@ -8,13 +8,9 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
 
-import sys
 import prettytable
 
-try:
-    from collections.abc import Iterable
-except ImportError:
-    from collections import Iterable
+from collections.abc import Iterable
 
 def compose(value, funcs):
     """
@@ -64,20 +60,15 @@ def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):
 
 def isstring(s):
     """
-    An annoyance in Pythons is you can't easily tell something is a string-like thing (string, unicode, bytes, etc.)
+    An annoyance in Pythons is you can't easily tell something is a string-like thing (string, bytes, etc.)
     For instance, both 'abc' and ['a', 'b', 'c'] are iterators, but the latter is not a valid password! Further, in
-    some cases strings can be of type bytes, which is not caught as a str (Python 3) or basestring (legacy Python) This
-    function checks if the value can be treated like a string.
+    some cases strings can be of type bytes, which is not caught as a str. This function checks if the value can be
+    treated like a string.
 
     :param s: the value to check
-    :return: True if value is a string-like thing (string, unicode, bytes, etc.), otherwise False
+    :return: True if value is a string-like thing (string, bytes, etc.), otherwise False
     """
-
-    # if we use Python 3
-    if (sys.version_info[0] >= 3):
-        return isinstance(s, (str, bytes))
-    else:  # we use Legacy Python (2.x)
-        return isinstance(s, (basestring, bytes))
+    return isinstance(s, (str, bytes))
 
 
 def put_in_a_list(values):

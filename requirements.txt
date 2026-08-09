@@ -1,3 +1,2 @@
-future==0.18.2
 prettytable==3.18.0
 dateparser==0.7.6

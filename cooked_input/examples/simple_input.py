@@ -9,7 +9,6 @@ Three versions of a simple guessing game:
 Len Wanger, 2017
 """
 
-import sys
 import random
 
 def simple_guess():
@@ -31,10 +30,7 @@ def robust_guess():
     print('I am thinking of a number between 1 and 10.')
 
     while True:
-        if sys.version_info.major > 2:
-            result = input('Guess what number I am thinking of: ')
-        else:
-            result = raw_input('Guess what number I am thinking of: ')
+        result = input('Guess what number I am thinking of: ')
 
         try:
             guess = int(result)

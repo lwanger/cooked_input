@@ -44,13 +44,10 @@ Looks simple enough right? We get input from the user and convert it to an integ
     ValueError: invalid literal for int() with base 10: 'a'
 
 Let's look at what it takes to make the input robust. Checking that the input is: a number,
-within the correct range, works with legacy Python (ie. version 2) and 3, etc. becomes::
+within the correct range, etc. becomes::
 
         while True:
-            if sys.version_info.major > 2:
-                result = input('Guess what number I am thinking of: ')
-            else:
-                result = raw_input('Guess what number I am thinking of: ')
+            result = input('Guess what number I am thinking of: ')
 
             try:
                 guess = int(result)
