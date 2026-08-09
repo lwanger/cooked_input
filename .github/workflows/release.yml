@@ -12,6 +12,13 @@ name: release
 # Repeat on test.pypi.org with environment "testpypi" to use the dry-run path.
 # The owner/repo/workflow/environment must match exactly or PyPI rejects the
 # token exchange.
+#
+# The publish action is pinned to a commit SHA rather than the mutable
+# release/v1 tag: these jobs can mint a PyPI upload token, so a moving ref
+# would let an upstream tag change alter what runs with that privilege.
+# To upgrade, resolve the tag you want to a commit and update both jobs plus
+# the trailing version comment:
+#   gh api repos/pypa/gh-action-pypi-publish/commits/<tag> --jq .sha
 
 on:
   push:
@@ -59,7 +66,7 @@ jobs:
           path: dist
 
       - name: Publish
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
 
   publish-testpypi:
     name: publish to TestPyPI
@@ -80,6 +87,6 @@ jobs:
           path: dist
 
       - name: Publish
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:
           repository-url: https://test.pypi.org/legacy/
