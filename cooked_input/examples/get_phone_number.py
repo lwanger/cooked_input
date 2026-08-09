@@ -11,8 +11,6 @@ This example propmpts the user for a a phone number, without making them jump th
 This example shows the RemoveCleaner to strip out unwanted characters and the RegexCleaner to check
 the phone number has 10 digits and doesn't start with '0' or '1'.
 
-A more sophisticated phone validator comes with validus (see: [https://shopnilsazal.github.io/validus/usage.html?highlight=phone#validus.isphone])
-
 Len Wanger, 2017
 """
 

@@ -1,9 +1,6 @@
 """
 This file contains validator classes for cooked_input
 
-For more validators: look at using validus:
-    https://shopnilsazal.github.io/validus/readme.html
-
 Author: Len Wanger
 Copyright: Len Wanger, 2017
 """
@@ -404,8 +401,8 @@ class IsFileValidator(Validator):
 class SimpleValidator(Validator):
     """
     use a simple function as a `validator <validators.html>`_. ``validator_func`` is any callable that takes a single
-    value as input and returns **True** if the value passes (and **False** otherwise.) Used to wrap functions (e.g.
-    `validus <https://shopnilsazal.github.io/validus/>`_ functions. Can also be used with `func.partial
+    value as input and returns **True** if the value passes (and **False** otherwise.) Used to wrap boolean
+    validation functions, whether your own or from a third-party library. Can also be used with `func.partial
     <https://docs.python.org/3/library/functools.html#partial-objects>`_ to wrap validation functions that take more complex parameters.
 
     :param Callable validator_func: a function (or other callable) called to validate the value

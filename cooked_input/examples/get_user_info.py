@@ -9,7 +9,8 @@ Len Wanger, 2017
 Example of using cooked_input to get user login information. This example shows several features of 
 cooked_input:
 
-- Dealing with hidden inputs, retries, passwords, validating with validus, and writing custom validators.
+- Dealing with hidden inputs, retries, passwords, wrapping a simple boolean function as a validator,
+  and writing custom validators.
 
 First, it gets the login and password from the user, then it updates the user's profile information.
 
@@ -40,14 +41,48 @@ text password and check it against the encrypted password. Something like this (
 Len Wanger, 2017
 """
 
+import re
 import sys
-from validus import isemail
 
 from cooked_input import get_input
 from cooked_input.cleaners import StripCleaner, CapitalizationCleaner
 from cooked_input.convertors import ListConvertor
 from cooked_input.validators import Validator, PasswordValidator, ListValidator, ChoiceValidator, EqualToValidator
 from cooked_input.validators import SimpleValidator
+
+
+# A local part of one or more dot-separated atoms, then a domain of dot-separated
+# labels ending in an alphabetic TLD. Written as atoms so leading, trailing and
+# doubled dots are rejected without needing extra look-around.
+EMAIL_REGEX = re.compile(
+    r"^"
+    r"[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+"
+    r"(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*"
+    r"@"
+    r"(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+"
+    r"[A-Za-z]{2,}"
+    r"\Z"  # \Z, not $: '$' would also match before a trailing newline
+)
+
+
+def is_email(value):
+    """
+    Check whether a string looks like a valid email address.
+
+    This is a pragmatic check rather than a full RFC 5322 parser: it accepts the
+    shapes people actually type and rejects the common mistakes. Quoted local
+    parts, comments, and IP-literal domains are not supported. The only way to
+    confirm an address truly exists is to send mail to it.
+
+    :param str value: the string to check
+    :return: **True** if the value looks like an email address, else **False**
+    :rtype: boolean
+    """
+    try:
+        return EMAIL_REGEX.match(value) is not None
+    except TypeError:
+        # Not text at all (None, a number, or bytes) -- cannot be an address.
+        return False
 
 
 class CheckUserValidator(Validator):
@@ -108,7 +143,7 @@ if __name__ == '__main__':
     default_cleaners = [StripCleaner(), CapitalizationCleaner(style='lower')]
     name_cleaners = [StripCleaner(), CapitalizationCleaner(style='all_words')]
     strong_password_validator = PasswordValidator(disallowed='[]', min_len=5, max_len=15, min_lower=2, min_puncts=2)
-    email_validator = SimpleValidator(isemail, name='email')    # validator from validus function
+    email_validator = SimpleValidator(is_email, name='email')    # wrap a simple boolean function as a validator
     role_validator = ListValidator(elem_validators=ChoiceValidator(roles_list))
     role_prompt = 'Roles ({}, separated by commas)'.format(sorted(roles_list))
     password_confirm_fmt_str = 'password does not match'

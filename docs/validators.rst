@@ -43,13 +43,21 @@ An example of a validator to verify that the input is exactly a specified length
 
 
 .. note::
-    There are a large number of Boolean validation functions available from the `validus <https://shopnilsazal.github.io/validus/>`_
-    project. These can be used as cooked_input validation functions by wrapping them in a :class:`SimpleValidator`. For
-    instance, to use ``validus`` to validate an email address::
+    Any Boolean function -- one you write yourself, or one from a third-party validation library -- can be
+    used as a cooked_input validation function by wrapping it in a :class:`SimpleValidator`. For instance,
+    to validate an email address::
 
-        from validus import isemail
-        email_validator = SimpleValidator(isemail, name='email')
+        import re
+
+        EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}\Z")
+
+        def is_email(value):
+            return EMAIL_REGEX.match(value) is not None
+
+        email_validator = SimpleValidator(is_email, name='email')
         email = get_input(prompt='enter a valid Email address', validators=email_validator)
+
+    See ``cooked_input/examples/get_user_info.py`` for a stricter version of ``is_email``.
 
 Validators
 ==========

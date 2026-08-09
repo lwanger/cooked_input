@@ -51,7 +51,7 @@ setup(
     ],
 
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=['setuptools-git', 'future', 'veryprettytable', 'dateparser', 'validus'],
+    install_requires=['setuptools-git', 'future', 'veryprettytable', 'dateparser'],
     python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',
 
     #extras_require={
