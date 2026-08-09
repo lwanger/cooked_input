@@ -221,7 +221,7 @@ class TestValidate(object):
         disallowed_chars_password_val = PasswordValidator(disallowed=disallowed_chars)
 
         with redirect_stdin(StringIO(input_str)):
-            result = get_input(validators=[disallowed_chars_password_val], prompt='type in a password (type in a password(no vowels, even digits or !, *, \ %)')
+            result = get_input(validators=[disallowed_chars_password_val], prompt='type in a password (type in a password(no vowels, even digits or !, *, \\ %)')
             print(result)
             assert (result == 'fbr^')
 

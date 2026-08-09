@@ -439,7 +439,7 @@ class SimpleValidator(Validator):
 
 
 class RegexValidator(Validator):
-    """
+    r"""
     check if a value matches a `regular expression <https://docs.python.org/3/library/re.html?highlight=re#module-re>`_.
 
     :param str pattern: the `regular expression <https://docs.python.org/3/library/re.html?highlight=re#module-re>`_ to match

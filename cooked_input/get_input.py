@@ -661,7 +661,7 @@ def get_money(symbol="$", separator=",", cleaners=(StripCleaner(),), validators=
         new_options['prompt'] = 'Enter an amount of money'
 
     if symbol == "$":
-        pattern = "^\$"
+        pattern = r"^\$"
     else:
         pattern = "^" + symbol
 

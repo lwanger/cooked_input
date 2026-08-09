@@ -283,7 +283,7 @@ class RegexCleaner(Cleaner):
         self._flags = flags
 
     def __call__(self, value):
-        result = re.sub(self._pattern, self._repl, value, self._count, self._flags)
+        result = re.sub(self._pattern, self._repl, value, count=self._count, flags=self._flags)
         return result
 
     def __repr__(self):
