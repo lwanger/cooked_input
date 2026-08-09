@@ -11,6 +11,9 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 see TODO.md for list of TODO items
 
 * v0.6.0:
+  * updated dateparser to 1.4.2. The old 0.7.6 pin cannot run on modern Python: it
+    raises "bad escape \\d" from the regex module while building its relative-date
+    patterns, which broke DateConvertor entirely.
   * dropped Python 2 support: cooked_input now requires Python 3.10 or later.
   * removed the future dependency (raise_from replaced by native raise ... from ...).
   * switched from the abandoned veryprettytable to prettytable. RULE_* constants keep

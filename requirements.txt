@@ -1,2 +1,2 @@
 prettytable==3.18.0
-dateparser==0.7.6
+dateparser==1.4.2
