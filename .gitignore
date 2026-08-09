@@ -8,3 +8,7 @@ dist/*
 .cache/*
 cooked_input.egg-info/*
 mk_build
+
+# Local AI agent configuration (not part of the package)
+CLAUDE.md
+docs/agents/
