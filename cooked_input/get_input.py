@@ -313,6 +313,11 @@ class GetInput(object):
         This method prompts the user for an input, and returns the cleaned, converted, and validated input.
         """
         retries = 0
+        # Fixing: `valid_response` used to be assigned only inside the loop, so
+        # retries=0 -- a loop whose body never runs -- reached the check after it with
+        # the name unbound and raised UnboundLocalError instead of the MaxRetriesError
+        # the caller asked for by setting a retry limit.
+        valid_response = False
         input_str = '{}{}: '.format(self.prompt_str, self.default_string)
         print('')
 
@@ -365,9 +370,6 @@ class GetInput(object):
                 # match none of the branches above, so retries was never incremented and
                 # the loop spun forever. Blank is just another rejected value here --
                 # report it, count the retry, and re-prompt, so max_retries is reachable.
-                # valid_response is recorded for the same reason process_value returns it:
-                # the check below needs it to raise MaxRetriesError.
-                valid_response = False
                 self.error_callback(self.validator_error_fmt, response, 'cannot be blank')
                 retries += 1
                 continue

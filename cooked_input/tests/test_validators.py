@@ -12,11 +12,13 @@ import pytest
 
 from cooked_input import (
     DEFAULT_VALIDATOR_ERROR,
+    AnyOfValidator,
     ChoiceValidator,
     EqualToValidator,
     IsFileValidator,
     LengthValidator,
     ListValidator,
+    NoneOfValidator,
     RangeValidator,
     RegexValidator,
     SimpleValidator,
@@ -70,24 +72,51 @@ class TestInAny:
     def test_a_non_callable_inside_the_list_is_compared_for_equality(self):
         assert in_any(5, [ONE_TO_TEN, 99], silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
-    @pytest.mark.xfail(
-        reason="#49: the loop body never runs for an empty iterable, so `result` is "
-               "unbound and in_any raises UnboundLocalError",
-        strict=True,
-    )
     def test_an_empty_validator_list_passes_vacuously(self):
+        # Regression guard for #49: the loop body never runs, so `result` used to be
+        # unbound here and in_any raised UnboundLocalError.
         assert in_any(5, [], silent_error, DEFAULT_VALIDATOR_ERROR) is True
+
+    def test_an_empty_validator_list_agrees_with_none_and_with_in_all(self):
+        empty = in_any(5, [], silent_error, DEFAULT_VALIDATOR_ERROR)
+        assert empty is in_any(5, None, silent_error, DEFAULT_VALIDATOR_ERROR)
+        assert empty is in_all(5, [], silent_error, DEFAULT_VALIDATOR_ERROR)
 
 
 class TestNotIn:
-    def test_no_validators_currently_fails_unlike_its_siblings(self, capsys):
-        # Characterization, and an inconsistency worth knowing about: in_all(None)
-        # and in_any(None) both pass vacuously, but not_in sets result = True for
-        # the None case -- which it reads as "matched" -- so it fails and emits a
+    def test_no_validators_passes_vacuously_and_says_nothing(self, capsys):
+        # Regression guard for #49: the None branch used to set result = True, which is
+        # read as "a validator matched", so this returned False and printed a
         # "value cannot match 5" message naming a validator that does not exist.
-        # NoneOfValidator(None) therefore rejects everything. Tracked in #49.
-        assert not_in(5, None, print_error, DEFAULT_VALIDATOR_ERROR) is False
-        assert "cannot match" in capsys.readouterr().err
+        assert not_in(5, None, print_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert capsys.readouterr().err == ""
+
+    def test_no_validators_agrees_with_its_siblings(self):
+        # The three used to disagree on the same input: in_all and in_any passed, not_in
+        # rejected. All three now treat "nothing supplied" as vacuously true.
+        assert not_in(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert in_all(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert in_any(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+
+    def test_an_empty_validator_list_passes_vacuously(self):
+        assert not_in(5, [], silent_error, DEFAULT_VALIDATOR_ERROR) is True
+
+
+class TestEmptyValidatorSetsThroughTheClasses:
+    """The same #49 cases as reached by a caller, through the public validator classes."""
+
+    def test_any_of_validator_with_an_empty_list_accepts(self):
+        assert quiet(5, AnyOfValidator([])) is True
+
+    def test_none_of_validator_with_no_validators_accepts(self):
+        # This one rejected every value it was ever given before #49 was fixed.
+        assert quiet(5, NoneOfValidator(None)) is True
+
+    def test_none_of_validator_with_an_empty_list_accepts(self):
+        assert quiet(5, NoneOfValidator([])) is True
+
+    def test_none_of_validator_still_rejects_a_match(self):
+        assert quiet(5, NoneOfValidator([ONE_TO_TEN])) is False
 
     def test_a_matching_validator_fails(self):
         assert not_in(5, [ONE_TO_TEN], silent_error, DEFAULT_VALIDATOR_ERROR) is False

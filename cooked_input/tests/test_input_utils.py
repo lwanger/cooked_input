@@ -57,14 +57,10 @@ class TestCompose:
     def test_functions_are_applied_left_to_right(self):
         assert compose("  Hello  ", [str.strip, str.lower]) == "hello"
 
-    def test_an_empty_function_list_currently_discards_the_value(self):
-        # Characterization. `result` is initialised to None and the loop never runs,
-        # so composing nothing loses the input rather than passing it through.
-        #
-        # Not reachable through get_input -- GetInput guards with `if self.cleaners:`
-        # so an empty cleaner list never gets here -- but it is a public function and
-        # this is the same empty-iterable shape as in_any([]). Tracked in #49.
-        assert compose("unchanged", []) is None
+    def test_an_empty_function_list_is_the_identity(self):
+        # Regression guard for #49: `result` was initialised to None and the loop never
+        # runs, so composing nothing used to destroy the value instead of passing it on.
+        assert compose("unchanged", []) == "unchanged"
 
     def test_a_non_callable_non_iterable_raises(self):
         with pytest.raises(RuntimeError, match="funcs cannot be called"):

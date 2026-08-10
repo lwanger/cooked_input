@@ -50,15 +50,13 @@ class TestRetries:
         assert get_input(convertor=IntConvertor(), error_callback=silent_error) == 42
         assert feeder.remaining == 0
 
-    @pytest.mark.xfail(
-        reason="#49: retries=0 never enters the loop, so `valid_response` is unbound "
-               "and the caller gets UnboundLocalError instead of MaxRetriesError",
-        strict=True,
-    )
     def test_zero_retries_raises_max_retries_error(self, fake_input):
-        fake_input("42")
-        with pytest.raises(MaxRetriesError):
+        # Regression guard for #49: the loop body never runs, so this used to reach the
+        # post-loop check with `valid_response` unbound and raise UnboundLocalError.
+        feeder = fake_input("42")
+        with pytest.raises(MaxRetriesError, match="Maximum retries exceeded"):
             get_input(retries=0)
+        assert feeder.remaining == 1, "retries=0 should not have asked for input at all"
 
 
 class TestDefaults:

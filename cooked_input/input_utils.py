@@ -19,10 +19,13 @@ def compose(value, funcs):
     :param value: the value to apply to funcs (the composed list of functions.)
     :param funcs: a function or list of functions to compose.
 
-    :return: the return value of the functions composed together.
+    :return: the return value of the functions composed together. Composing an empty
+      list of functions is the identity -- the value comes back unchanged.
     """
     first_func = True
-    result = None
+    # Fixing: this used to be `result = None`, which was returned as-is when `funcs`
+    # was empty, so composing nothing destroyed the value instead of passing it through.
+    result = value
 
     if callable(funcs):
         result = funcs(value)

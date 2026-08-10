@@ -27,11 +27,20 @@ def in_any(value, validators, error_callback, validator_fmt_str):
     :param str validator_fmt_str: format string for validation errors
 
     :return: boolean **True** if any of the validators pass, **False** if they all fail.
+
+    An empty iterable of validators passes vacuously, the same as passing **None**.
     """
 
     if validators is None:
-        result = True
-    elif isinstance(validators, Iterable):  # list of validators (or other iterable)
+        return True
+
+    # Fixing: `result` used to be assigned only inside the branches below, so an empty
+    # iterable -- whose loop body never runs -- left it unbound and raised
+    # UnboundLocalError. Seeding it with the "no validators supplied" answer makes
+    # in_any([]) agree with in_any(None) and with in_all([]).
+    result = True
+
+    if isinstance(validators, Iterable):  # list of validators (or other iterable)
         for validator in validators:
             if callable(validator):
                 result = validator(value, error_callback, validator_fmt_str)
@@ -81,11 +90,19 @@ def not_in(value, validators, error_callback, validator_fmt_str):
     :param str validator_fmt_str: format string to pass to the error callback routine for formatting the error.
 
     :return: boolean **True** if none of the validators pass, **False** if they any of them pass.
+
+    No validators -- **None** or an empty iterable -- passes vacuously: there is nothing
+    for the value to match.
     """
     result = False
 
     if validators is None:
-        result = True
+        # Fixing: this branch used to set `result = True`, which is read below as "a
+        # validator matched". not_in(value, None) therefore rejected every value and
+        # reported "value cannot match <value>", naming a validator that does not
+        # exist -- so NoneOfValidator(None) refused everything while AnyOfValidator(None)
+        # accepted everything. Nothing supplied means nothing matched.
+        return True
     elif isinstance(validators, Iterable):  # list of validators (or other iterable)
         for validator in validators:
             if callable(validator):
