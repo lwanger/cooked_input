@@ -1,0 +1,45 @@
+
+Test the readme text with (make sure readme_renderer is pip installed):
+
+python setup.py check -r -s
+
+
+to check the wheel and metadata use:
+
+unzip -c dist/cooked_input-0.3.5-py2.py3-none-any.whl  cooked_input-0.3.5.dist-info/WHEEL
+
+unzip -c dist/cooked_input-0.3.5-py2.py3-none-any.whl  cooked_input-0.3.5.dist-info/METADATA
+
+uploading to pypi:
+
+test first with:
+
+twine upload dist/* -r testpypi
+
+then do on the production server:
+
+twine upload dist/*
+
+
+
+-------
+
+Things to look at:
+
+https://github.com/magmax/python-inquirer -- look at carousel and checkbox features
+
+prompt toolkit: https://github.com/jonathanslenders/python-prompt-toolkit/tree/master
+
+did readline functionality but got very complicated.
+
+keyboard: https://pynput.readthedocs.io/en/latest/keyboard.html
+	takes over keyboard for all windows. Also crashed on me
+
+pyrepl: https://github.com/nascheme/pyrepl
+	readline from pypy
+
+pyuserinput: https://github.com/PyUserInput/PyUserInput
+	cross-platform. Haven't tried it yet
+
+pyreadline: https://github.com/pyreadline/pyreadline
+	Gnu readline implementation
