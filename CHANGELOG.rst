@@ -12,6 +12,15 @@ see TODO.md for list of TODO items
 
 * unreleased:
 
+  * fixed: ``Table.run()`` could never be exited with a blank entry. Line 933 read
+    ``action - TABLE_ITEM_EXIT`` -- a ``-`` where ``=`` was meant -- so ``action`` was
+    left unassigned on that path, raising ``UnboundLocalError`` on the first pass
+    through the loop and ``TypeError`` on later ones.
+  * fixed: ``Table.refresh_items()`` raised ``UnboundLocalError`` when given an
+    ``item_filter`` that was truthy but not callable. It now raises a ``RuntimeError``
+    naming what the argument should have been.
+  * fixed: a stray ``print('Table:__init__: ')`` debug statement fired when ``Table``
+    was constructed with an invalid ``add_exit`` value.
   * added Python 3.14 support. The full test suite passes on 3.14 with the existing
     dependency versions, so no code or dependency changes were needed; 3.14 is now in
     the CI matrix, the tox envlist and the PyPI classifiers.

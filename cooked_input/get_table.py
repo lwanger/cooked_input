@@ -400,7 +400,8 @@ class Table(object):
             if add_exit in { True, False, TABLE_ADD_EXIT, TABLE_ADD_RETURN }:
                 self.add_exit = add_exit
             else:
-                print('Table:__init__: ')
+                # Fixing: dropped a stray `print('Table:__init__: ')` debug statement
+                # that fired on the way to this exception.
                 raise RuntimeError('Table: unexpected value for add_exit option ({})'.format(add_exit))
         except KeyError:
             self.add_exit = TABLE_ADD_NONE
@@ -820,6 +821,15 @@ class Table(object):
         for item in use_rows:
             table_items.append(item)
 
+        # Fixing: `filtered_items` was only assigned by these two branches, so a
+        # truthy non-callable item_filter (a string, a list) fell through to the loop
+        # below with the name unbound and raised UnboundLocalError. Say what is
+        # actually wrong instead.
+        if not (item_filter is None or item_filter is True or callable(item_filter)):
+            raise RuntimeError(
+                'Table.refresh_items: item_filter must be None, True, or a callable '
+                'returning a (hidden, enabled) tuple -- got {!r}'.format(item_filter))
+
         if item_filter is None or item_filter is True:
             filtered_items = table_items
         elif callable(item_filter):
@@ -930,7 +940,12 @@ class Table(object):
                 continue
 
             if choice is None:
-                action - TABLE_ITEM_EXIT
+                # Fixing: this was `action - TABLE_ITEM_EXIT`, a '-' where '=' was
+                # meant, so `action` was never assigned on this path. First time
+                # through the loop that is an UnboundLocalError; later it leaves the
+                # previous row's action in place and `str - str` raises TypeError.
+                # Blank input has therefore never been able to exit the menu.
+                action = TABLE_ITEM_EXIT
             else:
                 action = choice.action
 
