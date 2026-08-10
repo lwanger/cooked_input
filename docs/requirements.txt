@@ -1,0 +1,9 @@
+# Documentation build dependencies.
+#
+# The package itself and its runtime dependencies are installed separately by the
+# `python.install` section of /.readthedocs.yaml, which does `pip install .`.
+#
+# Sphinx is pinned to a compatible release rather than left unbounded: the build
+# runs with fail_on_warning, so a major Sphinx release that introduces a new
+# warning would otherwise break the docs without a commit to this repository.
+sphinx~=8.2

@@ -2,36 +2,28 @@
 Cooked Input Project
 ====================
 
-.. .. image:: https://badge.fury.io/py/cooked-input.svg
-    :alt: PyPi Version
-    :scale: 100%
-    :target: https://badge.fury.io/py/cooked-input
+.. The :scale: option made docutils fetch each badge to measure it, which needs
+   Pillow and warns on every build. Badges are already the right size, so it is gone.
 
 .. image:: https://img.shields.io/pypi/v/cooked_input.svg
    :alt: PyPi Version
-   :scale: 100%
-   :target: https://pypi.python.org/pypi/cooked_input/
+   :target: https://pypi.org/project/cooked_input/
 
 .. image:: https://img.shields.io/pypi/dm/cooked_input.svg
    :alt: PyPi Monthly Downloads
-   :scale: 100%
-   :target: https://pypi.python.org/pypi/cooked_input/
+   :target: https://pypi.org/project/cooked_input/
 
 .. image:: https://img.shields.io/pypi/l/cooked_input.svg
    :alt: License
-   :scale: 100%
    :target: https://github.com/lwanger/cooked_input/blob/master/LICENSE
 
-.. image:: https://readthedocs.org/projects/cooked_input/badge/?version=latest
+.. image:: https://readthedocs.org/projects/cooked-input/badge/?version=latest
    :alt: Documentation Status
-   :scale: 100%
-   :target: https://readthedocs.org/projects/cooked_input/
+   :target: https://cooked-input.readthedocs.io/en/latest/
 
 .. image:: https://img.shields.io/pypi/pyversions/cooked-input.svg
-     :alt: PyPi pyversions
-     :scale: 100%
-     :target: https://pypi.org/project/cooked-input/
-..   :target: https://pypi.python.org/pypi/cooked_input/
+   :alt: PyPi pyversions
+   :target: https://pypi.org/project/cooked-input/
 
 
 ``cooked_input`` is a Python package for getting, cleaning, converting, and validating command
@@ -85,14 +77,10 @@ The best way to get started is to read the quick start at: http://cooked-input.r
 
 After that, more advanced usage can be learned from the tutorial at: http://cooked-input.readthedocs.io/en/latest/tutorial.html
 
-Finally,, part two of the tutorial can be found at: http://cooked-input.readthedocs.io/en/latest/tutorial2.html
+Finally, part two of the tutorial can be found at: http://cooked-input.readthedocs.io/en/latest/tutorial2.html
 
 
 Change log
 ----------
 
-.. `CHANGELOG: CHANGELOG`_
-
-See the `CHANGELOG`__ for a list of changes.
-
-__ CHANGELOG.html
+See the :doc:`CHANGELOG <CHANGELOG>` for a list of changes.

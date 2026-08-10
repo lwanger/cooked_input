@@ -79,6 +79,6 @@ ChoiceConvertor
 .. autoclass:: cooked_input.ChoiceConvertor
 
 DecimalConvertor
----------------
+----------------
 
 .. autoclass:: cooked_input.DecimalConvertor

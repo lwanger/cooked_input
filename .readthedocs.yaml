@@ -1,0 +1,33 @@
+# Read the Docs configuration file for Sphinx projects
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+#
+# This file must live at the repository root and must be named .readthedocs.yaml.
+# Read the Docs stopped falling back to implicit defaults in September 2023, so a
+# build without this file fails outright -- which is why the published docs sat at
+# v0.5.3 (Oct 2020) while the package moved on to 0.6.0.
+
+# Required
+version: 2
+
+# Set the OS, Python version and other tools you might need
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.12"
+
+# Build documentation in the "docs/" directory with Sphinx
+sphinx:
+  configuration: docs/conf.py
+  # The docs build clean, so treat any new warning as a build failure rather than
+  # letting the published site rot silently again.
+  fail_on_warning: true
+
+# docs/conf.py imports cooked_input for __version__ and sphinx.ext.autodoc imports
+# every documented module, so the package and its runtime dependencies
+# (prettytable, dateparser) must be installed in the build environment. Without
+# this, autodoc fails to import and every API page publishes empty.
+python:
+  install:
+    - method: pip
+      path: .
+    - requirements: docs/requirements.txt
