@@ -26,3 +26,31 @@ Detail and examples below; here are the basic principles.
 - Beyond that the [Google Python style guide](https://google.github.io/styleguide/pyguide.html) should be followed when possible.
 - All new functions and parameters (including cleaners, convertors, and validators) should be added to the documentation.
 - Examples of all new functions and parameters (including cleaners, convertors, and validators) should be added to the examples.
+
+## Keeping the READMEs in sync
+
+There are three README files, deliberately, because three places render them and
+they do not accept the same format:
+
+| File | Rendered by | Format |
+| --- | --- | --- |
+| `README.rst` | **PyPI** — `pyproject.toml` ships it as the long description | reStructuredText |
+| `README.md` | **GitHub** — it is preferred over `README.rst` on the repo front page | Markdown |
+| `docs/README.rst` | **Read the Docs** — it is the first page in the Sphinx toctree | reStructuredText |
+
+`README.rst` is the canonical copy. A change to it belongs in `README.md` as well;
+the two should stay word-for-word equivalent apart from markup. `docs/README.rst` is
+a longer variant with its own intro wording and a Change log section, so it does not
+need to match line for line — but the facts in it do.
+
+The line that drifts in practice is the supported Python version. When it changes,
+update **all four** of these together:
+
+- `README.rst` — "tested through Python X.Y"
+- `README.md` — same line
+- `docs/README.rst` — "(tested through Python X.Y)"
+- `pyproject.toml` — the `Programming Language :: Python :: X.Y` classifier, plus
+  `tox.ini` envlist and the CI matrix in `.github/workflows/tests.yml`
+
+This is exactly what went stale once already: `README.md` sat at 3.13 after the
+other files moved to 3.14.

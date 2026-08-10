@@ -1,4 +1,12 @@
 
+.. Keep this file in sync with README.md.
+
+   This file is the canonical copy: pyproject.toml ships it to PyPI as the long
+   description. README.md exists because GitHub renders it in preference to this
+   file, so it is what visitors to the repository see. Any change to one belongs in
+   the other, and the "tested through Python X.Y" line below must also match
+   README.md, docs/README.rst and the classifiers in pyproject.toml.
+
 .. image:: https://img.shields.io/pypi/v/cooked_input.svg
     :target: https://pypi.org/project/cooked_input/
 
@@ -46,6 +54,8 @@ Python 2 is no longer supported (the last release supporting it is v0.5.4).
 
 Installation
 ------------
+
+::
 
   pip install cooked_input
 
