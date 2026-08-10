@@ -62,7 +62,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'cooked_input'
-copyright = '2017, Len Wanger'
+copyright = '2017-2026, Len Wanger'
 author = 'Len Wanger'
 
 # The version info for the project you're documenting, acts as replacement for

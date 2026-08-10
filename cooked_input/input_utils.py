@@ -5,7 +5,7 @@ get_input module to get values from the command line.
 see: https://github.com/lwanger/cooked_input for more information.
 
 Author: Len Wanger
-Copyright: Len Wanger, 2017
+Copyright: Len Wanger, 2017-2026
 """
 
 import prettytable
