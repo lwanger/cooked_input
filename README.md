@@ -1,0 +1,47 @@
+
+# Cooked Input
+
+**cooked_input** is a Python package for getting, cleaning, converting, and validating input.
+If you think of input (raw_input in legacy Python) as raw input, then this is cooked input.
+
+**cooked_input** provides a simple and safe way to get validated command line input that ranges from the simplest
+of Python programs to sophisticated database driven applications. Beginner's can use the provided convenience classes
+to get simple inputs from the user. Following the [quickstart](http://cooked-input.readthedocs.io/en/latest/quick_start.html)
+you can be up and running in minutes.
+
+ More advanced users can easily create custom classes for sophisticated cleaning and validation. **Cooked_input** can
+ also be used to create menus and data tables. The latter tutorials and examples show several examples ranging from
+ simple to sophisticated calls.
+
+ **Cooked_input** also provides a pathway to use the same cleaning and validation logic used in the command line
+ for validating web or GUI based inputs.
+
+## Documentation
+
+
+The documentation is available at: http://cooked-input.readthedocs.io/en/latest/
+
+
+## Python 2/3 Support
+
+cooked_input requires Python 3.10 or later, and has been tested through Python 3.13.
+Python 2 is no longer supported (the last release supporting it is v0.5.4).
+
+
+## Installation
+
+```
+  pip install cooked_input
+```
+
+## Project Page
+
+Project information and source code is available at: https://github.com/lwanger/cooked_input
+
+
+## Quick Start and Tutorial
+
+The best way to get started is to read the quick start at: http://cooked-input.readthedocs.io/en/latest/quick_start.html
+
+After that, more advanced usage can be learned from the tutorial at: http://cooked-input.readthedocs.io/en/latest/tutorial.html
+

@@ -1,0 +1,55 @@
+Advertising:
+
+podcasts:
+  Python Bytes
+
+Blogs:
+  www.pythonblogs.com
+  Planet Python
+  Import Python
+  Pycoders
+  Python Weekly
+  Awesome Python
+  Hitchhiker's Guide to Python  
+  Bite Python
+
+Mailing lists:
+  comp.lang.python.announce - posting guidelines - https://www.python.org/community/clpya-guidelines.txt/
+  Chipy
+
+reddit
+--------
+
+Force all validations flags
+Queue error handler
+
+example runner, and install as console script
+
+encoding cleaner and unicode normalization
+
+add play again, y/n to simple example and tutorial
+
+README:
+
+Tag line
+
+animated gif
+
+Installation
+
+Usage
+
+features
+
+Resources
+	documentation
+	issue tracker
+	code
+
+TOC
+
+Quickstart
+-----
+
+travis-ci.org
+codecov.io

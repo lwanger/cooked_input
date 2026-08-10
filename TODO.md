@@ -16,7 +16,9 @@ a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version 
 - [ ] get_table.py sits at 66% coverage — 158 uncovered lines, mostly the interactive menu and pagination navigation. 
   That's the weakest spot in the package and it's the module the migration touched most.
 - [ ] Add type hints
+- [ ] Test on Python 3.14. How far back can we go in Python 3? 3.8?
 - [ ] Improve documentation and examples
+  - [ ] Example of get_money, showing why not to use floats to keep exact decimal amounts and do proper rounding
 - [ ] Improve test cases and coverage
 - [ ] Update documentation to great-docs?
 

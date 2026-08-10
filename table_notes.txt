@@ -1,0 +1,69 @@
+
+Inquirer (https://github.com/magmax/python-inquirer)
+
+static & dynamic table items
+shaded rows/cells
+borders
+pagination
+	make a PageTable class from VeryPrettyTable?
+navigation keys
+
+nav keys:
+	f1 - help
+	ctrl-F - search/filter
+	ctrl-d - back out of operation - GetInputInterrupt
+	f3 - find next
+	home - go to first page
+	end - go to last page
+	page up - go to prev page
+	page down - go to next page
+	escape - cancel the operation
+	tab - auto-complete
+----
+readchar:
+----
+- look at autocomplete /cmd line tool?
+	prompt_toolkit
+	pyreadline
+
+----
+
+https://github.com/sfischer13/python-prompt
+
+-------
+for validators allow &, |, and ~?
+-------
+
+X call prompt from ci.get_input and see if can get hotkeys
+- make a menu in prompt-toolkit - see if can go up/down and select. Type in entry too. See ptpythn sidebar
+- make a data table in prompt-toolkit - see if can page up/down. home, end, filter search
+- add action_data to application (inherit new class from application ir cli)
+- inherit PagedTable from VeryPrettyTable
+- make menu class into multi-column table class
+
+do AutoSuggestFromList (like FromHistory) for choices - use WordCompleter instead?
+custom_key_binding example shows load_key_bindings_for_prompt and registry. run_in_terminal
+bottom toolbar example shows bottom toolbar
+@handle(Keys.ColtrolL) decorator to handle key bindings, use def _(event): and calls to event.cli.*
+HighlightSelectionProcessor?
+----
+prompt toolkit:
+	buffer - w/ completer, auto_suggest, history, validator, accept_handler, etc.
+	Selection
+	Clipboard
+	Document
+	completers
+	validators
+	history
+	auto suggestion (-> to insert suggestion)
+	bottom toolbar
+	rPrompt (right prompt)
+	vi_mode
+	key_bindings_registry / KeyBindingManager / run_in_terminal
+	filters / CLIFilter / Condition
+	password_input / is_password
+
+	Application - has layout, key_bindings, buffer
+	, EventLoop, Input, Output
+	write_to_screen
+	Processors (HighlightSearchProcessor, HighlightSelectionProcessor, PasswordProcessor)

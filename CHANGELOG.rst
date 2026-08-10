@@ -10,6 +10,17 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
+* unreleased:
+
+  * added Python 3.14 support. The full test suite passes on 3.14 with the existing
+    dependency versions, so no code or dependency changes were needed; 3.14 is now in
+    the CI matrix, the tox envlist and the PyPI classifiers.
+  * the minimum stays at Python 3.10. Nothing in cooked_input's own source requires it
+    (the syntax floor is far older), but prettytable and dateparser both declare
+    requires-python >= 3.10, and going lower would mean depending on older releases of
+    both. Python 3.9 reached end of life in October 2025, so the older Pythons that
+    would unlock are all unsupported anyway.
+
 * v0.6.0:
 
   * updated dateparser to 1.4.2. The old 0.7.6 pin cannot run on modern Python: it
