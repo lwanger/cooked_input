@@ -8,19 +8,10 @@ anything, documentation should be updated, and the project should be committed
 to git. Just before committing the code to git, move the TODO item to the "Completed" section. 
 
 When the version number is incremented, move the items from the "Completed" section of this list into
-a CHANGELOG.md file. The CHANGELOG.md file should be updated with the version number and date.
+a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version number and date.
 
 
-## First Things:
-
-  1. Dry-run to TestPyPI via manual workflow_dispatch — release.yml has still never executed, so this is the first real test of the OIDC handshake, and it costs no version number.             
-  2. Tag v0.6.0 to publish. The guard will refuse if the tag doesn't match __version__, which is currently 0.6.0.        
-
-Two things I'd still flag before you cut 0.6.0:
-
-- [ ] Push to PYPI
-
-**Second**:
+## Next Up:
 
 - [ ] get_table.py sits at 66% coverage — 158 uncovered lines, mostly the interactive menu and pagination navigation. 
   That's the weakest spot in the package and it's the module the migration touched most.
@@ -31,11 +22,7 @@ Two things I'd still flag before you cut 0.6.0:
 
 ## Completed:
 
-Items here move into the change log when the version number is incremented.
-The change log lives in `CHANGELOG.rst` at the repository root (reStructuredText,
-not Markdown); `docs/CHANGELOG.rst` just includes it.
-
-(empty - the 0.6.0 items were moved into CHANGELOG.rst)
+Items here move into CHANGELOG.rst when the version number is incremented.
 
 ## more features:
 
@@ -52,7 +39,7 @@ not Markdown); `docs/CHANGELOG.rst` just includes it.
 - [X] Replace `veryprettytable` with `prettytable` (`get_table.py:17`, `input_utils.py:18,58`)
 - [X] Prune `install_requires` (`setup.py:54`): drop `future` (Python 2 compat) and `setuptools-git`; confirm `validus`/`dateparser` are still needed
 - [X] Declare and test a `>=3.12` floor (3.12 / 3.13 / 3.14)
-- [ ] Push the 2 pending commits; release to PyPI (`0.5.5` or `0.6.0`)
+- [X] Push the 2 pending commits; release to PyPI (`0.6.0` released 2026-08-10)
 
 **Others**:
 
