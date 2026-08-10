@@ -50,6 +50,26 @@ jobs:
       - name: Run tests
         run: pytest
 
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install package and test dependencies
+        run: python -m pip install --upgrade pip && python -m pip install ".[test]"
+
+      # A ratchet, not a target. The floor only ever goes up, and it goes up in
+      # the PR that earns the increase -- see CONTRIBUTING.md. Kept out of addopts
+      # so it does not slow the eight matrix jobs or every local run.
+      - name: Run tests with coverage
+        run: pytest --cov --cov-report=term-missing --cov-fail-under=78
+
   build:
     name: build and check distributions
     runs-on: ubuntu-latest

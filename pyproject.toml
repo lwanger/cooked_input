@@ -70,6 +70,28 @@ markers = ["slow: takes more than a second"]
 # GetPassWarning that used to come out of every run was the last blocker.
 filterwarnings = ["error"]
 
+[tool.coverage.run]
+source = ["cooked_input"]
+branch = true
+omit = [
+    "cooked_input/tests/*",
+    # Demo scripts with __main__ blocks, not library code.
+    "cooked_input/examples/*",
+]
+
+[tool.coverage.report]
+precision = 1
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
+# Deliberately NOT excluding @abstractmethod: Cleaner, Convertor and Validator
+# declare `__metaclass__ = ABCMeta`, the Python 2 spelling, which is inert on
+# Python 3. Those bodies really are reachable, and tests assert that they are.
+
 [tool.setuptools.packages.find]
 # Matches the old find_packages() result: cooked_input and cooked_input.tests.
 # cooked_input/examples has no __init__.py, so it is not an importable package;

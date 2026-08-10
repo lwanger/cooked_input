@@ -46,6 +46,20 @@ For coverage:
 pytest --cov --cov-report=term-missing
 ```
 
+### The coverage ratchet
+
+CI runs `pytest --cov --cov-fail-under=<floor>` in its own job. **That number only ever
+goes up, and it goes up in the PR that earns the increase.** Never lower it to make a red
+build green — if a change drops coverage, either the change needs a test or the drop needs
+explaining in the PR.
+
+The floor starts below the measured baseline rather than at the project's 97% target, so
+that every PR along the way can be green on its own. Raise it by the whole amount a PR
+gains; leaving it slack lets the next regression hide.
+
+Coverage is deliberately not in `addopts` — it would slow all eight matrix jobs and every
+local run for no benefit.
+
 ### Faking console input
 
 `cooked_input` reads from the console, so nearly every test needs a fake keyboard. Use the
