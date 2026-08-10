@@ -7,14 +7,11 @@ Len Wanger, 2017
 
 import pytest
 
-from io import StringIO
 
 from cooked_input import validate, Validator, RangeValidator, NoneOfValidator
 from cooked_input import GetInput, get_input, print_error, StripCleaner, IntConvertor, ListConvertor, AnyOfValidator
 from cooked_input import NoneOfValidator, LengthValidator
 from cooked_input import EqualToValidator, ListValidator, PasswordValidator, ChoiceValidator, SimpleValidator, RegexValidator
-
-from .utils import redirect_stdin
 
 
 class TestValidate(object):
@@ -42,7 +39,7 @@ class TestValidate(object):
         v(10, None, None)
 
 
-    def test_any_of(self):
+    def test_any_of(self, fake_input):
         input_str = u"""
             -1
             6
@@ -51,48 +48,48 @@ class TestValidate(object):
             """
 
         av = AnyOfValidator(validators=[RangeValidator(0,5), RangeValidator(10,15)])
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
-            print(result)
-            assert (result == 2)
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
+        print(result)
+        assert (result == 2)
 
         print(av)   # for code coverage
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=None)
-            print(result)
-            assert (result == -1)
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=None)
+        print(result)
+        assert (result == -1)
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=RangeValidator(5,10))
-            print(result)
-            assert (result == 6)
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=RangeValidator(5,10))
+        print(result)
+        assert (result == 6)
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=16)
-            print(result)
-            assert (result == 16)
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=16)
+        print(result)
+        assert (result == 16)
 
         av = AnyOfValidator(validators=EqualToValidator(16))
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
-            print(result)
-            assert (result == 16)
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
+        print(result)
+        assert (result == 16)
 
         av = AnyOfValidator(validators=16)
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
-            print(result)
-            assert (result == 16)
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
+        print(result)
+        assert (result == 16)
 
         av = AnyOfValidator(validators=None)
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
-            print(result)
-            assert (result == -1)
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
+        print(result)
+        assert (result == -1)
 
 
-    def test_none_of(self):
+    def test_none_of(self, fake_input):
         input_str = u"""
             -1
             6
@@ -101,22 +98,21 @@ class TestValidate(object):
             """
 
         nov = NoneOfValidator(validators=[RangeValidator(0,5), RangeValidator(10,15)])
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=nov)
-            print(result)
-            assert (result == -1)
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=nov)
+        print(result)
+        assert (result == -1)
 
         print(nov)   # for code coverage
 
         nov = NoneOfValidator(validators=RangeValidator(-2,5))
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=nov)
-            print(result)
-            assert (result == 6)
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=nov)
+        print(result)
+        assert (result == 6)
 
 
-
-    def test_length(self):
+    def test_length(self, fake_input):
         input_str = u"""
             1
             foo
@@ -126,48 +122,48 @@ class TestValidate(object):
             """
 
         lv = LengthValidator()
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), validators=lv)
-            print(result)
-            assert (result == '1')
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), validators=lv)
+        print(result)
+        assert (result == '1')
 
         print(lv)   # for code coverage
 
         lv = LengthValidator(min_len=2)
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), validators=lv)
-            print(result)
-            assert (result == 'foo')
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), validators=lv)
+        print(result)
+        assert (result == 'foo')
 
         lv = LengthValidator(max_len=2)
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), validators=lv)
-            print(result)
-            assert (result == '1')
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), validators=lv)
+        print(result)
+        assert (result == '1')
 
         lv = LengthValidator(min_len=4, max_len=5)
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), validators=lv)
-            print(result)
-            assert (result == 'foob')
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), validators=lv)
+        print(result)
+        assert (result == 'foob')
 
 
-    def test_equal(self):
+    def test_equal(self, fake_input):
         input_str = u"""
             1
             3
             """
 
         ev = EqualToValidator(3)
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=ev)
-            print(result)
-            assert (result == 3)
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=ev)
+        print(result)
+        assert (result == 3)
 
         print(ev)   # for code coverage
 
 
-    def test_list(self):
+    def test_list(self, fake_input):
         input_str = u"""
             1
             3,4,5,6,7
@@ -176,18 +172,18 @@ class TestValidate(object):
 
         lc = ListConvertor(elem_get_input=GetInput(convertor=IntConvertor()))
         lv = ListValidator(len_validators=RangeValidator(min_val=2, max_val=7))
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=lc, validators=lv)
-            print(result)
-            assert (result == [3,4,5,6,7])
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), convertor=lc, validators=lv)
+        print(result)
+        assert (result == [3,4,5,6,7])
 
         print(lv)   # for code coverage
 
         lv = ListValidator(len_validators=RangeValidator(min_val=2), elem_validators=RangeValidator(max_val=6))
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(cleaners=StripCleaner(), convertor=lc, validators=lv)
-            print(result)
-            assert (result == [2,3,4])
+        fake_input(input_str)
+        result = get_input(cleaners=StripCleaner(), convertor=lc, validators=lv)
+        print(result)
+        assert (result == [2,3,4])
 
     def test_password(self, fake_input):
         # Migrated off redirect_stdin ahead of the rest of the suite: the two
@@ -231,55 +227,55 @@ class TestValidate(object):
         pv = PasswordValidator()
         pv(10, print_error, "{value}")
 
-    def test_choices(self):
+    def test_choices(self, fake_input):
         input_str = "\nfoo\nffffffffoooooobbbb\nFOOBAR!\nfoobar!\nFooBar!\nfoobar\nFooBar1!\nFooBar1!!\nfbr^"
         cv = ChoiceValidator(choices=['foobar', 'bar', 'blat'])
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(validators=cv)
-            print(result)
-            assert (result == 'foobar')
+        fake_input(input_str)
+        result = get_input(validators=cv)
+        print(result)
+        assert (result == 'foobar')
 
         print(cv)  # for code coverage
 
-    def test_simple(self):
+    def test_simple(self, fake_input):
         def simple_func(value):
             return True if value == 'foobar' else False
 
         input_str = "\nfoo\nffffffffoooooobbbb\nFOOBAR!\nfoobar!\nFooBar!\nfoobar\nFooBar1!\nFooBar1!!\nfbr^"
         sv = SimpleValidator(validator_func=simple_func, name='simple validator')
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(validators=sv)
-            print(result)
-            assert (result == 'foobar')
+        fake_input(input_str)
+        result = get_input(validators=sv)
+        print(result)
+        assert (result == 'foobar')
 
         print(sv)  # for code coverage
 
         sv = SimpleValidator(validator_func=simple_func, name='bad option')
 
 
-    def test_regex(self):
+    def test_regex(self, fake_input):
         input_str = "\n1234\n2345678901"
         rev = RegexValidator(pattern=r'^[2-9]\d{9}$', regex_desc='a 10 digit phone number')
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(validators=rev)
-            print(result)
-            assert (result == '2345678901')
+        fake_input(input_str)
+        result = get_input(validators=rev)
+        print(result)
+        assert (result == '2345678901')
 
         print(rev)  # for code coverage
 
         rev = RegexValidator(pattern=r'^[2-9]\d{9}$')
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(validators=rev)
-            print(result)
-            assert (result == '2345678901')
+        fake_input(input_str)
+        result = get_input(validators=rev)
+        print(result)
+        assert (result == '2345678901')
 
         with pytest.raises(EOFError):
-            with redirect_stdin(StringIO(input_str)):
-                result = get_input(convertor=IntConvertor(), validators=rev)
+            fake_input(input_str)
+            result = get_input(convertor=IntConvertor(), validators=rev)
 
         rev = RegexValidator(pattern=r'^[2-9]\d{9}$', regex_desc='bad option')
 
