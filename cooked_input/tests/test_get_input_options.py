@@ -151,13 +151,33 @@ class TestGetListDefaults:
 
 class TestRequiredAndBlank:
     def test_a_required_prompt_reprompts_on_blank(self, fake_input):
-        # Blank input with required=True and no default matches no branch in the
-        # retry loop, so `retries` never increments and get_input spins forever.
-        # The feeder's EOFError is what turns that into a fast failure instead of
-        # a hung test -- exactly the hang guard it exists for. Tracked in #44.
-        fake_input("", "", "")
-        with pytest.raises(EOFError):
-            get_input(required=True)
+        feeder = fake_input("", "", "something")
+        assert get_input(required=True, error_callback=silent_error) == "something"
+        assert feeder.remaining == 0
+
+    def test_blank_entries_count_against_the_retry_limit(self, fake_input):
+        # The regression guard for #44: before the fix a blank response matched no
+        # branch in the retry loop, so `retries` never moved and this spun forever.
+        feeder = fake_input("", "", "")
+        with pytest.raises(MaxRetriesError, match="Maximum retries exceeded"):
+            get_input(required=True, retries=3, error_callback=silent_error)
+        assert feeder.remaining == 0
+
+    def test_a_blank_entry_is_reported_through_the_error_callback(self, fake_input):
+        reported = []
+        fake_input("", "something")
+        get_input(
+            required=True,
+            error_callback=lambda fmt, value, content: reported.append(fmt.format(value=value, error_content=content)),
+        )
+        assert reported == ['"" cannot be blank']
+
+    def test_a_blank_entry_mixes_with_other_rejected_values(self, fake_input):
+        # A blank and a bad value should be counted the same way against `retries`.
+        feeder = fake_input("", "nope")
+        with pytest.raises(MaxRetriesError):
+            get_input(convertor=IntConvertor(), required=True, retries=2, error_callback=silent_error)
+        assert feeder.remaining == 0
 
     def test_a_required_prompt_accepts_a_real_value(self, fake_input):
         feeder = fake_input("something")

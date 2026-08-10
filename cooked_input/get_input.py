@@ -205,6 +205,8 @@ class GetInput(object):
         **prompt**: the string to use for the prompt. For example prompt="Enter your name"
 
         **required**: **True** if a non-blank value is required, **False** if a blank response is OK.
+            When a value is required and no **default** is set, a blank response is rejected like any
+            other invalid value: it is reported through **error_callback** and counts against **retries**.
 
         **default**: the default value to use if a blank string is entered. This takes precedence over required
             (i.e. a blank response will return the default value.)
@@ -358,6 +360,17 @@ class GetInput(object):
                     retries += 1
                     # TODO: show validation error messages
                     continue
+            else:
+                # Fixing: a blank response for a required value with no default used to
+                # match none of the branches above, so retries was never incremented and
+                # the loop spun forever. Blank is just another rejected value here --
+                # report it, count the retry, and re-prompt, so max_retries is reachable.
+                # valid_response is recorded for the same reason process_value returns it:
+                # the check below needs it to raise MaxRetriesError.
+                valid_response = False
+                self.error_callback(self.validator_error_fmt, response, 'cannot be blank')
+                retries += 1
+                continue
 
         if valid_response:
             return converted_response
