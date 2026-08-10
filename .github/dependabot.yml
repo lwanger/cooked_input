@@ -1,0 +1,23 @@
+version: 2
+
+updates:
+  # Keeps the SHA-pinned actions in tests.yml and release.yml current.
+  # Dependabot rewrites the pin and the trailing version comment together,
+  # which is what makes pinning by commit maintainable rather than something
+  # that quietly goes stale.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+    groups:
+      # One PR for all action bumps instead of one per action.
+      actions:
+        patterns: ["*"]
+
+# Deliberately no "pip" entry. cooked_input is a library and pyproject.toml
+# declares lower bounds, not pins, so version updates would only ratchet those
+# floors upward and force newer releases on downstream applications for no
+# benefit. Security fixes still arrive: Dependabot security updates are a
+# repository setting and do not depend on this file.
