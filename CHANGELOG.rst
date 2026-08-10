@@ -12,6 +12,14 @@ see TODO.md for list of TODO items
 
 * unreleased:
 
+  * fixed: ``get_input`` looped forever when a blank line was entered at a prompt with
+    ``required=True`` and no ``default``. That case matched none of the branches in the
+    retry loop, so ``retries`` was never incremented and ``max_retries`` was unreachable.
+    A blank response is now treated like any other rejected value: it is reported through
+    ``error_callback`` (as ``"" cannot be blank``) and counts against ``retries``, so the
+    prompt is repeated and a finite ``retries`` eventually raises ``MaxRetriesError``.
+    Note the behavior change for callers that relied on blank lines being skipped
+    silently -- they now consume a retry and produce an error message.
   * fixed: ``Table.run()`` could never be exited with a blank entry. Line 933 read
     ``action - TABLE_ITEM_EXIT`` -- a ``-`` where ``=`` was meant -- so ``action`` was
     left unassigned on that path, raising ``UnboundLocalError`` on the first pass

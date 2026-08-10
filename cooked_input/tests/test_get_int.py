@@ -201,11 +201,14 @@ class TestGetInt(object):
                     convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
         assert (result == 7)
 
-        # Four bad values, four calls -- and the callback receives the caller's own
-        # format strings, not the library defaults.
-        assert len(my_print_error.messages) == 4
+        # Five rejected entries, five calls -- and the callback receives the caller's
+        # own format strings, not the library defaults. The first entry is the blank
+        # line this triple-quoted script opens with, which a required prompt rejects
+        # like any other bad value.
+        assert len(my_print_error.messages) == 5
         assert all(m.startswith('<<< ') and m.endswith(' >>>') for m in my_print_error.messages)
-        assert 'foo' in my_print_error.messages[0]
+        assert 'cannot be blank' in my_print_error.messages[0]
+        assert 'foo' in my_print_error.messages[1]
 
 
     def test_silent_error(self, fake_input):
