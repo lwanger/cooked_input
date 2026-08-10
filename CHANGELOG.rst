@@ -21,6 +21,8 @@ see TODO.md for list of TODO items
     naming what the argument should have been.
   * fixed: a stray ``print('Table:__init__: ')`` debug statement fired when ``Table``
     was constructed with an invalid ``add_exit`` value.
+  * fixed: ``SimpleValidator`` discarded its ``name`` argument, so every failure
+    message read "is not a valid None" no matter what name was given.
   * added Python 3.14 support. The full test suite passes on 3.14 with the existing
     dependency versions, so no code or dependency changes were needed; 3.14 is now in
     the CI matrix, the tox envlist and the PyPI classifiers.
