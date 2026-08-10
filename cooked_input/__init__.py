@@ -25,7 +25,10 @@ from .validators import Validator, LengthValidator, EqualToValidator, RangeValid
 from .validators import AnyOfValidator, NoneOfValidator, ChoiceValidator, RegexValidator, PasswordValidator
 from .validators import IsFileValidator, ListValidator, SimpleValidator
 from .validators import in_all, in_any, not_in, validate
-from .cleaners import Cleaner, CapitalizationCleaner, LOWER_CAP_STYLE, UPPER_CAP_STYLE, FIRST_WORD_CAP_STYLE, ALL_WORDS_CAP_STYLE
+# Fixing: LAST_WORD_CAP_STYLE was the one cap style missing from this list, so
+# ci.LAST_WORD_CAP_STYLE raised AttributeError even though CapitalizationCleaner
+# accepted the equivalent 'last_word' string. Purely additive.
+from .cleaners import Cleaner, CapitalizationCleaner, LOWER_CAP_STYLE, UPPER_CAP_STYLE, FIRST_WORD_CAP_STYLE, LAST_WORD_CAP_STYLE, ALL_WORDS_CAP_STYLE
 from .cleaners import StripCleaner, RemoveCleaner, ReplaceCleaner, ChoiceCleaner, RegexCleaner
 from .input_utils import make_pretty_table
 from .input_utils import put_in_a_list, isstring

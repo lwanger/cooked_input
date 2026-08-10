@@ -22,7 +22,7 @@ from typing import Any
 
 import pytest
 
-from cooked_input import Table, TableItem, TableStyle
+from cooked_input import RULE_ALL, RULE_FRAME, Table, TableItem, TableStyle
 
 
 def _as_lines(responses: Iterable[str]) -> list[str]:
@@ -166,8 +166,12 @@ def fake_input(monkeypatch: pytest.MonkeyPatch) -> Callable[..., InputFeeder]:
 
 @pytest.fixture
 def framed_style() -> TableStyle:
-    """The bordered, all-rules table style used across the table tests."""
-    return TableStyle(show_cols=True, show_border=True)
+    """The bordered, all-rules table style the table tests share.
+
+    Spelled out rather than relying on TableStyle's defaults, because these tests
+    are partly about what the style arguments do.
+    """
+    return TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
 
 
 @pytest.fixture

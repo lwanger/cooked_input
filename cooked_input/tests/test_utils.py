@@ -36,7 +36,6 @@ class TestUtils(object):
 
         t = (10, 20, 30)
         result = put_in_a_list(t)
-        print(result)
         assert (result == [10, 20, 30])
 
         result = put_in_a_list((10, 20))
@@ -50,7 +49,6 @@ class TestUtils(object):
 
         t = tuple('abc')
         result = put_in_a_list(t)
-        print(result)
         assert (result == ['a', 'b', 'c'])
 
     def test_renumerate(self):
@@ -63,19 +61,21 @@ class TestUtils(object):
             assert (next(values) == (i, v))
 
     def test_swap_element(self):
-        values = [
-            ('foo', 0, 'F'),
-            ('foo', 1, 'O'),
-            ('foo', 2, 'O'),
-            ('foo', -3, 'F'),
-            ('foo', -2, 'O'),
-            ('foo', -1, 'O'),
-            ('f', 0, 'F'),
-            ('f', -1, 'F'),
+        # The old table had no expected column -- its third element is the
+        # replacement character, not the result -- so the loop below computed
+        # results and threw them all away. Negative indices count from the end.
+        cases = [
+            ('foo', 0, 'F', 'Foo'),
+            ('foo', 1, 'O', 'fOo'),
+            ('foo', 2, 'O', 'foO'),
+            ('foo', -3, 'F', 'Foo'),
+            ('foo', -2, 'O', 'fOo'),
+            ('foo', -1, 'O', 'foO'),
+            ('f', 0, 'F', 'F'),
+            ('f', -1, 'F', 'F'),
         ]
-        print("\nswap_element:\n")
-        for v in values:
-            result = swap_element(v[0], v[1], v[2])
+        for sequence, index, replacement, expected in cases:
+            assert swap_element(sequence, index, replacement) == expected
 
         values = [
             ('foo', 4, 'O'),  # IndexError

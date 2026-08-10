@@ -23,7 +23,15 @@ from cooked_input import NoneOfValidator, AnyOfValidator
 
 
 def my_print_error(fmt_str, value, error_content):
-    print('<<< ' + fmt_str.format(value=value, error_content=error_content) + ' >>>')
+    """A user-supplied error callback, recording instead of printing.
+
+    Keeping the formatted messages lets a test assert which values were rejected
+    and with what wording, which printing them never could.
+    """
+    my_print_error.messages.append('<<< ' + fmt_str.format(value=value, error_content=error_content) + ' >>>')
+
+
+my_print_error.messages = []
 
 
 class TestGetInt(object):
@@ -52,18 +60,15 @@ class TestGetInt(object):
         irv = RangeValidator(min_val=1, max_val=10)
         fake_input(input_str)
         result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
-        print(result)
         assert(result==10)
 
         result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
-        print(result)
         assert(result==5)
 
         result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
-        print(result)
         assert(result==1)
 
-        print(self.int_convertor)   # for code coverage
+        assert repr(self.int_convertor) == 'IntConvertor(base=10, value_error_str=an integer number)'
 
 
     def test_ignore_bad_conversion(self, fake_input):
@@ -188,12 +193,19 @@ class TestGetInt(object):
             7
             """
 
+        my_print_error.messages.clear()
         fake_input(input_str)
         result = get_input(convertor=IntConvertor(), validators=[self.zero_to_ten_validator, self.not_5_validator],
                     prompt='Enter a non-zero integer between 0 and 10, but not 5 (my_print_error)',
                     error_callback=my_print_error,
                     convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
         assert (result == 7)
+
+        # Four bad values, four calls -- and the callback receives the caller's own
+        # format strings, not the library defaults.
+        assert len(my_print_error.messages) == 4
+        assert all(m.startswith('<<< ') and m.endswith(' >>>') for m in my_print_error.messages)
+        assert 'foo' in my_print_error.messages[0]
 
 
     def test_silent_error(self, fake_input):
