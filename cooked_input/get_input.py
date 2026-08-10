@@ -9,6 +9,7 @@ Copyright: Len Wanger, 2017-2026
 
 
 import collections
+import collections.abc
 import logging
 import getpass
 
@@ -709,7 +710,11 @@ def get_list(elem_get_input=None, cleaners=None, validators=None, value_error_st
             else:
                 if isstring(v):
                     default_val = v
-                elif isinstance(v, collections.Iterable):
+                # Fixing: was `collections.Iterable`, removed from the collections
+                # namespace in Python 3.10, so a non-string iterable default raised
+                # AttributeError on every supported version. input_utils.py already
+                # uses collections.abc for exactly this reason.
+                elif isinstance(v, collections.abc.Iterable):
                     default_val = (delimiter + ' ').join(v)
                 else:
                     default_val = str(v)

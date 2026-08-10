@@ -23,6 +23,10 @@ see TODO.md for list of TODO items
     was constructed with an invalid ``add_exit`` value.
   * fixed: ``SimpleValidator`` discarded its ``name`` argument, so every failure
     message read "is not a valid None" no matter what name was given.
+  * fixed: ``get_list`` raised ``AttributeError`` when given a non-string iterable as
+    its ``default``. It used ``collections.Iterable``, which was removed from the
+    ``collections`` namespace in Python 3.10 -- so this failed on every supported
+    version.
   * added Python 3.14 support. The full test suite passes on 3.14 with the existing
     dependency versions, so no code or dependency changes were needed; 3.14 is now in
     the CI matrix, the tox envlist and the PyPI classifiers.
