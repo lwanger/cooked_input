@@ -22,7 +22,7 @@ a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version 
 
 ## Completed:
 
-Items here move into CHANGELOG.md when the version number is incremented.
+Items here move into CHANGELOG.rst when the version number is incremented.
 
 ## more features:
 
@@ -39,7 +39,7 @@ Items here move into CHANGELOG.md when the version number is incremented.
 - [X] Replace `veryprettytable` with `prettytable` (`get_table.py:17`, `input_utils.py:18,58`)
 - [X] Prune `install_requires` (`setup.py:54`): drop `future` (Python 2 compat) and `setuptools-git`; confirm `validus`/`dateparser` are still needed
 - [X] Declare and test a `>=3.12` floor (3.12 / 3.13 / 3.14)
-- [ ] Push the 2 pending commits; release to PyPI (`0.5.5` or `0.6.0`)
+- [X] Push the 2 pending commits; release to PyPI (`0.6.0` released 2026-08-10)
 
 **Others**:
 
