@@ -54,7 +54,7 @@ Read the full documentation at readthedocs.org:
 Python Support
 --------------
 
-  - Python 3.10 or later (tested through Python 3.13)
+  - Python 3.10 or later (tested through Python 3.14)
   - Python 2 is no longer supported (the last release supporting it is v0.5.4)
 
 Installation
