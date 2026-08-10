@@ -1,0 +1,7 @@
+Placeholder so git tracks docs/_static/.
+
+conf.py sets html_static_path = ['_static']. Git does not track empty
+directories, so without this file the directory is absent from a fresh clone and
+Sphinx warns "html_static_path entry '_static' does not exist" -- which fails the
+build under the fail_on_warning setting in /.readthedocs.yaml. Delete this file
+only if you also drop html_static_path from conf.py.
