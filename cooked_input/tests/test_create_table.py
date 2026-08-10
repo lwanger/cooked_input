@@ -62,7 +62,7 @@ class TestTables(object):
         print('{}: {}'.format(item['name'], item['season']))
         assert (item['name'] == 'Whither Canada?')
 
-    def test_get_table_single_autogen(self, fake_input):
+    def test_single_col_table_autogen_tags_chosen_by_tag(self, fake_input):
         # single item list, generate tags
         input_str = '2'
 
@@ -80,7 +80,7 @@ class TestTables(object):
         assert (result == [2, 'Deuce'])
 
 
-    def test_get_table_single_autogen(self, fake_input):
+    def test_single_col_table_no_autogen_chosen_by_value(self, fake_input):
         # single item list
         input_str = 'Beast'
 
@@ -100,9 +100,11 @@ class TestTables(object):
         assert (result == ['Beast'])
 
 
-    # TODO - exit is returning a TableItem, not None.
-    def test_get_table_single_autogen(self, fake_input):
-        # single item list
+    def test_single_col_table_exit_row_returns_table_item(self, fake_input):
+        # Asserts today's behavior, which is wrong: picking Exit should yield the
+        # 'exit' tag, not the TableItem. get_menu has the same defect at the module
+        # level -- its `result == 'exit'` test can never be true. Tracked separately;
+        # this test will be inverted when that is fixed.
         input_str = 'exit'
 
         print('\nTest list of single items (no autogen tags)\n')

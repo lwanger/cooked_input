@@ -25,7 +25,7 @@ Len Wanger, 2017
 
 from cooked_input import GetInput, get_input, get_list
 from cooked_input.cleaners import ChoiceCleaner, StripCleaner
-from cooked_input.validators import LengthValidator, ChoiceValidator, NoneOfValidator, RangeValidator
+from cooked_input.validators import LengthValidator, ChoiceValidator, ListValidator, NoneOfValidator, RangeValidator
 from cooked_input.convertors import IntConvertor, YesNoConvertor, ListConvertor
 
 
@@ -47,17 +47,22 @@ class TestGetList(object):
         result = get_list(prompt='List of integers between 3 and 5 numbers long, separated by ","', elem_get_input=get_int_list)
         assert (result == [1,2,3])
 
-    def test_list_of_three_ints(self, fake_input):
+    def test_list_length_validator_rejects_short_lists(self, fake_input):
         input_str = '1,2\n1,4,6,7,9'
 
-        fake_input(input_str)
         get_int_list = GetInput(convertor=IntConvertor())
 
-        len_3_validator = RangeValidator(min_val=3, max_val=5)
+        # A bare RangeValidator here would compare the *list* against min_val, hit a
+        # TypeError, and reject every input. Validating the length of a list is what
+        # ListValidator(len_validators=...) is for.
+        len_3_to_5_validator = ListValidator(len_validators=RangeValidator(min_val=3, max_val=5))
 
+        feeder = fake_input(input_str)
         result = get_list(prompt='List of 3-5 integers (separated by ",")', elem_get_input=get_int_list,
-                          validators=len_3_validator, value_error_str='list of values', )
+                          validators=len_3_to_5_validator, value_error_str='list of values', )
         assert (result == [1, 4, 6, 7, 9])
+        # The two-element first line must have been rejected and re-prompted.
+        assert feeder.remaining == 0
 
     def test_list_of_three_ints(self, fake_input):
         input_str = '1,2\n-1,4,6\n2,4,11\n2, 4, 10'
