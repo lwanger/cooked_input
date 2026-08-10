@@ -17,13 +17,9 @@ Len Wanger, 2017
 """
 
 
-from io import StringIO
-
 from cooked_input import get_input, get_int, silent_error, log_error
 from cooked_input import IntConvertor, RangeValidator, EqualToValidator
 from cooked_input import NoneOfValidator, AnyOfValidator
-from .utils import redirect_stdin
-# from cooked_input.tests.utils import redirect_stdin   # needed this to run under main here
 
 
 def my_print_error(fmt_str, value, error_content):
@@ -44,7 +40,7 @@ class TestGetInt(object):
     validator_fmt = '@ {value} {error_content} @'
 
 
-    def test_get_input_int(self):
+    def test_get_input_int(self, fake_input):
         input_str = u"""
             10
             5
@@ -54,81 +50,81 @@ class TestGetInt(object):
             """
 
         irv = RangeValidator(min_val=1, max_val=10)
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
-            print(result)
-            assert(result==10)
+        fake_input(input_str)
+        result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
+        print(result)
+        assert(result==10)
 
-            result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
-            print(result)
-            assert(result==5)
+        result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
+        print(result)
+        assert(result==5)
 
-            result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
-            print(result)
-            assert(result==1)
+        result = get_input(prompt='enter an integer (1<=x<=10)', convertor=IntConvertor(), validators=irv)
+        print(result)
+        assert(result==1)
 
         print(self.int_convertor)   # for code coverage
 
 
-    def test_ignore_bad_conversion(self):
+    def test_ignore_bad_conversion(self, fake_input):
         input_str = u"""
             foo
             101
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(prompt='Enter an integer', convertor=IntConvertor())
-            assert(result==101)
+        fake_input(input_str)
+        result = get_input(prompt='Enter an integer', convertor=IntConvertor())
+        assert(result==101)
 
 
-    def test_use_default_value(self):
+    def test_use_default_value(self, fake_input):
         input_str = u"""
 
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(prompt='Enter an integer', convertor=IntConvertor(), default=5)
-            assert (result == 5)
+        fake_input(input_str)
+        result = get_input(prompt='Enter an integer', convertor=IntConvertor(), default=5)
+        assert (result == 5)
 
 
-    def test_get_pos_int(self):
+    def test_get_pos_int(self, fake_input):
         input_str = u"""
             -1
             0
             10
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(convertor=IntConvertor(), validators=self.pos_int_validator, prompt='Enter a positive integer')
-            assert (result == 10)
+        fake_input(input_str)
+        result = get_input(convertor=IntConvertor(), validators=self.pos_int_validator, prompt='Enter a positive integer')
+        assert (result == 10)
 
 
-    def test_get_0_to_10(self):
+    def test_get_0_to_10(self, fake_input):
         input_str = u"""
             -1
             11
             0
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(convertor=self.int_convertor, validators=[self.zero_to_ten_validator],
-                        prompt='Enter an integer between 0 and 10')
-            assert (result == 0)
+        fake_input(input_str)
+        result = get_input(convertor=self.int_convertor, validators=[self.zero_to_ten_validator],
+                    prompt='Enter an integer between 0 and 10')
+        assert (result == 0)
 
 
-    def test_exactly_val(self):
+    def test_exactly_val(self, fake_input):
         # get zero - silly but makes more sense with the in any or not in validators
         input_str = u"""
             1
             0
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(convertor=self.int_convertor, validators=[self.exactly_0_validator], prompt='Enter 0')
-            assert (result == 0)
+        fake_input(input_str)
+        result = get_input(convertor=self.int_convertor, validators=[self.exactly_0_validator], prompt='Enter 0')
+        assert (result == 0)
 
 
-    def test_in_any_val(self):
+    def test_in_any_val(self, fake_input):
         # get zero or 5
         input_str = u"""
             foo
@@ -136,24 +132,24 @@ class TestGetInt(object):
             5
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(convertor=self.int_convertor, validators=[self.in_0_or_5_validator], prompt='Enter 0 or 5')
-            assert (result == 5)
+        fake_input(input_str)
+        result = get_input(convertor=self.int_convertor, validators=[self.in_0_or_5_validator], prompt='Enter 0 or 5')
+        assert (result == 5)
 
 
-    def test_not_in(self):
+    def test_not_in(self, fake_input):
         # get a non-zero integer
         input_str = u"""
             0
             -101
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(convertor=self.int_convertor, validators=[self.not_0_validator], prompt='Enter a non-zero integer')
-            assert (result == -101)
+        fake_input(input_str)
+        result = get_input(convertor=self.int_convertor, validators=[self.not_0_validator], prompt='Enter a non-zero integer')
+        assert (result == -101)
 
 
-    def test_in_range_and_not_in(self):
+    def test_in_range_and_not_in(self, fake_input):
         # get a non-zero integer between 0 and 10
         input_str = u"""
             0
@@ -162,13 +158,13 @@ class TestGetInt(object):
             5
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(convertor=self.int_convertor, validators=[self.zero_to_ten_validator, self.not_0_validator],
-                        prompt='Enter a non-zero integer between 0 and 10')
-            assert (result == 5)
+        fake_input(input_str)
+        result = get_input(convertor=self.int_convertor, validators=[self.zero_to_ten_validator, self.not_0_validator],
+                    prompt='Enter a non-zero integer between 0 and 10')
+        assert (result == 5)
 
 
-    def test_mult_not_in(self):
+    def test_mult_not_in(self, fake_input):
         # enter an integer besides zero or 5
         input_str = u"""
             0
@@ -176,13 +172,13 @@ class TestGetInt(object):
             -101
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(convertor=self.int_convertor, validators=[self.not_0_or_5_validator],
-                        prompt='Enter and integer besides 0 or 5')
-            assert (result == -101)
+        fake_input(input_str)
+        result = get_input(convertor=self.int_convertor, validators=[self.not_0_or_5_validator],
+                    prompt='Enter and integer besides 0 or 5')
+        assert (result == -101)
 
 
-    def test_error_callback(self):
+    def test_error_callback(self, fake_input):
         # test error callbacks and format strings
         input_str = u"""
             foo
@@ -192,15 +188,15 @@ class TestGetInt(object):
             7
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(convertor=IntConvertor(), validators=[self.zero_to_ten_validator, self.not_5_validator],
-                        prompt='Enter a non-zero integer between 0 and 10, but not 5 (my_print_error)',
-                        error_callback=my_print_error,
-                        convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
-            assert (result == 7)
+        fake_input(input_str)
+        result = get_input(convertor=IntConvertor(), validators=[self.zero_to_ten_validator, self.not_5_validator],
+                    prompt='Enter a non-zero integer between 0 and 10, but not 5 (my_print_error)',
+                    error_callback=my_print_error,
+                    convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
+        assert (result == 7)
 
 
-    def test_silent_error(self):
+    def test_silent_error(self, fake_input):
         input_str = u"""
             foo
             -1
@@ -210,15 +206,15 @@ class TestGetInt(object):
             4
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(convertor=IntConvertor(), validators=[self.zero_to_ten_validator, self.not_5_validator],
-                        prompt='Enter a non-zero integer between 0 and 10, but not 5 (errors not printed)',
-                        error_callback=silent_error,
-                        convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
-            assert (result == 4)
+        fake_input(input_str)
+        result = get_input(convertor=IntConvertor(), validators=[self.zero_to_ten_validator, self.not_5_validator],
+                    prompt='Enter a non-zero integer between 0 and 10, but not 5 (errors not printed)',
+                    error_callback=silent_error,
+                    convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
+        assert (result == 4)
 
 
-    def test_log_error(self):
+    def test_log_error(self, fake_input):
         input_str = u"""
             foo
             -1
@@ -228,15 +224,14 @@ class TestGetInt(object):
             4
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(convertor=IntConvertor(), validators=[self.zero_to_ten_validator, self.not_5_validator],
-                        prompt='Enter a non-zero integer between 0 and 10, but not 5 (errors not printed)',
-                        error_callback=log_error)
-            assert (result == 4)
+        fake_input(input_str)
+        result = get_input(convertor=IntConvertor(), validators=[self.zero_to_ten_validator, self.not_5_validator],
+                    prompt='Enter a non-zero integer between 0 and 10, but not 5 (errors not printed)',
+                    error_callback=log_error)
+        assert (result == 4)
 
 
-
-    def test_get_int(self):
+    def test_get_int(self, fake_input):
         input_str = u"""
             foo
             3.14
@@ -244,28 +239,28 @@ class TestGetInt(object):
             5
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_int()
-            assert (result == 101)
+        fake_input(input_str)
+        result = get_int()
+        assert (result == 101)
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_int(prompt='Enter an integer')
-            assert (result == 101)
+        fake_input(input_str)
+        result = get_int(prompt='Enter an integer')
+        assert (result == 101)
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_int(validators=[self.zero_to_ten_validator],
-                        error_callback=my_print_error,
-                        convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
-            assert (result == 5)
+        fake_input(input_str)
+        result = get_int(validators=[self.zero_to_ten_validator],
+                    error_callback=my_print_error,
+                    convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
+        assert (result == 5)
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_int(validators=[self.zero_to_ten_validator],
-                        prompt='Enter a integer between 0 and 10',
-                        error_callback=my_print_error,
-                        convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
-            assert (result == 5)
+        fake_input(input_str)
+        result = get_int(validators=[self.zero_to_ten_validator],
+                    prompt='Enter a integer between 0 and 10',
+                    error_callback=my_print_error,
+                    convertor_error_fmt=self.convertor_fmt, validator_error_fmt=self.validator_fmt)
+        assert (result == 5)
 
-    def test_get_int_part2(self):
+    def test_get_int_part2(self, fake_input):
         input_str = u"""
             foo
             3.14
@@ -273,26 +268,26 @@ class TestGetInt(object):
             5
             """
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_int(validators=self.not_0_validator, prompt='Enter an integer that is not 0')
-            assert (result == 101)
+        fake_input(input_str)
+        result = get_int(validators=self.not_0_validator, prompt='Enter an integer that is not 0')
+        assert (result == 101)
 
         input_str = u"""
             -11
             11
             5
             """
-        with redirect_stdin(StringIO(input_str)):
-            result = get_int(validators=None, minimum=-10, maximum=10, prompt='Enter an integer between -10 and 10')
-            assert (result == 5)
+        fake_input(input_str)
+        result = get_int(validators=None, minimum=-10, maximum=10, prompt='Enter an integer between -10 and 10')
+        assert (result == 5)
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_int(validators=None, minimum=1, prompt='Enter an integer greater than 0')
-            assert (result == 11)
+        fake_input(input_str)
+        result = get_int(validators=None, minimum=1, prompt='Enter an integer greater than 0')
+        assert (result == 11)
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_int(validators=None, maximum=10, prompt='Enter an integer less than than 11')
-            assert (result == -11)
+        fake_input(input_str)
+        result = get_int(validators=None, maximum=10, prompt='Enter an integer less than than 11')
+        assert (result == -11)
 
         input_str = u"""
             -11
@@ -301,16 +296,16 @@ class TestGetInt(object):
             5
             6
             """
-        with redirect_stdin(StringIO(input_str)):
-            result = get_int(validators=None, minimum=1, maximum=10, prompt='Enter an integer between 1 and 10')
-            assert (result == 5)
+        fake_input(input_str)
+        result = get_int(validators=None, minimum=1, maximum=10, prompt='Enter an integer between 1 and 10')
+        assert (result == 5)
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_int(validators=self.not_0_validator, minimum=-10, maximum=10,
-                      prompt='Enter an integer between -10 and 10, but not 0')
-            assert (result == 5)
+        fake_input(input_str)
+        result = get_int(validators=self.not_0_validator, minimum=-10, maximum=10,
+                  prompt='Enter an integer between -10 and 10, but not 0')
+        assert (result == 5)
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_int(validators=[self.not_0_validator, self.not_5_validator], minimum=-10, maximum=10,
-                      prompt='Enter an integer between -10 and 10, but not 0 or 5')
-            assert (result == 6)
+        fake_input(input_str)
+        result = get_int(validators=[self.not_0_validator, self.not_5_validator], minimum=-10, maximum=10,
+                  prompt='Enter an integer between -10 and 10, but not 0 or 5')
+        assert (result == 6)

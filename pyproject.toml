@@ -66,6 +66,9 @@ xfail_strict = true
 # console read and would otherwise hang the job.
 timeout = 60
 markers = ["slow: takes more than a second"]
+# Safe to turn on now that the whole suite scripts input through fake_input: the
+# GetPassWarning that used to come out of every run was the last blocker.
+filterwarnings = ["error"]
 
 [tool.setuptools.packages.find]
 # Matches the old find_packages() result: cooked_input and cooked_input.tests.
