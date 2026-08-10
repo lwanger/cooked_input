@@ -13,15 +13,22 @@ a CHANGELOG.md file. The CHANGELOG.md file should be updated with the version nu
 
 ## First Things:
 
+                                                                                                                                                                                               
+  Done - Register the PyPI trusted publisher — owner lwanger, repo cooked_input, workflow release.yml, environment pypi. Exact match required. 
+  1. Also create the pypi environment in repo settings;   
+    adding yourself as required reviewer gives a manual gate before upload.                                                                                                                       
+  2. Dry-run to TestPyPI via manual workflow_dispatch — release.yml has still never executed, so this is the first real test of the OIDC handshake, and it costs no version number.             
+  3. Tag v0.6.0 to publish. The guard will refuse if the tag doesn't match __version__, which is currently 0.6.0.        
+
 Two things I'd still flag before you cut 0.6.0:
 
-- [ ] get_table.py sits at 66% coverage — 158 uncovered lines, mostly the interactive menu and pagination navigation. That's the weakest spot in the package and it's the module the migration touched most.
-- [ ] Update copyright statements (to 2026 from 2017)
 - [ ] Push to github master
 - [ ] Push to PYPI
 
 **Second**:
 
+- [ ] get_table.py sits at 66% coverage — 158 uncovered lines, mostly the interactive menu and pagination navigation. 
+  That's the weakest spot in the package and it's the module the migration touched most.
 - [ ] Add type hints
 - [ ] Improve documentation and examples
 - [ ] Improve test cases and coverage
@@ -31,6 +38,11 @@ Two things I'd still flag before you cut 0.6.0:
 
 Items here move into CHANGELOG.md when the version number is incremented.
 
+- [X] Update copyright statements to 2026. The nine copyright notices
+      (`LICENSE`, `LICENSE.txt`, `docs/conf.py` and six module headers) now
+      read `2017-2026`, keeping the first-publication year. The bare
+      `Len Wanger, <year>` author lines in examples and tests were left
+      alone: they record when a file was written, not a copyright claim.
 - [X] Replace setup.py/Pipfile/requirements.txt with a pyproject.toml.
       Removed `setup.py`, `setup.cfg`, `Pipfile`, `Pipfile.lock` and
       `requirements.txt`; `tox.ini` now takes its dependencies from the
@@ -65,8 +77,6 @@ Items here move into CHANGELOG.md when the version number is incremented.
 * add support for Rich (text color, tables, etc)
 * full type hinting (run through mypy?)
 * expand tutorials
-* remove Python 2 support
-* test for 3.10/3.11/...
 * add support for rich consoles, rich tables?
 
 * general:

@@ -6,7 +6,8 @@ TODO:
         doesn't come on Windows.
     - Add more formatting to tables - borders, text styles, foreground and background colors, title, header, footer. 
 
-Len Wanger, 2017
+Author: Len Wanger
+Copyright: Len Wanger, 2017-2026
 """
 
 import sys

@@ -2,7 +2,7 @@
 This file contains validator classes for cooked_input
 
 Author: Len Wanger
-Copyright: Len Wanger, 2017
+Copyright: Len Wanger, 2017-2026
 """
 
 import os
