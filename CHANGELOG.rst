@@ -11,6 +11,7 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 see TODO.md for list of TODO items
 
 * v0.6.0:
+
   * updated dateparser to 1.4.2. The old 0.7.6 pin cannot run on modern Python: it
     raises "bad escape \\d" from the regex module while building its relative-date
     patterns, which broke DateConvertor entirely.
@@ -22,14 +23,35 @@ see TODO.md for list of TODO items
   * removed the validus dependency; the get_user_info example now uses a local is_email.
   * fixed a Python 3.13 deprecation (re.sub count/flags passed positionally) and several
     invalid escape sequences that emitted SyntaxWarning.
+  * packaging moved to a PEP 621 pyproject.toml. setup.py, setup.cfg, Pipfile, Pipfile.lock
+    and requirements.txt have been removed. Installing is unchanged: pip install cooked_input.
+  * the wheel is now tagged py3-none-any rather than py2.py3-none-any, matching the drop of
+    Python 2 support.
+  * removed the setuptools-git install requirement. It is a build-time setuptools plugin and
+    was never needed at run time, so it is no longer pulled in when you install cooked_input.
+  * dependency pins relaxed to lower bounds (prettytable >= 3.18.0, dateparser >= 1.4.2).
+    cooked_input no longer forces exact versions on the applications that depend on it.
+  * the license is declared as a PEP 639 SPDX expression instead of the deprecated
+    "License :: OSI Approved" classifier.
+  * copyright notices updated to 2017-2026.
+
+  Project infrastructure (no effect on the installed package):
+
+  * added a GitHub Actions test matrix covering Python 3.10 through 3.13 on Linux, plus
+    Windows and macOS, and a job that builds the distributions and checks them with twine.
+  * releases are published with PyPI trusted publishing (OIDC). No API token is stored in
+    the repository.
+  * added a dependabot configuration to keep the workflow actions current.
 
 * v0.5.4:
+
   * added get_money
   * fixed import error on collections.Iterable (may be collections.abc.Iterable in old versions of Python).
   * fixed __repr__ method of RemoveCleaner (said it was ReplaceCleaner)
 
 * v0.5.3:
-  * hidden input was showing default value in prompt string. Replaced with "***"
+
+  * hidden input was showing default value in prompt string. Replaced with ``"***"``
 
 * v0.5.2:
 

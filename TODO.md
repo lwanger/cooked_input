@@ -18,7 +18,6 @@ a CHANGELOG.md file. The CHANGELOG.md file should be updated with the version nu
 
 Two things I'd still flag before you cut 0.6.0:
 
-- [ ] Push to github master
 - [ ] Push to PYPI
 
 **Second**:
@@ -32,20 +31,11 @@ Two things I'd still flag before you cut 0.6.0:
 
 ## Completed:
 
-Items here move into CHANGELOG.md when the version number is incremented.
+Items here move into the change log when the version number is incremented.
+The change log lives in `CHANGELOG.rst` at the repository root (reStructuredText,
+not Markdown); `docs/CHANGELOG.rst` just includes it.
 
-- [X] Update copyright statements to 2026. The nine copyright notices
-      (`LICENSE`, `LICENSE.txt`, `docs/conf.py` and six module headers) now
-      read `2017-2026`, keeping the first-publication year. The bare
-      `Len Wanger, <year>` author lines in examples and tests were left
-      alone: they record when a file was written, not a copyright claim.
-- [X] Replace setup.py/Pipfile/requirements.txt with a pyproject.toml.
-      Removed `setup.py`, `setup.cfg`, `Pipfile`, `Pipfile.lock` and
-      `requirements.txt`; `tox.ini` now takes its dependencies from the
-      `test` extra. Also finished the earlier `install_requires` pruning by
-      dropping `setuptools-git`, a build-time plugin that was declared as a
-      runtime dependency. Wheel tag narrows `py2.py3-none-any` ->
-      `py3-none-any`, matching the drop of Python 2 support.
+(empty - the 0.6.0 items were moved into CHANGELOG.rst)
 
 ## more features:
 
