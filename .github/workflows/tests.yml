@@ -36,9 +36,9 @@ jobs:
             python-version: "3.10"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -53,9 +53,9 @@ jobs:
     name: build and check distributions
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
@@ -76,7 +76,7 @@ jobs:
           cd /tmp
           /tmp/clean/bin/python -c "import cooked_input; print(cooked_input.__version__)"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: distributions
           path: dist/
