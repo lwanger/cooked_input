@@ -39,7 +39,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest"]
+# pytest-timeout is the backstop for a test that forgets the fake_input fixture and
+# reaches the real getpass; pytest-cov backs the coverage floor checked in CI.
+test = ["pytest>=8", "pytest-timeout>=2.3", "pytest-cov>=5"]
 
 [project.urls]
 Homepage = "https://github.com/lwanger/cooked_input"
@@ -48,6 +50,22 @@ Documentation = "https://cooked-input.readthedocs.io"
 
 [tool.setuptools.dynamic]
 version = { attr = "cooked_input.version.__version__" }
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+# One collection root. CI passed "cooked_input/", pytest.sh passed
+# "cooked_input/tests/" and tox passed nothing, which also let a bare `pytest`
+# collect the stale copy of the suite under build/lib/.
+testpaths = ["cooked_input/tests"]
+addopts = "-ra --strict-markers --strict-config"
+norecursedirs = ["build", "dist", "docs", ".git", ".tox", "*.egg-info"]
+# An xfail that starts passing must turn the suite red, so that fixing a bug cannot
+# leave its marker behind. The bug backlog in TODO.md leans on this.
+xfail_strict = true
+# The suite runs in seconds; this only ever trips on a test that reached a real
+# console read and would otherwise hang the job.
+timeout = 60
+markers = ["slow: takes more than a second"]
 
 [tool.setuptools.packages.find]
 # Matches the old find_packages() result: cooked_input and cooked_input.tests.
