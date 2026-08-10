@@ -19,3 +19,16 @@ docs/agents/
 *Recovery-Codes*
 *recovery-codes*
 *.recovery-codes.txt
+
+# Working scratch that lives in the repo directory but is not part of the project.
+# These were committed by accident in af28d40 and untracked again afterwards.
+# Listed by name and anchored with a leading slash rather than globbed as *.txt,
+# so real content such as docs/requirements.txt stays tracked.
+/Anti text spoofing.docx
+/marketing_plan.txt
+/metadata.txt
+/notes.txt
+/table_notes.txt
+/temp.py
+/unicode.txt
+/wheel.txt
