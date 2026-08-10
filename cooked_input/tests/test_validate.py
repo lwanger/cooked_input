@@ -31,8 +31,11 @@ class TestValidate(object):
         class A(object):
             a=1
 
-        result = validate(A(), RangeValidator(min_val=1, max_val=None))
-        result = validate(A(), RangeValidator(min_val=None, max_val=10))
+        # RangeValidator catches the TypeError from comparing an object that
+        # defines neither __ge__ nor __le__, and reports failure rather than
+        # letting it escape. Both bounds exercise a different comparison.
+        assert validate(A(), RangeValidator(min_val=1, max_val=None)) is False
+        assert validate(A(), RangeValidator(min_val=None, max_val=10)) is False
 
     def test_call_abstract(self):
         v = Validator()
@@ -50,42 +53,35 @@ class TestValidate(object):
         av = AnyOfValidator(validators=[RangeValidator(0,5), RangeValidator(10,15)])
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
-        print(result)
         assert (result == 2)
 
-        print(av)   # for code coverage
+        assert repr(av) == 'AnyOfValidator(validators=[RangeValidator(min_val=0, max_val=5), RangeValidator(min_val=10, max_val=15)])'
 
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=None)
-        print(result)
         assert (result == -1)
 
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=RangeValidator(5,10))
-        print(result)
         assert (result == 6)
 
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=16)
-        print(result)
         assert (result == 16)
 
         av = AnyOfValidator(validators=EqualToValidator(16))
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
-        print(result)
         assert (result == 16)
 
         av = AnyOfValidator(validators=16)
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
-        print(result)
         assert (result == 16)
 
         av = AnyOfValidator(validators=None)
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=av)
-        print(result)
         assert (result == -1)
 
 
@@ -100,15 +96,13 @@ class TestValidate(object):
         nov = NoneOfValidator(validators=[RangeValidator(0,5), RangeValidator(10,15)])
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=nov)
-        print(result)
         assert (result == -1)
 
-        print(nov)   # for code coverage
+        assert repr(nov) == 'NoneOfValidator(validators=[RangeValidator(min_val=0, max_val=5), RangeValidator(min_val=10, max_val=15)])'
 
         nov = NoneOfValidator(validators=RangeValidator(-2,5))
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=nov)
-        print(result)
         assert (result == 6)
 
 
@@ -124,27 +118,23 @@ class TestValidate(object):
         lv = LengthValidator()
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), validators=lv)
-        print(result)
         assert (result == '1')
 
-        print(lv)   # for code coverage
+        assert repr(lv) == 'LengthValidator(min_len=None, max_len=None)'
 
         lv = LengthValidator(min_len=2)
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), validators=lv)
-        print(result)
         assert (result == 'foo')
 
         lv = LengthValidator(max_len=2)
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), validators=lv)
-        print(result)
         assert (result == '1')
 
         lv = LengthValidator(min_len=4, max_len=5)
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), validators=lv)
-        print(result)
         assert (result == 'foob')
 
 
@@ -157,10 +147,9 @@ class TestValidate(object):
         ev = EqualToValidator(3)
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=IntConvertor(), validators=ev)
-        print(result)
         assert (result == 3)
 
-        print(ev)   # for code coverage
+        assert repr(ev) == 'EqualToValidator(value=3)'
 
 
     def test_list(self, fake_input):
@@ -174,15 +163,13 @@ class TestValidate(object):
         lv = ListValidator(len_validators=RangeValidator(min_val=2, max_val=7))
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=lc, validators=lv)
-        print(result)
         assert (result == [3,4,5,6,7])
 
-        print(lv)   # for code coverage
+        assert repr(lv) == 'ListValidator()'
 
         lv = ListValidator(len_validators=RangeValidator(min_val=2), elem_validators=RangeValidator(max_val=6))
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=lc, validators=lv)
-        print(result)
         assert (result == [2,3,4])
 
     def test_password(self, fake_input):
@@ -222,10 +209,12 @@ class TestValidate(object):
         result = get_input(validators=[disallowed_chars_password_val], prompt='type in a password (type in a password(no vowels, even digits or !, *, \\ %)')
         assert result == 'fbr^'
 
-    def test_password_coverage(self):
-        # Call PasswordValidator directly with the wrong value type to get to error conditions in coverage testing
+    def test_password_validator_rejects_a_non_string(self, capsys):
+        # A non-string cannot be a password; the validator says so on stderr and
+        # returns False rather than blowing up on len() or str.islower().
         pv = PasswordValidator()
-        pv(10, print_error, "{value}")
+        assert pv(10, print_error, "{value}") is False
+        assert '10' in capsys.readouterr().err
 
     def test_choices(self, fake_input):
         input_str = "\nfoo\nffffffffoooooobbbb\nFOOBAR!\nfoobar!\nFooBar!\nfoobar\nFooBar1!\nFooBar1!!\nfbr^"
@@ -233,10 +222,9 @@ class TestValidate(object):
 
         fake_input(input_str)
         result = get_input(validators=cv)
-        print(result)
         assert (result == 'foobar')
 
-        print(cv)  # for code coverage
+        assert repr(cv) == "ChoiceValidator(choices=['foobar', 'bar', 'blat'])"
 
     def test_simple(self, fake_input):
         def simple_func(value):
@@ -247,10 +235,9 @@ class TestValidate(object):
 
         fake_input(input_str)
         result = get_input(validators=sv)
-        print(result)
         assert (result == 'foobar')
 
-        print(sv)  # for code coverage
+        assert repr(sv).startswith('SimpleValidator(validators=<function TestValidate.test_simple.<locals>.simple_func')
 
         sv = SimpleValidator(validator_func=simple_func, name='bad option')
 
@@ -261,16 +248,14 @@ class TestValidate(object):
 
         fake_input(input_str)
         result = get_input(validators=rev)
-        print(result)
         assert (result == '2345678901')
 
-        print(rev)  # for code coverage
+        assert repr(rev) == 'RegexValidator(regex=^[2-9]\\d{9}$)'
 
         rev = RegexValidator(pattern=r'^[2-9]\d{9}$')
 
         fake_input(input_str)
         result = get_input(validators=rev)
-        print(result)
         assert (result == '2345678901')
 
         with pytest.raises(EOFError):

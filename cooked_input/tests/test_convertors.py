@@ -17,9 +17,13 @@ from cooked_input import StripCleaner
 class TestConvertors(object):
     bool_convertor = BooleanConvertor()
 
-    def test_base_class(self):
+    def test_base_convertor_is_instantiable_and_is_a_no_op(self):
+        # Same Python 2 __metaclass__ artifact as Cleaner: the base is not actually
+        # abstract, and __call__ returns None instead of raising.
         c = Convertor('')
-        c('foo', None, None) # for coverage testing only!
+        assert c('foo', None, None) is None
+        # Unlike every concrete convertor, the base defines no __repr__ of its own.
+        assert repr(c).startswith('<cooked_input.convertors.Convertor object at ')
 
     def test_get_boolean_true(self, fake_input):
         input_str = u"""
@@ -30,10 +34,9 @@ class TestConvertors(object):
 
         fake_input(input_str)
         result = get_input(prompt='enter a boolean (True/False)', cleaners=StripCleaner(), convertor=self.bool_convertor)
-        print(result)
         assert(result==True)
 
-        print(self.bool_convertor)   # for code coverage
+        assert repr(self.bool_convertor) == 'BooleanConvertor(true or false)'
 
     def test_get_boolean_false(self, fake_input):
         input_str = u"""
@@ -44,7 +47,6 @@ class TestConvertors(object):
 
         fake_input(input_str)
         result = get_input(prompt='enter a boolean (True/False)', cleaners=StripCleaner(), convertor=self.bool_convertor)
-        print(result)
         assert (result == False)
 
 
@@ -55,7 +57,6 @@ class TestConvertors(object):
 
         fake_input(input_str)
         result = get_boolean()
-        print(result)
         assert (result == False)
 
 
@@ -66,7 +67,6 @@ class TestConvertors(object):
 
         fake_input(input_str)
         result = get_list()
-        print(result)
         assert (result == ['foo', 'bar', 'blat'])
 
 
@@ -78,10 +78,9 @@ class TestConvertors(object):
         lc = ListConvertor()
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=lc)
-        print(result)
         assert (result == ['foo', 'bar', 'blat'])
 
-        print(lc)   # for code coverage
+        assert repr(lc) == 'ListConvertor(list of values)'
 
 
     def test_get_date(self, fake_input):
@@ -92,7 +91,6 @@ class TestConvertors(object):
 
         fake_input(input_str)
         result = get_date()
-        print(result)
         assert (str(result) == '2017-09-04 00:00:00')
 
     def test_get_input_date(self, fake_input):
@@ -103,10 +101,9 @@ class TestConvertors(object):
         dc = DateConvertor()
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=dc)
-        print(result)
         assert (str(result) == '2017-09-04 00:00:00')
 
-        print(dc)   # for code coverage
+        assert repr(dc) == 'DateConvertor(a date)'
 
 
     def test_get_yes_no(self, fake_input):
@@ -117,7 +114,6 @@ class TestConvertors(object):
 
         fake_input(input_str)
         result = get_yes_no()
-        print(result)
         assert (result == 'yes')
 
     def test_get_input_yes_no(self, fake_input):
@@ -129,9 +125,8 @@ class TestConvertors(object):
         ync = YesNoConvertor()
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=ync)
-        print(result)
         assert (result == 'no')
-        print(ync)
+        assert repr(ync) == 'YesNoConvertor(yes or no)'
 
     def test_decimal(self, fake_input):
         input_str = u"""
@@ -144,9 +139,8 @@ class TestConvertors(object):
         good_result = decimal.Decimal('10.10')
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=dc)
-        print(result)
         assert (result == good_result)
-        print(dc)
+        assert repr(dc) == 'DecimalConvertor(precision=2, rounding=ROUND_HALF_UP, value_error_str=a decimal number)'
 
     def test_decimal2(self, fake_input):
         input_str = u"""
@@ -159,9 +153,8 @@ class TestConvertors(object):
         good_result = decimal.Decimal('10.10')
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=dc)
-        print(result)
         assert (result == good_result)
-        print(dc)
+        assert repr(dc) == 'DecimalConvertor(precision=2, rounding=ROUND_UP, value_error_str=a decimal number)'
 
     def test_get_money(self, fake_input):
         input_str = u"""
@@ -173,7 +166,6 @@ class TestConvertors(object):
 
         fake_input(input_str)
         result = get_money(symbol="$")
-        print(result)
         assert (result == good_result)
 
     def test_get_money2(self, fake_input):
@@ -185,5 +177,4 @@ class TestConvertors(object):
 
         fake_input(input_str)
         result = get_money(symbol="$", separator=",")
-        print(result)
         assert (result == good_result)

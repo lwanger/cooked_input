@@ -17,9 +17,14 @@ from cooked_input import Cleaner, StripCleaner, CapitalizationCleaner, RemoveCle
 
 class TestCleaners(object):
 
-    def test_call_abstract(self):
+    def test_base_cleaner_is_instantiable_and_is_a_no_op(self):
+        # Cleaner declares `__metaclass__ = ABCMeta`, the Python 2 spelling, which is
+        # inert on Python 3. So the "abstract" base is instantiable and its __call__
+        # silently returns None rather than raising. Asserting it here means the day
+        # that is corrected to `class Cleaner(metaclass=ABCMeta)` this test fails
+        # loudly instead of the change slipping through as a coverage wobble.
         c = Cleaner()
-        c(10)
+        assert c(10) is None
 
     def test_bad_cleaner(self, fake_input):
         input_str = 'foo'
@@ -34,7 +39,24 @@ class TestCleaners(object):
         result = get_input(cleaners=sc)
         assert (result == 'foo')
 
-        print(sc)
+        assert repr(sc) == 'StripCleaner(lstrip=True, rstrip=True)'
+
+    def test_every_cap_style_constant_is_exported(self):
+        # LAST_WORD_CAP_STYLE used to be the one style missing from the package's
+        # __init__, so ci.LAST_WORD_CAP_STYLE raised AttributeError while the
+        # equivalent 'last_word' string worked. Assert the whole set, not just the
+        # one that was broken, so the next addition cannot be forgotten either.
+        import cooked_input as ci
+
+        exported = {
+            'lower': ci.LOWER_CAP_STYLE,
+            'upper': ci.UPPER_CAP_STYLE,
+            'first_word': ci.FIRST_WORD_CAP_STYLE,
+            'last_word': ci.LAST_WORD_CAP_STYLE,
+            'all_words': ci.ALL_WORDS_CAP_STYLE,
+        }
+        for style_str, style_const in exported.items():
+            assert CapitalizationCleaner(style=style_str)._style == style_const
 
     def test_capitalization_cleaner(self, fake_input):
         input_str = 'foo Bar bLaT'
@@ -43,7 +65,7 @@ class TestCleaners(object):
         result = get_input(cleaners=sc)
         assert (result == 'foo bar blat')
 
-        print(sc)
+        assert repr(sc) == 'CapitalizationCleaner(style=1)'
 
         sc = CapitalizationCleaner(style='upper')
         fake_input(input_str)
@@ -79,7 +101,7 @@ class TestCleaners(object):
         result = get_input(cleaners=rc)
         assert(result == 'foo  ')
 
-        print(rc)
+        assert repr(rc) == "RemoveCleaner(patterns=['is', 'bar'])"
 
         rc = RemoveCleaner(patterns=['is', 10])
         with pytest.raises(TypeError):
@@ -93,7 +115,7 @@ class TestCleaners(object):
         result = get_input(cleaners=rc)
         assert(result == 'foo & bar & blat')
 
-        print(rc)
+        assert repr(rc) == 'ReplaceCleaner(old="and", new="&")'
 
         input_str = 'foo and bar and blat'
         rc = ReplaceCleaner(old='and', new='&', count=1)
@@ -112,7 +134,7 @@ class TestCleaners(object):
         result = get_input(cleaners=rc)
         assert(result == 'foo & bar')
 
-        print(rc)
+        assert repr(rc) == 'RegexCleaner(pattern=\\sAND\\s, repl= & , count=0, flags=re.IGNORECASE)'
 
 
     def test_choice_cleaner(self, fake_input):
@@ -125,7 +147,7 @@ class TestCleaners(object):
         result = get_input(cleaners=cc)
         assert (result == 'foo')
 
-        print(cc)
+        assert repr(cc) == "ChoiceCleaner(choices={'foo': 'foo'})"
 
     def test_subset_choice(self, fake_input):
         # make sure works if one value is a subset of another and case insenstive
@@ -152,7 +174,7 @@ class TestCleaners(object):
         result = get_input(cleaners=cc)
         assert (result == 'foo')
 
-        print(cc)
+        assert repr(cc) == "ChoiceCleaner(choices={'foo': 'foo', 'bar': 'bar', 'blat': 'BLAT'})"
 
 
     def test_case_sesitive_choice_cleaner(self, fake_input):
@@ -169,7 +191,7 @@ class TestCleaners(object):
         result = get_input(cleaners=cc)
         assert (result == 'foo')
 
-        print(cc)
+        assert repr(cc) == "ChoiceCleaner(choices={'foo': 'foo', 'bar': 'bar', 'BLAT': 'BLAT'})"
 
     def test_subset_choice_cleaner(self, fake_input):
         # test choice cleaner if one of the choices is the subset of another
@@ -183,4 +205,4 @@ class TestCleaners(object):
         assert (result == 'f')
         result = get_input(cleaners=cc)
         assert (result == 'foobar')
-        print(cc)
+        assert repr(cc) == "ChoiceCleaner(choices={'foo': 'foo', 'foobar': 'foobar'})"

@@ -17,10 +17,6 @@ Len Wanger, 2017
 """
 
 
-# from cooked_input import get_input, GetInput, get_list
-# from cooked_input.validators import LengthValidator, ChoiceValidator, NoneOfValidator
-# from cooked_input.cleaners import StripCleaner, CapitalizationCleaner, UPPER_CAP_STYLE, ALL_WORDS_CAP_STYLE
-# from cooked_input.convertors import IntConvertor, YesNoConvertor
 
 
 from cooked_input import GetInput, get_input, get_list
@@ -119,7 +115,6 @@ class TestGetList(object):
         lc = ListConvertor(delimiter='-', elem_get_input=GetInput(convertor=IntConvertor()))
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=lc)
-        print(result)
         assert (result == [1,2,3])
 
 
@@ -132,5 +127,4 @@ class TestGetList(object):
         lc = ListConvertor(delimiter=None, elem_get_input=GetInput(convertor=IntConvertor()))
         fake_input(input_str)
         result = get_input(cleaners=StripCleaner(), convertor=lc)
-        print(result)
         assert (result == [-1, 2, 3])

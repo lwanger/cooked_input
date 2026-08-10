@@ -53,7 +53,7 @@ class TestGetFloat(object):
         result = get_input(prompt='enter a float', convertor=self.float_convertor)
         assert(result==approx(-1.1))
 
-        print(self.float_convertor) # for code coverage
+        assert repr(self.float_convertor) == 'FloatConvertor(a float number)'
 
 
     def test_get_float(self, fake_input):
@@ -126,6 +126,3 @@ class TestGetFloat(object):
         assert (result == approx(8.71))
 
 
-# if __name__ == '__main__':
-#     c = TestCleaners()
-#     c.test_get_float()

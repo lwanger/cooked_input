@@ -23,14 +23,11 @@ def use_create_table(items, fields, field_names, gen_tags, tag_str, item_data=No
                        add_item_to_item_data=add_item_to_item_data, add_exit=add_exit, style=style,
                        default_choice=default_choice,
                        default_action=default_action, prompt=prompt)
-    print()
-    recipe_ti = tbl.get_table_choice(commands=None)
-    print(recipe_ti)
-    return recipe_ti
+    return tbl.get_table_choice(commands=None)
 
 
 class TestTables(object):
-    def test_show_table(self):
+    def test_show_table_renders_headers_and_every_row(self, capsys):
         people = [
             Person('John', 'Cleese', 78, 14),
             Person('Terry', 'Gilliam', 77, 10),
@@ -39,7 +36,15 @@ class TestTables(object):
 
         rows = create_rows(people, ['last', 'first', 'shoe_size'])
         Table(rows, ['First', 'Shoe Size'], tag_str='Last').show_table()
-        print()
+
+        rendered = capsys.readouterr().out
+        # tag_str supplies the first column heading, col_names the rest.
+        for heading in ('Last', 'First', 'Shoe Size'):
+            assert heading in rendered
+        for surname in ('Cleese', 'Gilliam', 'Idle'):
+            assert surname in rendered
+        for shoe_size in ('14', '10', '12'):
+            assert shoe_size in rendered
 
     def test_get_table_choice(self, fake_input):
         input_str = '1'
@@ -59,15 +64,12 @@ class TestTables(object):
         fake_input(input_str)
         choice = tbl.get_table_choice()
         item = choice.item_data["item"]
-        print('{}: {}'.format(item['name'], item['season']))
         assert (item['name'] == 'Whither Canada?')
 
-    def test_single_col_table_autogen_tags_chosen_by_tag(self, fake_input):
+    def test_single_col_table_autogen_tags_chosen_by_tag(self, fake_input, framed_style):
         # single item list, generate tags
         input_str = '2'
 
-        print('\nTest list of single items - autogen tags\n')
-        table_style = TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
         items = [["Beast"], ["Deuce"], ["Seth"]]  # single item list
         fields = 'name'.split()
         field_names = 'Name'.split()
@@ -76,128 +78,111 @@ class TestTables(object):
         prompt = 'Choose a printer'
 
         fake_input(input_str)
-        result = use_create_table(items, fields, field_names, gen_tags, tag_str, prompt=prompt, style=table_style)
+        result = use_create_table(items, fields, field_names, gen_tags, tag_str, prompt=prompt, style=framed_style)
         assert (result == [2, 'Deuce'])
 
 
-    def test_single_col_table_no_autogen_chosen_by_value(self, fake_input):
+    def test_single_col_table_no_autogen_chosen_by_value(self, fake_input, framed_style):
         # single item list
         input_str = 'Beast'
 
-        print('\nTest list of single items (no autogen tags)\n')
         prompt = None
         items = [["Beast"], ["Deuce"], ["Seth"]]  # single item list
         fields = 'name'.split()
         field_names = 'Name'.split()
-        table_style = TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
         gen_tags = False
         tag_str = 'Printer'
         add_exit = True
 
         fake_input(input_str)
-        result = use_create_table(items, fields, field_names, gen_tags, tag_str, add_exit=add_exit, prompt=prompt, style=table_style)
+        result = use_create_table(items, fields, field_names, gen_tags, tag_str, add_exit=add_exit, prompt=prompt, style=framed_style)
 
         assert (result == ['Beast'])
 
 
-    def test_single_col_table_exit_row_returns_table_item(self, fake_input):
+    def test_single_col_table_exit_row_returns_table_item(self, fake_input, framed_style):
         # Asserts today's behavior, which is wrong: picking Exit should yield the
         # 'exit' tag, not the TableItem. get_menu has the same defect at the module
         # level -- its `result == 'exit'` test can never be true. Tracked separately;
         # this test will be inverted when that is fixed.
         input_str = 'exit'
 
-        print('\nTest list of single items (no autogen tags)\n')
         prompt = None
         items = [["Beast"], ["Deuce"], ["Seth"]]  # single item list
         fields = 'name'.split()
         field_names = 'Name'.split()
-        table_style = TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
         gen_tags = False
         tag_str = 'Printer'
         add_exit = True
 
         fake_input(input_str)
-        result = use_create_table(items, fields, field_names, gen_tags, tag_str, add_exit=add_exit, prompt=prompt, style=table_style)
+        result = use_create_table(items, fields, field_names, gen_tags, tag_str, add_exit=add_exit, prompt=prompt, style=framed_style)
 
-        print('result is...' + str(result))
         assert (result.action == 'exit')
 
 
-    def test_single_item_table(self, fake_input):
+    def test_single_item_table(self, fake_input, framed_style):
         input_str = 'Beast'
 
-        print('\nTest list of single items (no autogen tags)\n')
         prompt = None
         items = [["Beast"], ["Deuce"], ["Seth"]]  # single item list
         fields = 'name'.split()
         field_names = 'Name'.split()
-        table_style = TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
         gen_tags = False
         tag_str = 'Printer'
         add_exit = True
         fake_input(input_str)
-        result = use_create_table(items, fields, field_names, gen_tags, tag_str, add_exit=add_exit, prompt=prompt, style=table_style)
+        result = use_create_table(items, fields, field_names, gen_tags, tag_str, add_exit=add_exit, prompt=prompt, style=framed_style)
 
-        print('result is...' + str(result))
         assert (result == ['Beast'])
 
 
-    def test_multi_item_list(self, fake_input):
+    def test_multi_item_list(self, fake_input, framed_style):
         input_str = 'Ford2'
 
-        print('\nTest list of multiple items (no autogen tags)\n')
         items = [["Beast", "IO-PROD", "Model One G2"], ["Ford2", "Dearborn", "Model One G2.1"],
                  ["Seth", "IO-PROD", "Cell"]]
         fields = 'name location model'.split()
         field_names = 'Name Location IO_Model'.split()
-        table_style = TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
         gen_tags = False
         tag_str = None
         fake_input(input_str)
-        result = use_create_table(items, fields, field_names, gen_tags, tag_str, style=table_style)
-        print('result is...' + str(result))
-        # assert (result[0] == 'Ford2' )
+        result = use_create_table(items, fields, field_names, gen_tags, tag_str, style=framed_style)
         assert (result == ["Ford2", "Dearborn", "Model One G2.1"] )
 
-    def test_dict_of_dicts(self, fake_input):
+    def test_dict_of_dicts(self, fake_input, framed_style):
         input_str = 'Seth'
 
-        print('\nTest list of dictionary of dictionaries (no autogen tags)\n')
         items = {1: {"name": "Beast", "location": "IO-PROD", "model": "Model One G2"},
                  2: {"name": "Ford2", "location": "Dearborn", "model": "Model One G2.1"},
                  3: {"name": "Seth", "location": "IO-PROD", "model": "Cell"}}
         fields = 'name location model'.split()
         field_names = 'Name Location IO_Model'.split()
-        table_style = TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
         gen_tags = False
         tag_str = "Printer"
         fake_input(input_str)
-        result = use_create_table(items, fields, field_names, gen_tags, tag_str, style=table_style)
+        result = use_create_table(items, fields, field_names, gen_tags, tag_str, style=framed_style)
         assert (result == ["Seth", "IO-PROD", "Cell"] )
 
 
-    def test_dict_of_lists(self, fake_input):
+    def test_dict_of_lists(self, fake_input, framed_style):
         input_str = '3'
 
-        print('\nTest list of dictionary of lists (autogen tags)\n')
 
         items = {1: ["Beast", "IO-PROD", "Model One G2"], 2: ["Ford2", "Dearborn", "Model One G2.1"],
                  3: ["Seth", "IO-PROD", "Cell"]}
         fields = 'name location model'.split()
         field_names = 'Name Location IO_Model'.split()
-        table_style = TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
         gen_tags = True
         tag_str = "Printer"
         fake_input(input_str)
-        result = use_create_table(items, fields, field_names, gen_tags, tag_str, style=table_style)
+        result = use_create_table(items, fields, field_names, gen_tags, tag_str, style=framed_style)
         assert (result == [3, "Seth", "IO-PROD", "Cell"] )
 
 
-    def test_table_of_tablestyles(self, fake_input):
+    def test_table_of_tablestyles(self, fake_input, framed_style):
         input_str = '3'
 
-        print('\nTest list of class instances (autogen tags)\n')
 
         items = [
             TableStyle(True, True, RULE_FRAME, RULE_FRAME),
@@ -207,17 +192,15 @@ class TestTables(object):
         ]
         fields = 'show_cols hrules vrules'.split()  # no show_border on purpose
         field_names = 'Show_Cols H-Rules V-Rules'.split()
-        table_style = TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
         gen_tags = True
         tag_str = "Table Style"
         fake_input(input_str)
-        result = use_create_table(items, fields, field_names, gen_tags, tag_str, style=table_style)
+        result = use_create_table(items, fields, field_names, gen_tags, tag_str, style=framed_style)
         assert (result == [3, False, 1, 0] )
 
 
-    def test_named_tuple(self, fake_input):
+    def test_named_tuple(self, fake_input, framed_style):
         input_str = '3'
-        print('\nTest list of named tuples (autogen tags)\n')
 
         MyTuple = namedtuple("MyTuple", "name location model other")
         items = [
@@ -227,15 +210,13 @@ class TestTables(object):
         ]
         fields = 'name location model'.split()
         field_names = 'Name Location IO_Model'.split()
-        table_style = TableStyle(show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL)
         gen_tags = True
         tag_str = None
         aitid = True
         default_action = TABLE_RETURN_TABLE_ITEM
         fake_input(input_str)
         ti = use_create_table(items, fields, field_names, gen_tags, tag_str, item_data=None,
-                          add_item_to_item_data=aitid, style=table_style, default_action=default_action)
+                          add_item_to_item_data=aitid, style=framed_style, default_action=default_action)
 
-        print(f'name={ti.item_data["item"].name},  other={ti.item_data["item"].other}')
         assert (ti.item_data['item'].name == 'Seth')
         assert (ti.tag == 3)
