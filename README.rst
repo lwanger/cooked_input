@@ -16,6 +16,9 @@
 .. image:: https://readthedocs.org/projects/cooked-input/badge/?version=latest
     :target: https://cooked-input.readthedocs.io/en/latest/
 
+.. image:: https://github.com/lwanger/cooked_input/actions/workflows/tests.yml/badge.svg
+    :target: https://github.com/lwanger/cooked_input/actions/workflows/tests.yml
+
 .. image:: https://img.shields.io/pypi/pyversions/cooked_input.svg
     :target: https://pypi.org/project/cooked_input/
 
