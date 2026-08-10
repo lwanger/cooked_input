@@ -412,7 +412,10 @@ class SimpleValidator(Validator):
     """
     def __init__(self, validator_func, name='SimpleValidator value'):
         self._validator = validator_func
-        self._name = None
+        # Fixing: this was `self._name = None`, which threw the caller's name away,
+        # so every failure message read "is not a valid None" and the documented
+        # `name` parameter did nothing.
+        self._name = name
 
     def __call__(self, value, error_callback, validator_fmt_str):
         result = self._validator(value)
