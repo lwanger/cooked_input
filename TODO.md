@@ -13,8 +13,6 @@ a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version 
 
 ## Next Up:
 
-- [ ] get_table.py sits at 66% coverage — 158 uncovered lines, mostly the interactive menu and pagination navigation. 
-  That's the weakest spot in the package and it's the module the migration touched most.
 - [ ] Add type hints
 - [ ] Re-test Python 3.15 once it is released (expected October 2026). It is currently blocked
   upstream, not by us: `regex`, a transitive dependency via `dateparser`, has no cp315 wheels,
@@ -22,12 +20,31 @@ a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version 
   just add "3.15" to the CI matrix, tox envlist and classifiers if the suite passes.
 - [ ] Improve documentation and examples
   - [ ] Example of get_money, showing why not to use floats to keep exact decimal amounts and do proper rounding
-- [ ] Improve test cases and coverage
 - [ ] Update documentation to great-docs?
 
 ## Completed:
 
 Items here move into CHANGELOG.rst when the version number is incremented.
+
+- [x] Improve test cases and coverage. Package coverage went 79.6% -> 98.0% (branch
+  coverage, source only) and the suite went from 86 tests to 391. get_table.py, the
+  weakest module at 62.6%, is now 95.2%; cleaners, validators, input_utils and
+  error_callbacks are at 100%. CI gates on `--cov-fail-under=97` as a ratchet that
+  only ever increases — see the "coverage ratchet" section of CONTRIBUTING.md.
+
+  Beyond the numbers, the suite was weaker than 86-green suggested:
+  - Three tests had never run. Two names were each defined multiple times in one
+    class, so Python kept only the last binding and silently discarded the rest.
+  - `test_password` drove `hidden=True` through `getpass`, which ignores a patched
+    `sys.stdin` whenever it can open /dev/tty. It passed only because CI runners have
+    no tty and win_getpass short-circuits on Windows; on a Linux or macOS box run from
+    a real terminal it read the actual keyboard and hung. Replaced by the `fake_input`
+    fixture, which patches `builtins.input` and `getpass.getpass` together.
+  - 83 `print()` calls stood in for assertions, 26 of them executing `__repr__` without
+    checking the result. All are real assertions now and no test prints.
+
+  Six bugs were fixed along the way (see CHANGELOG.rst) and seven issues opened for
+  the ones that change public behavior: #44, #46, #47, #48, #49, #50.
 
 - [X] Test on Python 3.14, and find how far back we can go in Python 3 (was: 3.8?).
   3.14 passes the full suite (86 tests) with the existing dependency versions, so it needed no

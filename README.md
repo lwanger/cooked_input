@@ -11,6 +11,7 @@ also match README.rst, docs/README.rst and the classifiers in pyproject.toml.
 [![PyPi Version](https://img.shields.io/pypi/v/cooked_input.svg)](https://pypi.org/project/cooked_input/)
 [![License](https://img.shields.io/pypi/l/cooked_input.svg)](https://pypi.org/project/cooked_input/)
 [![Documentation Status](https://readthedocs.org/projects/cooked-input/badge/?version=latest)](https://cooked-input.readthedocs.io/en/latest/)
+[![Tests](https://github.com/lwanger/cooked_input/actions/workflows/tests.yml/badge.svg)](https://github.com/lwanger/cooked_input/actions/workflows/tests.yml)
 [![PyPi pyversions](https://img.shields.io/pypi/pyversions/cooked_input.svg)](https://pypi.org/project/cooked_input/)
 
 # Cooked Input Project

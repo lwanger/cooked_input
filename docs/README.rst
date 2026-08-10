@@ -21,6 +21,10 @@ Cooked Input Project
    :alt: Documentation Status
    :target: https://cooked-input.readthedocs.io/en/latest/
 
+.. image:: https://github.com/lwanger/cooked_input/actions/workflows/tests.yml/badge.svg
+   :alt: Test status
+   :target: https://github.com/lwanger/cooked_input/actions/workflows/tests.yml
+
 .. image:: https://img.shields.io/pypi/pyversions/cooked-input.svg
    :alt: PyPi pyversions
    :target: https://pypi.org/project/cooked-input/
