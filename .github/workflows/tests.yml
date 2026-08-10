@@ -68,7 +68,7 @@ jobs:
       # the PR that earns the increase -- see CONTRIBUTING.md. Kept out of addopts
       # so it does not slow the eight matrix jobs or every local run.
       - name: Run tests with coverage
-        run: pytest --cov --cov-report=term-missing --cov-fail-under=87
+        run: pytest --cov --cov-report=term-missing --cov-fail-under=89
 
   build:
     name: build and check distributions
