@@ -1,3 +1,9 @@
+Event Manager Example
+=====================
+
+This is the complete source for the event manager application built step by step in
+:doc:`part two of the tutorial <tutorial2>`.
+
 .. code-block:: python
 
     """

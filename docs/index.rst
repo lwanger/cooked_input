@@ -17,6 +17,7 @@ This is documentation for cooked_input |my_version|, generated |my_date|.
    quick_start
    tutorial
    tutorial2
+   events
    how_to
    get_input_convenience
    cleaners
@@ -27,6 +28,7 @@ This is documentation for cooked_input |my_version|, generated |my_date|.
    get_input_exceptions
    error_callbacks
    get_input_commands
+   CHANGELOG
 
 
 Indices and tables
