@@ -32,3 +32,7 @@ docs/agents/
 /temp.py
 /unicode.txt
 /wheel.txt
+
+# Design notes rather than importable code. Globbed on the stem so the rename from
+# menu_design.py to menu_design.txt stays ignored.
+/menu_design.*
