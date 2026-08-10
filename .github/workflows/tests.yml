@@ -60,6 +60,12 @@ jobs:
           python-version: "3.14"
           cache: pip
 
+      # Cheap and dependency-free, so it runs before the build rather than as its
+      # own job. Catches the READMEs, pyproject, tox and this matrix disagreeing
+      # about which Pythons are supported -- README.md sat a version behind once.
+      - name: Check the supported Python range agrees across the project
+        run: python scripts/check_version_claims.py
+
       - name: Install build tooling
         run: python -m pip install --upgrade pip build twine
 
