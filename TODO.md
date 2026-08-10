@@ -16,7 +16,10 @@ a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version 
 - [ ] get_table.py sits at 66% coverage — 158 uncovered lines, mostly the interactive menu and pagination navigation. 
   That's the weakest spot in the package and it's the module the migration touched most.
 - [ ] Add type hints
-- [ ] Test on Python 3.14. How far back can we go in Python 3? 3.8?
+- [ ] Re-test Python 3.15 once it is released (expected October 2026). It is currently blocked
+  upstream, not by us: `regex`, a transitive dependency via `dateparser`, has no cp315 wheels,
+  so installing on 3.15.0b3 falls back to a source build. Nothing to change here until then --
+  just add "3.15" to the CI matrix, tox envlist and classifiers if the suite passes.
 - [ ] Improve documentation and examples
   - [ ] Example of get_money, showing why not to use floats to keep exact decimal amounts and do proper rounding
 - [ ] Improve test cases and coverage
@@ -25,6 +28,19 @@ a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version 
 ## Completed:
 
 Items here move into CHANGELOG.rst when the version number is incremented.
+
+- [X] Test on Python 3.14, and find how far back we can go in Python 3 (was: 3.8?).
+  3.14 passes the full suite (86 tests) with the existing dependency versions, so it needed no
+  code or dependency changes; it is now in the CI matrix, tox envlist and classifiers.
+  The floor stays at 3.10. Our own source is not the constraint -- a vermin scan puts the syntax
+  floor at 3.3, since the Python 2 cleanup left no version-specific syntax behind -- but
+  prettytable and dateparser both declare requires-python >= 3.10.
+  3.9 was measured and does work (86 passed on 3.9.25 against prettytable 3.16.0 and
+  dateparser 1.2.2) but was rejected: it reached end of life in October 2025, so it is not worth
+  depending on older releases of both packages.
+  3.8 is a harder blocker regardless -- `get_table.py` uses `pt.HRuleStyle`, added in prettytable
+  3.12.0, and the newest prettytable supporting 3.8 is 3.11.0 -- so it would need a compatibility
+  shim, not just a looser pin.
 
 ## more features:
 
