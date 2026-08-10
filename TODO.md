@@ -13,12 +13,8 @@ a CHANGELOG.md file. The CHANGELOG.md file should be updated with the version nu
 
 ## First Things:
 
-                                                                                                                                                                                               
-  Done - Register the PyPI trusted publisher — owner lwanger, repo cooked_input, workflow release.yml, environment pypi. Exact match required. 
-  1. Also create the pypi environment in repo settings;   
-    adding yourself as required reviewer gives a manual gate before upload.                                                                                                                       
-  2. Dry-run to TestPyPI via manual workflow_dispatch — release.yml has still never executed, so this is the first real test of the OIDC handshake, and it costs no version number.             
-  3. Tag v0.6.0 to publish. The guard will refuse if the tag doesn't match __version__, which is currently 0.6.0.        
+  1. Dry-run to TestPyPI via manual workflow_dispatch — release.yml has still never executed, so this is the first real test of the OIDC handshake, and it costs no version number.             
+  2. Tag v0.6.0 to publish. The guard will refuse if the tag doesn't match __version__, which is currently 0.6.0.        
 
 Two things I'd still flag before you cut 0.6.0:
 
@@ -77,7 +73,7 @@ Items here move into CHANGELOG.md when the version number is incremented.
 * add support for Rich (text color, tables, etc)
 * full type hinting (run through mypy?)
 * expand tutorials
-* add support for rich consoles, rich tables?
+  * add support for rich consoles, rich tables?
 
 * general:
     * Create extension directory (can add things with extra pip requirements like viridus)
