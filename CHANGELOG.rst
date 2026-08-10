@@ -12,6 +12,19 @@ see TODO.md for list of TODO items
 
 * unreleased:
 
+  * fixed: four crashes and inconsistencies in the "nothing was supplied" case, where an
+    empty list or ``None`` was passed where validators or cleaners were expected.
+    ``in_any(value, [])`` and ``get_input(retries=0)`` both raised ``UnboundLocalError``
+    from a variable that was only ever assigned inside a loop body that never ran --
+    ``get_input(retries=0)`` now raises the ``MaxRetriesError`` the retry limit implies.
+    ``not_in(value, None)`` rejected every value and reported "value cannot match
+    <value>", naming a validator that did not exist, so ``NoneOfValidator(None)`` refused
+    everything while ``AnyOfValidator(None)`` accepted everything; all three of
+    ``in_all``, ``in_any`` and ``not_in`` now treat no validators as vacuously true.
+    ``compose(value, [])`` returned ``None`` instead of the value, so composing no
+    functions destroyed its input rather than acting as the identity. (``compose`` was
+    not reachable this way through ``get_input``, which guards with ``if self.cleaners``,
+    but it is a public function.)
   * fixed: ``get_input`` looped forever when a blank line was entered at a prompt with
     ``required=True`` and no ``default``. That case matched none of the branches in the
     retry loop, so ``retries`` was never incremented and ``max_retries`` was unreachable.
