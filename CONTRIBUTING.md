@@ -27,6 +27,46 @@ Detail and examples below; here are the basic principles.
 - All new functions and parameters (including cleaners, convertors, and validators) should be added to the documentation.
 - Examples of all new functions and parameters (including cleaners, convertors, and validators) should be added to the examples.
 
+## Running the tests
+
+Install the package with its test extra, then run `pytest` with no arguments:
+
+```
+pip install -e ".[test]"
+pytest
+```
+
+`testpaths` in `pyproject.toml` is the single collection root, so `pytest`, `tox` and CI
+all collect exactly the same tests. Pass a path only to narrow a run
+(`pytest cooked_input/tests/test_cleaners.py -k choice`).
+
+For coverage:
+
+```
+pytest --cov --cov-report=term-missing
+```
+
+### Faking console input
+
+`cooked_input` reads from the console, so nearly every test needs a fake keyboard. Use the
+`fake_input` fixture from `cooked_input/tests/conftest.py` — it is the only supported way:
+
+```python
+def test_retries_past_a_bad_value(fake_input):
+    feeder = fake_input("foo", "42")
+    assert get_int() == 42
+    assert feeder.remaining == 0
+```
+
+Multi-line strings are split into one response per line. The fixture patches both
+`builtins.input` and `getpass.getpass`, so `hidden=True` prompts are covered too — patching
+`sys.stdin` alone is not enough, because `getpass` ignores it whenever it can open `/dev/tty`.
+
+When the script runs out the feeder raises `EOFError`. That is deliberate: a retry loop or a
+`Table.run()` menu loop that would otherwise spin forever ends the test immediately instead of
+hanging the run. Asserting `feeder.remaining == 0` afterwards proves the code asked for exactly
+the inputs you scripted.
+
 ## Keeping the READMEs in sync
 
 There are three README files, deliberately, because three places render them and

@@ -46,8 +46,9 @@ jobs:
       - name: Install package and test dependencies
         run: python -m pip install --upgrade pip && python -m pip install ".[test]"
 
+      # No path: testpaths in pyproject.toml is the single collection root now.
       - name: Run tests
-        run: pytest cooked_input/
+        run: pytest
 
   build:
     name: build and check distributions

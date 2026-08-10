@@ -189,37 +189,42 @@ class TestValidate(object):
             print(result)
             assert (result == [2,3,4])
 
-    def test_password(self):
+    def test_password(self, fake_input):
+        # Migrated off redirect_stdin ahead of the rest of the suite: the two
+        # hidden=True cases below route through getpass, which ignores a reassigned
+        # sys.stdin whenever it can open /dev/tty. Under redirect_stdin they passed
+        # only because CI runners have no tty and win_getpass falls back when
+        # sys.stdin is not sys.__stdin__ -- on a Linux or macOS box run from a real
+        # terminal they read the actual keyboard and hung.
         input_str = "\nfoo\nfooFFFF\nffffffffoooooobbbb\nFOOBAR!\nfoobar!\nFooBar!\nFooBar1!\nFooBar1!!\nfbr^"
         any_password_val = PasswordValidator()
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(validators=any_password_val)
-            print(result)
-            assert (result == 'foo')
+        fake_input(input_str)
+        assert get_input(validators=any_password_val) == 'foo'
 
-        print(any_password_val)  # for code coverage
+        assert 'PasswordValidator' in repr(any_password_val)
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(validators=[any_password_val], prompt='type in any password', required=False, hidden=True)
-            print(result)
-            assert (result is None)
+        feeder = fake_input(input_str)
+        result = get_input(validators=[any_password_val], prompt='type in any password', required=False, hidden=True)
+        assert result is None
+        # Proves the hidden path really was exercised through the fixture rather
+        # than quietly falling back to the visible one.
+        assert feeder.hidden_prompts
 
         stronger_password_val = PasswordValidator(allowed='fobarFOB1!^', disallowed='[]', min_len=5, max_len=15, min_lower=4, min_upper=2, min_digits=1, min_puncts=2)
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(validators=[stronger_password_val],
-                               prompt='type in a password (length=5-15, with at least 2 lower, 2 upper, 1 digit, and 2 puncts)', hidden=True)
-            print(result)
-            assert (result == 'FooBar1!!')
+        feeder = fake_input(input_str)
+        result = get_input(validators=[stronger_password_val],
+                           prompt='type in a password (length=5-15, with at least 2 lower, 2 upper, 1 digit, and 2 puncts)', hidden=True)
+        assert result == 'FooBar1!!'
+        assert feeder.hidden_prompts
 
         disallowed_chars = 'aeiou!*&%2468'
         disallowed_chars_password_val = PasswordValidator(disallowed=disallowed_chars)
 
-        with redirect_stdin(StringIO(input_str)):
-            result = get_input(validators=[disallowed_chars_password_val], prompt='type in a password (type in a password(no vowels, even digits or !, *, \\ %)')
-            print(result)
-            assert (result == 'fbr^')
+        fake_input(input_str)
+        result = get_input(validators=[disallowed_chars_password_val], prompt='type in a password (type in a password(no vowels, even digits or !, *, \\ %)')
+        assert result == 'fbr^'
 
     def test_password_coverage(self):
         # Call PasswordValidator directly with the wrong value type to get to error conditions in coverage testing
