@@ -131,7 +131,7 @@ def not_in(value: Any, validators: Any, error_callback: ErrorCallback,
 
 
 def validate(value: Any, validators: Any, error_callback: ErrorCallback = print_error,
-             validator_fmt_str: str = DEFAULT_VALIDATOR_ERROR) -> bool | None:
+             validator_fmt_str: str = DEFAULT_VALIDATOR_ERROR) -> bool:
     """
     return **True** is a value passes validation.
 
@@ -142,12 +142,18 @@ def validate(value: Any, validators: Any, error_callback: ErrorCallback = print_
 
     :return: **True** if the input passed validation, else **False**
 
-    .. note::
-        Unlike :func:`in_any`, :func:`in_all` and :func:`not_in`, which all treat "no
-        validators" as passing, an empty iterable here returns **None** and **None**
-        raises `TypeError`. Hence the ``bool | None`` return type. See issue #71.
+    No validators -- **None** or an empty iterable -- passes vacuously, the same as
+    :func:`in_any`, :func:`in_all` and :func:`not_in`: there is nothing for the value to fail.
     """
-    result = None
+    # Fixing: this returned None for an empty iterable and raised TypeError for None, where
+    # the other three helpers both return True. `result` was seeded with None and the loop
+    # body never ran, so "nothing to check" came back falsy and every caller reading the
+    # result as a boolean saw it as a validation failure -- the opposite of what this
+    # docstring promises and of what no-validators means everywhere else in the module.
+    if validators is None:
+        return True
+
+    result = True
 
     if callable(validators):
         result = validators(value, error_callback, validator_fmt_str)

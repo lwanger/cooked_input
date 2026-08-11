@@ -81,6 +81,14 @@ see TODO.md for list of TODO items
     the restriction. Its table of ``RULE`` values now renders as four rows rather than one:
     the grid was missing the row separators, so docutils had been folding all four
     descriptions into a single cell.
+  * fixed: ``validate()`` disagreed with the three other module-level validation helpers about
+    what "no validators" means. An empty iterable returned **None** -- falsy, and so read as a
+    validation *failure* by every caller testing the result as a boolean -- and ``None`` raised
+    ``TypeError: 'NoneType' object is not iterable``, where ``in_any``, ``in_all`` and
+    ``not_in`` all return **True**. Both now return **True**: there is nothing for the value to
+    fail. **This is a behavior change** for any caller relying on the falsy return, and the
+    return type goes from ``bool | None`` back to plain ``bool``. Same defect class as the
+    ``in_any`` fix below, but silently wrong rather than raising.
   * fixed: ``examples/events.py`` defined an ``exit_cmd_action`` that returned
     ``ci.COMMAND_ACTION_EXIT``, which does not exist -- calling it raised ``AttributeError``.
     The package has three command actions and there is no exit among them: a command leaves a
