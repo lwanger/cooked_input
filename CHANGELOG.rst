@@ -81,6 +81,37 @@ see TODO.md for list of TODO items
     the restriction. Its table of ``RULE`` values now renders as four rows rather than one:
     the grid was missing the row separators, so docutils had been folding all four
     descriptions into a single cell.
+  * changed: ``in_all``, ``in_any`` and ``not_in`` are no longer part of the public API. They are
+    internal plumbing -- they back :class:`AnyOfValidator`, :class:`NoneOfValidator` and
+    ``GetInput.process_value``, and appear in no documentation -- but were exported from
+    ``cooked_input`` all the same. They are now ``_in_all``, ``_in_any`` and ``_not_in``, and are
+    not importable from the package. ``validate()`` is unaffected: it is the user-facing helper,
+    and the only one of the four that was ever documented.
+  * fixed: the validation helpers were documented to return a boolean but returned whatever the
+    validator handed back. ``_in_any``, ``_in_all`` and ``validate`` all passed the value straight
+    through, so a validator returning a truthy non-bool -- a ``re.match`` result, say -- reached
+    the caller instead of **True**. ``SimpleValidator`` did the same one level down, returning the
+    match object itself. A validator only has to return something *truthy*, which is what makes
+    ``SimpleValidator(lambda s: re.match(...))`` work, so the conversion now happens where that
+    value crosses back into the package. **This is a behavior change** for a caller reading the
+    passed-through value, judged an oversight rather than a feature.
+
+    ``validators: Any`` is why it went unnoticed for so long: ``Any`` in means ``Any`` out, and
+    ``Any`` satisfies ``bool``, so the type checker could not see the mismatch. ``validate`` now
+    takes a declared validator type, which makes the return check meaningful again.
+  * fixed: ``AnyOfValidator('red')`` rejected ``'red'``. A single string is one choice, but ``str``
+    is iterable, so the helpers took it apart and compared the value against ``'r'``, ``'e'`` and
+    ``'d'`` in turn. Same for :class:`NoneOfValidator`. All three now normalise through
+    ``put_in_a_list``, the utility that already exists for this trap and that
+    :class:`ChoiceValidator` uses. ``_in_all`` gains bare-value support in a list as a side effect,
+    which its two siblings always had.
+  * fixed: ``validate()`` raised ``TypeError: 'int' object is not iterable`` when handed something
+    that is not a validator. It now names the problem and points at :class:`EqualToValidator` and
+    :class:`ChoiceValidator` for comparing against a value.
+  * fixed: ``examples/get_menu.py`` passed ``error_callback=None`` to ``validate``, which raises
+    ``TypeError: 'NoneType' object is not callable`` the moment a validator actually fails -- in
+    that example, whenever a user lacks the role for a menu row. It passes ``silent_error``, which
+    is the supported way to ask for no message.
   * fixed: ``validate()`` disagreed with the three other module-level validation helpers about
     what "no validators" means. An empty iterable returned **None** -- falsy, and so read as a
     validation *failure* by every caller testing the result as a boolean -- and ``None`` raised

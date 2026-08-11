@@ -8,8 +8,11 @@ called directly.
 Len Wanger, 2026
 """
 
+import re
+
 import pytest
 
+import cooked_input as ci
 from cooked_input import (
     DEFAULT_VALIDATOR_ERROR,
     AnyOfValidator,
@@ -25,7 +28,7 @@ from cooked_input import (
     print_error,
     silent_error,
 )
-from cooked_input.validators import in_all, in_any, not_in, validate
+from cooked_input.validators import _in_all, _in_any, _not_in, validate
 
 
 ONE_TO_TEN = RangeValidator(min_val=1, max_val=10)
@@ -39,48 +42,48 @@ def quiet(value, validators):
 
 class TestInAll:
     def test_no_validators_passes(self):
-        assert in_all(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_all(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_every_validator_must_pass(self):
-        assert in_all(10, [ONE_TO_TEN, TEN_TO_TWENTY], silent_error, DEFAULT_VALIDATOR_ERROR) is True
-        assert in_all(5, [ONE_TO_TEN, TEN_TO_TWENTY], silent_error, DEFAULT_VALIDATOR_ERROR) is False
+        assert _in_all(10, [ONE_TO_TEN, TEN_TO_TWENTY], silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_all(5, [ONE_TO_TEN, TEN_TO_TWENTY], silent_error, DEFAULT_VALIDATOR_ERROR) is False
 
     def test_a_single_callable_is_accepted_without_a_list(self):
-        assert in_all(5, ONE_TO_TEN, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_all(5, ONE_TO_TEN, silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_a_bare_value_is_compared_for_equality(self):
-        assert in_all(5, 5, silent_error, DEFAULT_VALIDATOR_ERROR) is True
-        assert in_all(5, 6, silent_error, DEFAULT_VALIDATOR_ERROR) is False
+        assert _in_all(5, 5, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_all(5, 6, silent_error, DEFAULT_VALIDATOR_ERROR) is False
 
 
 class TestInAny:
     def test_no_validators_passes(self):
-        assert in_any(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_any(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_one_passing_validator_is_enough(self):
-        assert in_any(5, [ONE_TO_TEN, TEN_TO_TWENTY], silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_any(5, [ONE_TO_TEN, TEN_TO_TWENTY], silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_all_failing_validators_fail(self):
-        assert in_any(50, [ONE_TO_TEN, TEN_TO_TWENTY], silent_error, DEFAULT_VALIDATOR_ERROR) is False
+        assert _in_any(50, [ONE_TO_TEN, TEN_TO_TWENTY], silent_error, DEFAULT_VALIDATOR_ERROR) is False
 
     def test_a_single_callable_is_accepted_without_a_list(self):
-        assert in_any(5, ONE_TO_TEN, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_any(5, ONE_TO_TEN, silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_a_bare_value_is_compared_for_equality(self):
-        assert in_any(5, 5, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_any(5, 5, silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_a_non_callable_inside_the_list_is_compared_for_equality(self):
-        assert in_any(5, [ONE_TO_TEN, 99], silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_any(5, [ONE_TO_TEN, 99], silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_an_empty_validator_list_passes_vacuously(self):
         # Regression guard for #49: the loop body never runs, so `result` used to be
         # unbound here and in_any raised UnboundLocalError.
-        assert in_any(5, [], silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_any(5, [], silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_an_empty_validator_list_agrees_with_none_and_with_in_all(self):
-        empty = in_any(5, [], silent_error, DEFAULT_VALIDATOR_ERROR)
-        assert empty is in_any(5, None, silent_error, DEFAULT_VALIDATOR_ERROR)
-        assert empty is in_all(5, [], silent_error, DEFAULT_VALIDATOR_ERROR)
+        empty = _in_any(5, [], silent_error, DEFAULT_VALIDATOR_ERROR)
+        assert empty is _in_any(5, None, silent_error, DEFAULT_VALIDATOR_ERROR)
+        assert empty is _in_all(5, [], silent_error, DEFAULT_VALIDATOR_ERROR)
 
 
 class TestNotIn:
@@ -88,18 +91,18 @@ class TestNotIn:
         # Regression guard for #49: the None branch used to set result = True, which is
         # read as "a validator matched", so this returned False and printed a
         # "value cannot match 5" message naming a validator that does not exist.
-        assert not_in(5, None, print_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _not_in(5, None, print_error, DEFAULT_VALIDATOR_ERROR) is True
         assert capsys.readouterr().err == ""
 
     def test_no_validators_agrees_with_its_siblings(self):
-        # The three used to disagree on the same input: in_all and in_any passed, not_in
+        # The three used to disagree on the same input: in_all and in_any passed, _not_in
         # rejected. All three now treat "nothing supplied" as vacuously true.
-        assert not_in(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
-        assert in_all(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
-        assert in_any(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _not_in(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_all(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_any(5, None, silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_an_empty_validator_list_passes_vacuously(self):
-        assert not_in(5, [], silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _not_in(5, [], silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
 
 class TestEmptyValidatorSetsThroughTheClasses:
@@ -119,20 +122,20 @@ class TestEmptyValidatorSetsThroughTheClasses:
         assert quiet(5, NoneOfValidator([ONE_TO_TEN])) is False
 
     def test_a_matching_validator_fails(self):
-        assert not_in(5, [ONE_TO_TEN], silent_error, DEFAULT_VALIDATOR_ERROR) is False
+        assert _not_in(5, [ONE_TO_TEN], silent_error, DEFAULT_VALIDATOR_ERROR) is False
 
     def test_no_matching_validator_passes(self):
-        assert not_in(50, [ONE_TO_TEN], silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _not_in(50, [ONE_TO_TEN], silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_a_single_callable_is_accepted_without_a_list(self):
-        assert not_in(50, ONE_TO_TEN, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _not_in(50, ONE_TO_TEN, silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_a_bare_value_is_compared_for_equality(self):
-        assert not_in(5, 5, silent_error, DEFAULT_VALIDATOR_ERROR) is False
-        assert not_in(5, 6, silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _not_in(5, 5, silent_error, DEFAULT_VALIDATOR_ERROR) is False
+        assert _not_in(5, 6, silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_the_failure_message_says_the_value_cannot_match(self, capsys):
-        not_in(5, [ONE_TO_TEN], print_error, DEFAULT_VALIDATOR_ERROR)
+        _not_in(5, [ONE_TO_TEN], print_error, DEFAULT_VALIDATOR_ERROR)
         assert "cannot match" in capsys.readouterr().err
 
 
@@ -165,12 +168,100 @@ class TestValidate:
         # The whole point of the fix: "nothing to check" means the same in all four.
         for no_validators in (None, [], ()):
             results = [f(5, no_validators, silent_error, DEFAULT_VALIDATOR_ERROR)
-                       for f in (in_any, in_all, not_in, validate)]
+                       for f in (_in_any, _in_all, _not_in, validate)]
             assert results == [True, True, True, True], no_validators
 
     def test_no_validators_says_nothing_to_the_error_callback(self, capsys):
         assert validate(5, [], print_error) is True
         assert capsys.readouterr().err == ""
+
+    def test_a_bare_value_is_rejected_by_name(self):
+        # validate is the user-facing helper and takes callables only. The private
+        # helpers compare a bare value for equality; here it is a mistake, and used to
+        # surface as "'int' object is not iterable" from inside the loop. ty flags each
+        # of these three calls, which is the ValidatorArg annotation working -- the
+        # runtime check is for callers who are not type checking.
+        with pytest.raises(TypeError, match="not callable"):
+            validate(5, 5)  # ty: ignore[invalid-argument-type]
+
+    def test_a_bare_value_inside_a_list_is_rejected_too(self):
+        with pytest.raises(TypeError, match="not callable"):
+            validate(5, [ONE_TO_TEN, 5])  # ty: ignore[invalid-argument-type]
+
+    def test_the_message_points_at_the_validator_to_use_instead(self):
+        with pytest.raises(TypeError, match="EqualToValidator"):
+            validate(5, 5)  # ty: ignore[invalid-argument-type]
+
+
+class TestTheHelpersReturnRealBooleans:
+    """A validator need only return something truthy, so the helpers convert at the boundary.
+
+    They used to hand the validator's own return value straight back through a signature
+    annotated ``-> bool``, so ``SimpleValidator(lambda s: re.match(...))`` leaked a Match
+    object to the caller.
+    """
+
+    @staticmethod
+    def truthy_but_not_a_bool(value, error_callback, fmt_str):
+        return ["not", "a", "bool"]
+
+    @staticmethod
+    def falsy_but_not_a_bool(value, error_callback, fmt_str):
+        return []
+
+    @pytest.mark.parametrize("helper", [_in_any, _in_all, _not_in, validate])
+    def test_a_truthy_non_bool_comes_back_as_a_bool(self, helper):
+        result = helper(5, [self.truthy_but_not_a_bool], silent_error, DEFAULT_VALIDATOR_ERROR)
+        assert type(result) is bool
+
+    @pytest.mark.parametrize("helper", [_in_any, _in_all, _not_in, validate])
+    def test_a_falsy_non_bool_comes_back_as_a_bool(self, helper):
+        result = helper(5, [self.falsy_but_not_a_bool], silent_error, DEFAULT_VALIDATOR_ERROR)
+        assert type(result) is bool
+
+    def test_the_truthiness_is_preserved(self):
+        assert _in_all(5, [self.truthy_but_not_a_bool], silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_all(5, [self.falsy_but_not_a_bool], silent_error, DEFAULT_VALIDATOR_ERROR) is False
+
+    def test_simple_validator_does_not_leak_a_match_object(self):
+        # The documented idiom: re.match returns a Match, which is truthy but is not True.
+        digits = SimpleValidator(lambda value: re.match(r"\d+$", value), name="number")
+        result = digits("123", silent_error, DEFAULT_VALIDATOR_ERROR)
+
+        assert result is True
+        assert type(result) is bool
+        assert digits("abc", silent_error, DEFAULT_VALIDATOR_ERROR) is False
+
+
+class TestASingleStringIsOneChoice:
+    """``str`` is ``Iterable``, so a lone string used to be taken apart into characters."""
+
+    def test_any_of_validator_accepts_a_single_string(self):
+        assert quiet("red", AnyOfValidator("red")) is True
+
+    def test_any_of_validator_still_rejects_a_different_string(self):
+        assert quiet("blue", AnyOfValidator("red")) is False
+
+    def test_none_of_validator_rejects_a_single_string(self):
+        assert quiet("red", NoneOfValidator("red")) is False
+
+    def test_none_of_validator_accepts_anything_else(self):
+        assert quiet("blue", NoneOfValidator("red")) is True
+
+    def test_a_list_of_strings_is_unaffected(self):
+        assert quiet("green", AnyOfValidator(["red", "green"])) is True
+        assert quiet("blue", AnyOfValidator(["red", "green"])) is False
+
+
+class TestTheInternalHelpersAreNotPublic:
+    def test_they_are_not_reachable_from_the_package(self):
+        # They back AnyOfValidator, NoneOfValidator and GetInput.process_value; the
+        # documented surface is the validator classes and validate().
+        for name in ("in_any", "in_all", "not_in"):
+            assert not hasattr(ci, name), name
+
+    def test_validate_is_still_public(self):
+        assert ci.validate is validate
 
 
 class TestIsFileValidator:

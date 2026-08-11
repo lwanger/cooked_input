@@ -46,6 +46,17 @@ ErrorCallback: TypeAlias = Callable[[str, Any, str], None]
 #: it is given.
 CleanerArg: TypeAlias = Cleaner | Iterable[Cleaner] | None
 
+#: What a validator is called as: ``validator(value, error_callback, fmt_str)``. The return is
+#: ``Any``, not ``bool``: a validator need only return something truthy, which is what lets
+#: ``SimpleValidator(lambda s: re.match(...))`` work -- a ``Match`` object is truthy but is not a
+#: **bool**. Collapsing that to a real boolean is the job of whoever calls the validator.
+ValidatorFunc: TypeAlias = Callable[[Any, ErrorCallback, str], Any]
+
+#: The ``validators`` argument :func:`~cooked_input.validators.validate` accepts: one validator, an
+#: iterable of them, or **None** for nothing to check. Deliberately narrower than what the private
+#: helpers in that module take, which also compare bare values for equality.
+ValidatorArg: TypeAlias = ValidatorFunc | Iterable[ValidatorFunc] | None
+
 #: What a :class:`~cooked_input.get_input.GetInputCommand` calls, invoked as
 #: ``cmd_action(cmd_str, cmd_vars, cmd_dict)``.
 CommandAction: TypeAlias = Callable[[str, str, dict[str, Any] | None], "CommandResponse"]

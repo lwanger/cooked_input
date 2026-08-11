@@ -29,7 +29,7 @@ from cooked_input import (
     print_error,
     silent_error,
 )
-from cooked_input.validators import in_all, in_any
+from cooked_input.validators import _in_all, _in_any
 
 
 class TestStripCleanerSides:
@@ -56,19 +56,19 @@ class TestRemoveCleanerCount:
 
 class TestBareValuesInsideValidatorLists:
     def test_in_any_falls_back_to_equality_for_a_non_callable(self):
-        # The earlier validator has to fail first, or in_any short-circuits before
+        # The earlier validator has to fail first, or _in_any short-circuits before
         # ever reaching the bare value.
-        assert in_any(99, [RangeValidator(1, 10), 99], silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_any(99, [RangeValidator(1, 10), 99], silent_error, DEFAULT_VALIDATOR_ERROR) is True
 
     def test_in_any_reports_failure_when_the_bare_value_differs(self):
-        assert in_any(99, [RangeValidator(1, 10), 5], silent_error, DEFAULT_VALIDATOR_ERROR) is False
+        assert _in_any(99, [RangeValidator(1, 10), 5], silent_error, DEFAULT_VALIDATOR_ERROR) is False
 
-    def test_in_all_cannot_take_a_bare_value_in_a_list(self):
-        # Characterization of an asymmetry: in_any and not_in both fall back to an
-        # equality test for a non-callable list entry, but in_all calls every entry
-        # unconditionally, so a bare value raises TypeError instead.
-        with pytest.raises(TypeError):
-            in_all(5, [RangeValidator(1, 10), 5], silent_error, DEFAULT_VALIDATOR_ERROR)
+    def test_in_all_takes_a_bare_value_in_a_list_too(self):
+        # This used to raise TypeError: _in_all called every list entry unconditionally
+        # while its two siblings fell back to an equality test. All three share one loop
+        # now, so a bare value means the same thing wherever it appears.
+        assert _in_all(5, [RangeValidator(1, 10), 5], silent_error, DEFAULT_VALIDATOR_ERROR) is True
+        assert _in_all(5, [RangeValidator(1, 10), 6], silent_error, DEFAULT_VALIDATOR_ERROR) is False
 
 
 class TestRegexValidatorMessages:

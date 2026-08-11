@@ -13,157 +13,149 @@ import string
 import re
 
 from abc import ABCMeta, abstractmethod
-from collections.abc import Iterable
 from typing import Any, Callable
 
-from ._typing import ErrorCallback
+from ._typing import ErrorCallback, ValidatorArg
 from .error_callbacks import print_error, silent_error, DEFAULT_VALIDATOR_ERROR
 from .input_utils import put_in_a_list, isstring
 
 
-def in_any(value: Any, validators: Any, error_callback: ErrorCallback,
-           validator_fmt_str: str) -> bool:
+def _in_any(value: Any, validators: Any, error_callback: ErrorCallback,
+            validator_fmt_str: str) -> bool:
     """
     return **True** if the value passes any of the ``validators`` - OR's the list of supplied `validators <validators.html>`_.
 
     :param value: the input value to validate
-    :param validators: an iterable (list or tuple) containing the `validators <validators.html>`_ to use.
+    :param validators: the `validators <validators.html>`_ to use -- see below
     :param error_callback: a function called when an error occurs during validation
     :param validator_fmt_str: format string for validation errors
 
     :return: boolean **True** if any of the validators pass, **False** if they all fail.
 
-    An empty iterable of validators passes vacuously, the same as passing **None**.
+    Backs :class:`AnyOfValidator`. ``validators`` is annotated **Any** because it genuinely is:
+    a non-callable is compared to ``value`` for equality, which is what makes
+    ``AnyOfValidator(['red', 'green'])`` a choice list, so any object at all is a legal argument.
+
+    No validators -- **None** or an empty iterable -- passes vacuously.
     """
-
-    if validators is None:
-        return True
-
-    # Fixing: `result` used to be assigned only inside the branches below, so an empty
-    # iterable -- whose loop body never runs -- left it unbound and raised
-    # UnboundLocalError. Seeding it with the "no validators supplied" answer makes
-    # in_any([]) agree with in_any(None) and with in_all([]).
     result = True
 
-    if isinstance(validators, Iterable):  # list of validators (or other iterable)
-        for validator in validators:
-            if callable(validator):
-                result = validator(value, error_callback, validator_fmt_str)
-            else:  # validator is a value, not a function
-                result = value == validator
-            if result:
-                break
-    elif callable(validators):  # single validator function
-        result = validators(value, error_callback, validator_fmt_str)
-    else:   # single value
-        result = value == validators
+    for validator in put_in_a_list(validators):
+        if callable(validator):
+            result = validator(value, error_callback, validator_fmt_str)
+        else:  # validator is a value, not a function
+            result = value == validator
+        if result:
+            break
 
-    return result
+    return bool(result)
 
 
-def in_all(value: Any, validators: Any, error_callback: ErrorCallback,
-           validator_fmt_str: str) -> bool:
+def _in_all(value: Any, validators: Any, error_callback: ErrorCallback,
+            validator_fmt_str: str) -> bool:
     """
     return **True** if the value passes all of the validators - AND's the list of supplied `validators <validators.html>`_.
 
     :param value: the input value to validate
-    :param validators: an iterable (list or tuple) containing the `validators <validators.html>`_ to use.
+    :param validators: the `validators <validators.html>`_ to use -- see :func:`_in_any`
     :param error_callback: a function called when an error occurs during validation
     :param validator_fmt_str: format string to pass to the error callback routine for formatting the error.
 
-    :return: boolean **True** if all of the validators pass, **False** if they all fail.
+    :return: boolean **True** if all of the validators pass, **False** if any of them fails.
+
+    The workhorse: :meth:`~cooked_input.get_input.GetInput.process_value` runs every ``validators``
+    argument the package is given through here.
+
+    No validators -- **None** or an empty iterable -- passes vacuously.
     """
+    result = True
 
-    if validators is None:
-        result = True
-    elif isinstance(validators, Iterable):
-        result = all(validator(value, error_callback, validator_fmt_str) for validator in validators)
-    elif callable(validators):
-        result = validators(value, error_callback, validator_fmt_str)
-    else:
-        result = value == validators
+    for validator in put_in_a_list(validators):
+        if callable(validator):
+            result = validator(value, error_callback, validator_fmt_str)
+        else:  # validator is a value, not a function
+            result = value == validator
+        # The list form used to go through all(), which stops at the first false result. Doing
+        # the same here matters for more than speed: carrying on would call error_callback for
+        # every later validator, reporting failures the user has not been given a chance to fix.
+        if not result:
+            break
 
-    return result
+    return bool(result)
 
 
-def not_in(value: Any, validators: Any, error_callback: ErrorCallback,
-           validator_fmt_str: str) -> bool:
+def _not_in(value: Any, validators: Any, error_callback: ErrorCallback,
+            validator_fmt_str: str) -> bool:
     """
     return **True** if the value does not pass any of the validators - NOT's the list of supplied `validators <validators.html>`_.
 
     :param value: the input value to validate
-    :param validators: an iterable (list or tuple) containing the `validators <validators.html>`_ to use.
+    :param validators: the `validators <validators.html>`_ to use -- see :func:`_in_any`
     :param error_callback: a function called when an error occurs during validation
     :param validator_fmt_str: format string to pass to the error callback routine for formatting the error.
 
-    :return: boolean **True** if none of the validators pass, **False** if they any of them pass.
+    :return: boolean **True** if none of the validators pass, **False** if any of them pass.
+
+    Backs :class:`NoneOfValidator`. The validators are called with :func:`silent_error` rather than
+    with ``error_callback`` on purpose: a validator *passing* here means the value is rejected, so
+    its own message would read backwards. One message is reported at the end instead, naming the
+    value that cannot match.
 
     No validators -- **None** or an empty iterable -- passes vacuously: there is nothing
     for the value to match.
     """
     result = False
 
-    if validators is None:
-        # Fixing: this branch used to set `result = True`, which is read below as "a
-        # validator matched". not_in(value, None) therefore rejected every value and
-        # reported "value cannot match <value>", naming a validator that does not
-        # exist -- so NoneOfValidator(None) refused everything while AnyOfValidator(None)
-        # accepted everything. Nothing supplied means nothing matched.
-        return True
-    elif isinstance(validators, Iterable):  # list of validators (or other iterable)
-        for validator in validators:
-            if callable(validator):
-                result = validator(value, silent_error, validator_fmt_str)
-            else:   # validator is a value, not a function
-                result = value == validator
-            if result:
-                break
-    elif callable(validators):  # single validator function
-        result = validators(value, silent_error, validator_fmt_str)
-    else:   # single value
-        result = value == validators
+    for validator in put_in_a_list(validators):
+        if callable(validator):
+            result = validator(value, silent_error, validator_fmt_str)
+        else:   # validator is a value, not a function
+            result = value == validator
+        if result:
+            break
 
     if not result:
         return True
-    else:
-        error_callback(validator_fmt_str, value, 'value cannot match {}'.format(value))
-        return False
+
+    error_callback(validator_fmt_str, value, 'value cannot match {}'.format(value))
+    return False
 
 
-def validate(value: Any, validators: Any, error_callback: ErrorCallback = print_error,
+def validate(value: Any, validators: ValidatorArg, error_callback: ErrorCallback = print_error,
              validator_fmt_str: str = DEFAULT_VALIDATOR_ERROR) -> bool:
     """
     return **True** is a value passes validation.
 
     :param value: the value to validate
-    :param validators: an iterable (list or tuple) of `validators <validators.html>`_ to run on ``value``
+    :param validators: a `validator <validators.html>`_, or an iterable of them, to run on ``value``
     :param error_callback: a function called when an error occurs during validation
     :param validator_fmt_str: format string to pass to the error callback routine for formatting the error
 
     :return: **True** if the input passed validation, else **False**
 
-    No validators -- **None** or an empty iterable -- passes vacuously, the same as
-    :func:`in_any`, :func:`in_all` and :func:`not_in`: there is nothing for the value to fail.
-    """
-    # Fixing: this returned None for an empty iterable and raised TypeError for None, where
-    # the other three helpers both return True. `result` was seeded with None and the loop
-    # body never ran, so "nothing to check" came back falsy and every caller reading the
-    # result as a boolean saw it as a validation failure -- the opposite of what this
-    # docstring promises and of what no-validators means everywhere else in the module.
-    if validators is None:
-        return True
+    Every validator has to pass, and the first failure stops the run -- so the caller is asked to fix
+    one thing at a time rather than being handed a list of complaints at once.
 
+    No validators -- **None** or an empty iterable -- passes vacuously: there is nothing for the
+    value to fail. A validator that is not callable raises a **TypeError**; to check a value against
+    a constant, use :class:`EqualToValidator` or :class:`ChoiceValidator`.
+    """
     result = True
 
-    if callable(validators):
-        result = validators(value, error_callback, validator_fmt_str)
-    else:
-        for v in validators:
-            result = v(value, error_callback, validator_fmt_str)
-            if not result:
-                break
+    for validator in put_in_a_list(validators):
+        if not callable(validator):
+            raise TypeError('validate: {!r} is not callable. `validators` takes a validator or an '
+                            'iterable of validators; to compare against a value use '
+                            'EqualToValidator or ChoiceValidator.'.format(validator))
 
-    return result
+        result = validator(value, error_callback, validator_fmt_str)
+        if not result:
+            break
+
+    # A validator need only return something truthy -- SimpleValidator(lambda s: re.match(...))
+    # hands back a Match object -- so the conversion to a real boolean happens here, at the
+    # boundary, rather than being left to every caller to remember.
+    return bool(result)
 
 
 ####
@@ -360,7 +352,7 @@ class NoneOfValidator(Validator):
         self._validators = validators
 
     def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
-        result = not_in(value, self._validators, error_callback, validator_fmt_str)
+        result = _not_in(value, self._validators, error_callback, validator_fmt_str)
 
         # error callback handled within not_in call
         return result
@@ -394,7 +386,7 @@ class AnyOfValidator(Validator):
         self._validators = validators
 
     def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
-        result = in_any(value, self._validators, error_callback, validator_fmt_str)
+        result = _in_any(value, self._validators, error_callback, validator_fmt_str)
         return result
 
     def __repr__(self) -> str:
@@ -426,7 +418,7 @@ class IsFileValidator(Validator):
 class SimpleValidator(Validator):
     """
     use a simple function as a `validator <validators.html>`_. ``validator_func`` is any callable that takes a single
-    value as input and returns **True** if the value passes (and **False** otherwise.) Used to wrap boolean
+    value as input and returns a true value if the value passes (and a false one otherwise.) Used to wrap boolean
     validation functions, whether your own or from a third-party library. Can also be used with `func.partial
     <https://docs.python.org/3/library/functools.html#partial-objects>`_ to wrap validation functions that take more complex parameters.
 
@@ -435,6 +427,11 @@ class SimpleValidator(Validator):
 
     :return: **True** if the input passed validation, else **False**
 
+    ``validator_func`` does not have to return a **bool**, only something truthy -- which is what lets
+    a function such as `re.match <https://docs.python.org/3/library/re.html#re.match>`_ be used
+    directly, since it returns a match object or **None**. Whatever it hands back is converted to a
+    real boolean here, so callers always see **True** or **False**.
+
     Example::
 
         def is_even(value):
@@ -442,8 +439,11 @@ class SimpleValidator(Validator):
 
         sv = SimpleValidator(is_even, "EvenNumberValidator")
         result = get_int(prompt="Enter an even number", validators = sv)
+
+        # a truthy return works too -- this one hands back a match object
+        digits = SimpleValidator(lambda value: re.match(r'\\d+$', value), name="number")
     """
-    def __init__(self, validator_func: Callable[[Any], bool],
+    def __init__(self, validator_func: Callable[[Any], Any],
                  name: str = 'SimpleValidator value') -> None:
         self._validator = validator_func
         # Fixing: this was `self._name = None`, which threw the caller's name away,
@@ -457,7 +457,10 @@ class SimpleValidator(Validator):
         if not result:
             error_callback(validator_fmt_str, value, 'is not a valid {}'.format(self._name))
 
-        return result
+        # The wrapped function is arbitrary user code and need only return something truthy --
+        # the documented `re.match` idiom hands back a Match object. This is where that enters
+        # the package, so this is where it becomes the boolean every caller is promised.
+        return bool(result)
 
     def __repr__(self) -> str:
         return 'SimpleValidator(validators={})'.format(self._validator)

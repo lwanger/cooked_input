@@ -24,7 +24,7 @@ from .convertors import ListConvertor, DateConvertor, YesNoConvertor, ChoiceConv
 from .validators import Validator, LengthValidator, EqualToValidator, RangeValidator
 from .validators import AnyOfValidator, NoneOfValidator, ChoiceValidator, RegexValidator, PasswordValidator
 from .validators import IsFileValidator, ListValidator, SimpleValidator
-from .validators import in_all, in_any, not_in, validate
+from .validators import validate
 # Fixing: LAST_WORD_CAP_STYLE was the one cap style missing from this list, so
 # ci.LAST_WORD_CAP_STYLE raised AttributeError even though CapitalizationCleaner
 # accepted the equivalent 'last_word' string. Purely additive.
