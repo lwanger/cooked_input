@@ -650,7 +650,11 @@ class Table(object):
 
         :return: None
         """
-        self.show_rows(self.table.start + 1)
+        # Fixing: these two bodies were the wrong way round -- scroll_up_one_row moved the
+        # window toward later rows -- so binding a command to "scroll up one row" scrolled
+        # the view down. They now agree with their own docstrings and with page_up and
+        # page_down, which have always had up meaning earlier.
+        self.show_rows(self.table.start - 1)
         print(self.table.get_string())
 
     def scroll_down_one_row(self):
@@ -659,7 +663,7 @@ class Table(object):
 
         :return: None
         """
-        self.show_rows(self.table.start - 1)
+        self.show_rows(self.table.start + 1)
         print(self.table.get_string())
 
 

@@ -12,6 +12,12 @@ see TODO.md for list of TODO items
 
 * unreleased:
 
+  * fixed: ``Table.scroll_up_one_row`` and ``Table.scroll_down_one_row`` had their bodies the
+    wrong way round -- scrolling up moved the window toward *later* rows. Since
+    ``Table._get_choice`` wires ``UpOneRowRequest`` straight through, a command bound to
+    "scroll up one row" scrolled the view down. They now match their own docstrings and
+    ``page_up``/``page_down``, which have always had up meaning earlier. **Anyone who wired
+    up these commands will see them move the other way.**
   * fixed: ``get_menu`` returned a ``TableItem`` instead of ``'exit'`` when the user picked
     the automatically added Exit row. ``Table.do_action`` fell through and handed back the
     row, and a ``TableItem`` never equals ``'exit'``, so ``get_menu``'s own test for it was
