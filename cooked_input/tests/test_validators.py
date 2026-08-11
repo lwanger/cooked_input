@@ -155,6 +155,23 @@ class TestValidate:
     def test_every_validator_passing_returns_true(self):
         assert validate(5, [ONE_TO_TEN, EqualToValidator(5)]) is True
 
+    def test_no_validators_passes(self):
+        assert validate(5, None) is True
+
+    def test_an_empty_validator_list_passes_vacuously(self):
+        assert validate(5, []) is True
+
+    def test_no_validators_agrees_with_its_three_siblings(self):
+        # The whole point of the fix: "nothing to check" means the same in all four.
+        for no_validators in (None, [], ()):
+            results = [f(5, no_validators, silent_error, DEFAULT_VALIDATOR_ERROR)
+                       for f in (in_any, in_all, not_in, validate)]
+            assert results == [True, True, True, True], no_validators
+
+    def test_no_validators_says_nothing_to_the_error_callback(self, capsys):
+        assert validate(5, [], print_error) is True
+        assert capsys.readouterr().err == ""
+
 
 class TestIsFileValidator:
     """This validator had no test anywhere in the suite before now."""
@@ -253,6 +270,12 @@ class TestListValidator:
 
     def test_no_validators_at_all_passes(self):
         assert quiet([1, 2, 3], ListValidator()) is True
+
+    def test_empty_validator_lists_pass(self):
+        # ListValidator is the in-package caller of validate(). It guards both calls with a
+        # truthy test, so an empty list was skipped rather than run and never hit validate's
+        # None return -- pinned here because #71 predicted the opposite.
+        assert quiet([1, 2, 3], ListValidator(len_validators=[], elem_validators=[])) is True
 
 
 class TestLengthAndChoiceEdges:
