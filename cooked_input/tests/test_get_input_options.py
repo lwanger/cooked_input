@@ -206,18 +206,18 @@ class TestGetDateBounds:
     def test_a_date_inside_the_range_is_accepted(self, fake_input):
         fake_input("6/15/2020")
         result = get_date(minimum=_as_date("1/1/2020"), maximum=_as_date("12/31/2020"))
-        assert result.year == 2020 and result.month == 6
+        assert result is not None and result.year == 2020 and result.month == 6
 
     def test_a_date_before_the_minimum_is_rejected(self, fake_input):
         feeder = fake_input("1/1/2019", "6/15/2020")
         result = get_date(minimum=_as_date("1/1/2020"), error_callback=silent_error)
-        assert result.year == 2020
+        assert result is not None and result.year == 2020
         assert feeder.remaining == 0
 
     def test_a_date_after_the_maximum_is_rejected(self, fake_input):
         fake_input("6/15/2021", "6/15/2020")
         result = get_date(maximum=_as_date("12/31/2020"), error_callback=silent_error)
-        assert result.year == 2020
+        assert result is not None and result.year == 2020
 
     def test_a_caller_validator_is_combined_with_the_bounds(self, fake_input):
         # A single callable validator gets paired with the generated RangeValidator
@@ -226,11 +226,12 @@ class TestGetDateBounds:
         fake_input("6/1/2020", "6/15/2020")
         result = get_date(minimum=_as_date("1/1/2020"), maximum=_as_date("12/31/2020"),
                           validators=not_june_first, error_callback=silent_error)
-        assert result.day == 15
+        assert result is not None and result.day == 15
 
     def test_no_bounds_leaves_the_validators_alone(self, fake_input):
         fake_input("6/15/2020")
-        assert get_date().year == 2020
+        result = get_date()
+        assert result is not None and result.year == 2020
 
 
 class TestGetMoney:

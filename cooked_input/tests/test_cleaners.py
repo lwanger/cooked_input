@@ -43,7 +43,8 @@ class TestCleaners(object):
         input_str = 'foo'
         with pytest.raises(RuntimeError):
             fake_input(input_str)
-            result = get_input(cleaners=10)
+            # Not a cleaner and not iterable, which is what compose rejects.
+            result = get_input(cleaners=10)  # ty: ignore[invalid-argument-type]
 
     def test_strip_cleaner(self, fake_input):
         input_str = '  \t foo  \nf'
