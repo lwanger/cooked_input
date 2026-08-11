@@ -124,10 +124,8 @@ ignore = ["ANN401"]
 # same shape as the coverage floor: it only ever shrinks.
 "cooked_input/cleaners.py" = ["ANN"]
 "cooked_input/convertors.py" = ["ANN"]
-"cooked_input/error_callbacks.py" = ["ANN"]
 "cooked_input/get_input.py" = ["ANN"]
 "cooked_input/get_table.py" = ["ANN"]
-"cooked_input/input_utils.py" = ["ANN"]
 "cooked_input/validators.py" = ["ANN"]
 
 [tool.ty.environment]

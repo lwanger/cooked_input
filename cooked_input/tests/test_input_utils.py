@@ -64,4 +64,5 @@ class TestCompose:
 
     def test_a_non_callable_non_iterable_raises(self):
         with pytest.raises(RuntimeError, match="funcs cannot be called"):
-            compose("value", 42)
+            # Neither callable nor iterable is the point of the test.
+            compose("value", 42)  # ty: ignore[invalid-argument-type]

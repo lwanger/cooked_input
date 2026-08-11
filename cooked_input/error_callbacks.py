@@ -9,8 +9,11 @@ Copyright: Len Wanger, 2017-2026
 """
 
 
+from __future__ import annotations
+
 import sys
 import logging
+from typing import Any
 
 ### cooked input custom exceptions
 class MaxRetriesError(RuntimeError):
@@ -37,11 +40,11 @@ DEFAULT_VALIDATOR_ERROR = '"{value}" {error_content}'
 
 ### error callback routines
 
-def print_error(fmt_str, value, error_content):
+def print_error(fmt_str: str, value: Any, error_content: str) -> None:
     """
     send errors to stdout. This displays errors on the screen.
 
-    :param int fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
+    :param str fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
       for the error. Can use arguments **{value}** and **{error_content}** in the format string
     :param Any value: the value the caused the error
     :param str error_content: additional information for the error
@@ -51,7 +54,7 @@ def print_error(fmt_str, value, error_content):
     print(fmt_str.format(value=value, error_content=error_content), file=sys.stderr)
 
 
-def silent_error(fmt_str, value, error_content):
+def silent_error(fmt_str: str, value: Any, error_content: str) -> None:
     """
         Ignores errors, causing them to be silent.
 
@@ -65,7 +68,7 @@ def silent_error(fmt_str, value, error_content):
     pass
 
 
-def log_error(fmt_str, value, error_content):
+def log_error(fmt_str: str, value: Any, error_content: str) -> None:
     """
         send errors to the log. See logging for details on using logs.
 

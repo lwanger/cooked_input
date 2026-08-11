@@ -8,11 +8,19 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017-2026
 """
 
+from __future__ import annotations
+
 import prettytable
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator, Sequence
+from typing import Any, Callable, TypeVar
 
-def compose(value, funcs):
+#: Element type of the sequence handed to :func:`renumerate`, so that the yielded items
+#: keep whatever type went in rather than degrading to ``Any``.
+_Element = TypeVar('_Element')
+
+
+def compose(value: Any, funcs: Callable[[Any], Any] | Iterable[Callable[[Any], Any]]) -> Any:
     """
     Compose functions and return the result: compose(value, [f1,f2,f3]) = f3(f2(f1(value)))
 
@@ -28,7 +36,11 @@ def compose(value, funcs):
     result = value
 
     if callable(funcs):
-        result = funcs(value)
+        # An object can be both callable and iterable, so narrowing on callable() alone
+        # leaves a callable of unknown signature rather than the one-argument function
+        # this branch is for. Testing the two in the other order would resolve that but
+        # would also change which branch such an object takes, so the check stays put.
+        result = funcs(value)  # ty: ignore[call-top-callable]
     elif isinstance(funcs, Iterable):
         for func in funcs:
             if first_func:
@@ -42,7 +54,8 @@ def compose(value, funcs):
     return result
 
 
-def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):
+def make_pretty_table(rows: Iterable[Sequence[Any]], second_col_name: str = 'name',
+                      sort_by_second_col: bool = True) -> prettytable.PrettyTable:
     """
     Take a list of tuples [(id, value), ...] and return a prettytable
 
@@ -61,7 +74,7 @@ def make_pretty_table(rows, second_col_name='name', sort_by_second_col=True):
     return x
 
 
-def isstring(s):
+def isstring(s: Any) -> bool:
     """
     An annoyance in Pythons is you can't easily tell something is a string-like thing (string, bytes, etc.)
     For instance, both 'abc' and ['a', 'b', 'c'] are iterators, but the latter is not a valid password! Further, in
@@ -74,7 +87,7 @@ def isstring(s):
     return isinstance(s, (str, bytes))
 
 
-def put_in_a_list(values):
+def put_in_a_list(values: Any) -> list[Any]:
     """
     An annoyance in Pythons is you can't easily tell between an iterable (e.g. a list) and a string (i.e. both are
     iterables.) This is a pain if you try to create a list of these things as list('foo') returns ['f', 'o'. 'o'].
@@ -97,7 +110,7 @@ def put_in_a_list(values):
     return result
 
 
-def renumerate(sequence):
+def renumerate(sequence: Sequence[_Element]) -> Iterator[tuple[int, _Element]]:
     """
     Reverse emumerate - starts at the highest index (last item in the iterator) and counts down. This generator yields
     a tuple containing the index and item, starting with the last item in the iterator.
@@ -111,7 +124,7 @@ def renumerate(sequence):
         yield (i, sequence[i])
 
 
-def swap_element(sequence, idx, replacement):
+def swap_element(sequence: Any, idx: int, replacement: Any) -> Any:
     """
     Returns a copy of the sequence with the ith value swapped with the replacement value. Useful for immutable values
     such as strings.
@@ -145,7 +158,7 @@ def swap_element(sequence, idx, replacement):
         return sequence[:use_idx] + replacement + sequence[use_idx + 1:]
 
 
-def cap_last_word(value):
+def cap_last_word(value: str) -> str:
     """
     Capitalize the last word of a string.
 
