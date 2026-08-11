@@ -133,12 +133,14 @@ class TestConvenienceFunctionPrompts:
 
     def test_get_date_uses_its_default_prompt(self, fake_input):
         feeder = fake_input("9/4/2017")
-        assert get_date().day == 4
+        result = get_date()
+        assert result is not None and result.day == 4
         assert "Enter a date" in feeder.prompts[0]
 
     def test_get_date_prefers_a_caller_supplied_prompt(self, fake_input):
         feeder = fake_input("9/4/2017")
-        assert get_date(prompt="Delivery date").day == 4
+        result = get_date(prompt="Delivery date")
+        assert result is not None and result.day == 4
         assert "Delivery date" in feeder.prompts[0]
         assert "Enter a date" not in feeder.prompts[0]
 
@@ -150,7 +152,7 @@ class TestGetDateWithValidatorList:
         fake_input("6/1/2020", "6/15/2020")
         result = get_date(validators=[not_the_first], minimum=minimum,
                           error_callback=silent_error)
-        assert result.day == 15
+        assert result is not None and result.day == 15
 
 
 class TestGetMoneyDecimalOptions:
@@ -171,6 +173,19 @@ class TestGetMoneyDecimalOptions:
     def test_rounding_changes_the_cents(self, fake_input):
         fake_input("$1,234.567")
         assert get_money(precision=2, rounding="ROUND_DOWN") == decimal.Decimal("1234.56")
+
+
+class TestGetMoneyCleaners:
+    def test_a_single_cleaner_is_accepted(self, fake_input):
+        # get_money was the one get_* function doing list(cleaners) rather than
+        # put_in_a_list, so a lone cleaner raised "'StripCleaner' object is not
+        # iterable" while every sibling accepted it.
+        fake_input("  $1.23  ")
+        assert get_money(cleaners=StripCleaner()) == decimal.Decimal("1.23")
+
+    def test_an_iterable_of_cleaners_still_works(self, fake_input):
+        fake_input("  $1.23  ")
+        assert get_money(cleaners=[StripCleaner()]) == decimal.Decimal("1.23")
 
 
 class TestGetListErrorOptions:

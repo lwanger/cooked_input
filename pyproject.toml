@@ -122,7 +122,6 @@ ignore = ["ANN401"]
 "cooked_input/examples/*" = ["ANN"]
 # The annotation ratchet. Each line is deleted by the PR that types that module, the
 # same shape as the coverage floor: it only ever shrinks.
-"cooked_input/get_input.py" = ["ANN"]
 "cooked_input/get_table.py" = ["ANN"]
 
 [tool.ty.environment]
