@@ -19,7 +19,6 @@ a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version 
   just add "3.15" to the CI matrix, tox envlist and classifiers if the suite passes.
 - [ ] Improve documentation and examples
   - [ ] Example of get_money, showing why not to use floats to keep exact decimal amounts and do proper rounding
-- [ ] Update documentation to great-docs?
 
 ## Completed:
 
@@ -87,11 +86,13 @@ Items here move into CHANGELOG.rst when the version number is incremented.
 
 ## more features:
 
-- Split into sub-packages (input, menus, etc.)
 - Simplify API? Emphasize convenience functions
 - Add emoji support
 - Work better with Unicode
-- Add themes (**dict) so less verbose for calling with similar settings
+- Add themes (**dict) so less verbose for calling with similar settings. Probably already works and just be
+  mentioned in the FAQ or how to's.
+- Tutorials are not beginner friendly and don't explain the motivation as well as I would like. Should revisit
+  writing them.
 - Bundles of inputs for forms? Relatonships/constraints between inputs?
 - Make work better (extension?) to Pydantic?
 
@@ -106,14 +107,12 @@ Items here move into CHANGELOG.rst when the version number is incremented.
 
 * Focus on ease-of-use -- get_* functions.
 * Restructure layers: ci_cleaners, ci_convertors, ci_validators, ci (get_*), ci_tables and ci_menus (TUI)
-* Add model tooling (uv? lock files? Poetry?)
 * add dash/zeal docset (add to: https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets) - https://kapeli.com/docsets#python
 * add support for Rich (text color, tables, etc)
 * expand tutorials
   * add support for rich consoles, rich tables?
 
 * general:
-    * Create extension directory (can add things with extra pip requirements like viridus)
     * Add profanity-check extension (https://github.com/vzhou842/profanity-check)
     * _get_choice should create a GetInput instance and call get_input on it, instead of calling the GetInput.get_input
         convenience function (so don't have to reconstruct the GetInput everytime through the loop)
@@ -122,14 +121,12 @@ Items here move into CHANGELOG.rst when the version number is incremented.
     * Improve the README file
     * Add queue_errors error handler. Use for an example to send flash_messages for Flask support. Add option to 
         validators to force running all validators vs. quiting after first error found
-    * get to 100% coverage and add badge
     * For consistency with wtform, should 'cleaners' be changed to 'filters'?
     * change put_in_a_list to tolist (consistent with memoryview)
     * Add bytearray type to isstring (doesn't match bytes, str, unicode or basestring)
     * Add get_password convenience function. Allow validating before and after calling a provided hashing function.
         (eg. check length, lower and uper case, etc. before hashing, then post-validation, such as comparing to 
         old password after)
-    * Lock requirements to values suggested from PyUp.io 
 
 * get_input:
     * get_input - bug in commands entering /filter, if /f is also a command, finds /f command
@@ -161,7 +158,9 @@ Items here move into CHANGELOG.rst when the version number is incremented.
     * change to quick start?
     * Add tables (build-a-burger) to tutorial
     * add part 2 (and part 3?) to tutorial to show more examples: passwords (get_user_info), tables,
-        menus, and databases?
+        menus, and databases? Could make tutorial2 a lot simpler. Maybe start with simple menus and
+  
+    * add a database example/tutorial using sqlite
     * more how-to examples (pick from examples)
     * move `more examples` to `how-to` in a separate file?
     * show how to get an object back - put in item data, return table item and get from item data.

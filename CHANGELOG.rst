@@ -81,6 +81,17 @@ see TODO.md for list of TODO items
     the restriction. Its table of ``RULE`` values now renders as four rows rather than one:
     the grid was missing the row separators, so docutils had been folding all four
     descriptions into a single cell.
+  * fixed: ``examples/events.py`` defined an ``exit_cmd_action`` that returned
+    ``ci.COMMAND_ACTION_EXIT``, which does not exist -- calling it raised ``AttributeError``.
+    The package has three command actions and there is no exit among them: a command leaves a
+    prompt by returning ``COMMAND_ACTION_CANCEL``, which raises :class:`GetInputInterrupt`.
+    The function was never wired into ``app_cmds`` and does not appear in this example's
+    documented walkthrough at all, so it has been removed rather than given semantics the
+    library does not have. The examples ship in the sdist, so this was distributed code.
+  * fixed: the ``events.py`` listing in the documentation could not be run as printed. Two
+    lines had been mangled into syntax errors -- ``commandscmd`` for ``commands=cmds``, and a
+    bare ``'style'`` where ``style=style`` belongs -- and a prompt string had drifted from the
+    script. The listing now matches the script line for line.
   * tests: package coverage reached 100% (branch coverage, source only) and the suite grew to
     456 tests. The CI floor is now ``--cov-fail-under=99`` -- deliberately one point below the
     measured value, so that a genuinely awkward line does not have to be answered with a
