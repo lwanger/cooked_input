@@ -100,11 +100,10 @@ class TestTables(object):
         assert (result == ['Beast'])
 
 
-    def test_single_col_table_exit_row_returns_table_item(self, fake_input, framed_style):
-        # Asserts today's behavior, which is wrong: picking Exit should yield the
-        # 'exit' tag, not the TableItem. get_menu has the same defect at the module
-        # level -- its `result == 'exit'` test can never be true. Tracked separately;
-        # this test will be inverted when that is fixed.
+    def test_single_col_table_exit_row_yields_no_selection(self, fake_input, framed_style):
+        # Regression guard for #47: this used to hand back the TableItem for the exit row.
+        # Choosing Exit means no row was chosen, which is what Table.run has always
+        # assumed and what get_table_choice documents for a blank entry.
         input_str = 'exit'
 
         prompt = None
@@ -118,7 +117,7 @@ class TestTables(object):
         fake_input(input_str)
         result = use_create_table(items, fields, field_names, gen_tags, tag_str, add_exit=add_exit, prompt=prompt, style=framed_style)
 
-        assert (result.action == 'exit')
+        assert result is None
 
 
     def test_single_item_table(self, fake_input, framed_style):

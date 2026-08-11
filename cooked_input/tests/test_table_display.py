@@ -159,13 +159,18 @@ class TestRefreshItems:
         table.refresh_items()
         assert "{" in table.get_row("1").values[0]
 
-    def test_a_brace_delimited_word_not_in_the_action_dict_raises(self):
-        # Characterization: the fallback above only catches ValueError, but a cell
-        # like "{literal}" parses as a valid field reference and raises KeyError
-        # instead, which nothing handles. Tracked in #47.
+    def test_a_brace_delimited_word_not_in_the_action_dict_is_shown_literally(self):
+        # Regression guard for #47: the fallback only caught ValueError, but a cell like
+        # "{literal}" parses as a valid field reference and raises KeyError instead, so
+        # any table holding a {word} in its data crashed on display.
         table = Table([TableItem(["{literal}"], tag="1")], col_names=["Value"])
-        with pytest.raises(KeyError):
-            table.refresh_items()
+        table.refresh_items()
+        assert table.get_row("1").values[0] == "{literal}"
+
+    def test_a_log_line_full_of_braces_survives_display(self):
+        table = Table([TableItem(['level={info} msg="{ok}"'], tag="1")], col_names=["Value"])
+        table.refresh_items()
+        assert table.get_row("1").values[0] == 'level={info} msg="{ok}"'
 
     def test_a_cell_placeholder_is_filled_from_the_action_dict(self):
         table = Table([TableItem(["hello {name}"], tag="1")], col_names=["Value"],
@@ -195,17 +200,26 @@ class TestGetMenuDefaultChoice:
         fake_input("")
         assert get_menu(["red", "green", "blue"], default_choice=choice) == expected_tag
 
-    def test_a_numeric_default_choice_currently_does_not_work(self, fake_input, capsys):
-        # Characterization, tracked in #47. The resolution loop ends with an
-        # unconditional `break` inside its try body, so only the first choice is
-        # examined. A non-numeric default survives that only because int(choice)
-        # raises ValueError before the break, and the handler swallows it so the
-        # loop continues -- which is why matching by value works at every position
-        # while a numeric tag never resolves. Blank input therefore reprompts, and
+    @pytest.mark.parametrize("choice, expected_tag", [("1", 1), ("2", 2), ("3", 3)])
+    def test_a_blank_entry_takes_a_default_named_by_number(self, fake_input, capsys,
+                                                           choice, expected_tag):
+        # Regression guard for #47: the resolution loop ended with an unconditional
+        # `break` inside its try body, so only the first choice was ever examined and a
+        # numeric default never resolved -- the menu silently had no default and simply
+        # reprompted. The comparison was also off by one against the 1-based tags.
+        fake_input("")
+        assert get_menu(["red", "green", "blue"], default_choice=choice) == expected_tag
+
+    def test_an_integer_default_choice_works_as_well_as_a_string(self, fake_input, capsys):
+        fake_input("")
+        assert get_menu(["red", "green", "blue"], default_choice=2) == 2
+
+    def test_a_default_choice_matching_nothing_leaves_the_menu_without_one(self, fake_input, capsys):
+        # Out of range and not a value: nothing matches, so blank input just reprompts and
         # the feeder's exhaustion ends the test.
         fake_input("", "")
         with pytest.raises(EOFError):
-            get_menu(["red", "green", "blue"], default_choice="2")
+            get_menu(["red", "green", "blue"], default_choice="9")
 
 
 class TestTableStyleRendering:

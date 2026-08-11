@@ -546,7 +546,9 @@ class Table(object):
         Call the action function for the specified row
 
         :param TableItem row: the table row to call the action on
-        :return:  returns the return value for the action. Returns the original row if no action is defined for the row.
+        :return:  returns the return value for the action. Returns **None** for a row whose action
+            is ``TABLE_ITEM_EXIT`` or ``TABLE_ITEM_RETURN``, since choosing one of those is the
+            same as choosing no row. Returns the original row if no action is defined for the row.
 
         The action function is called with the following parameters:
 
@@ -555,8 +557,16 @@ class Table(object):
         action = row.action
         if callable(action):
             return action(row, self.action_dict)
-        elif action == 'default' and self.default_action is not None:
+        elif action == TABLE_ITEM_DEFAULT and self.default_action is not None:
             return self.default_action(row, self.action_dict)
+        elif action in (TABLE_ITEM_EXIT, TABLE_ITEM_RETURN):
+            # Fixing: 'exit' is neither callable nor the default sentinel, so this used to
+            # fall through and hand back the TableItem. A TableItem never equals 'exit', so
+            # get_menu's `result == 'exit'` test was dead and it returned the row instead of
+            # the documented 'exit'. Table.run already treats these two actions as "stop, no
+            # row chosen" -- its docstring says choosing exit or return is the same as
+            # returning no row -- so do_action now agrees with it.
+            return None
         else:
             return row
 
@@ -766,7 +776,8 @@ class Table(object):
         :param options: See below for details.
 
         :return: the result of performing the action (specified by the table or row) on the row. Returns **None** if no
-            row is selected.
+            row is selected -- either because the entry was blank or because the row chosen was an
+            exit or return row, which counts as choosing nothing.
 
         Options:
 
@@ -855,7 +866,13 @@ class Table(object):
                 if isstring(v):
                     try:
                         formatted_val = formatter.vformat(str(v), None, self.action_dict)
-                    except ValueError: # a curly brace in the value causes a ValueError exception. Double it up to fix this.
+                    except (ValueError, KeyError):
+                        # A curly brace in the value breaks the format string, so double the
+                        # braces up and format the literal text instead. An unmatched brace
+                        # raises ValueError; Fixing: a cell like '{literal}' parses as a
+                        # perfectly good field reference and raises KeyError instead, which
+                        # nothing caught -- so any table holding data with a {word} in it,
+                        # such as a template or a log line, crashed on display.
                         v2 = str(v).replace('}', '}}').replace('{', '{{')
                         formatted_val = formatter.vformat(str(v2), None, self.action_dict)
 
@@ -1227,7 +1244,8 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
     :param choices: the list of text strings to use for the menu items
     :param title: a title to use for the menu
     :param prompt: the prompt string used when asking the user for the menu selection
-    :param default_choice: an optional default item to select
+    :param default_choice: an optional default item to select. Either the text of one of the
+        ``choices`` or its position in the menu, counting from 1.
     :param add_exit: add an exit item if `True` or not if `False` (default)
     :param style: a :class:`TableStyle` defining the look of the menu.
     :param options: all :class:`Table` options supported, see :class:`Table` documentation for details.
@@ -1262,27 +1280,39 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
         menu_options['default_action'] = return_tag_action
 
     if default_choice is not None:
-        for i,mc in enumerate(menu_choices):
-            try:
-                if mc.tag is not None and mc.tag == default_choice:
-                    default_idx = i+1
-                elif mc.values[0] == default_choice:
-                    default_idx = i+1
-                elif mc.tag is None and i == int(default_choice):
-                    default_idx = i+1
+        # Fixing: the `break` used to sit at the end of the try body, so it ran on the
+        # first item whether or not anything had matched. Matching by value survived that
+        # only by accident -- int('green') raised ValueError before the break was reached
+        # and the handler swallowed it -- while a numeric default_choice like '2' never
+        # resolved at all and the menu silently had no default. The numeric comparison was
+        # also off by one, against 0-based positions rather than the 1-based tags the table
+        # assigns. Interpreting the choice as a number once, up front, keeps the loop plain.
+        try:
+            numeric_choice = int(default_choice)
+        except (TypeError, ValueError):
+            numeric_choice = None
+
+        for i, mc in enumerate(menu_choices, start=1):
+            if mc.tag is not None and mc.tag == default_choice:
+                default_idx = i
+            elif mc.values[0] == default_choice:
+                default_idx = i
+            elif mc.tag is None and i == numeric_choice:
+                default_idx = i
+
+            if default_idx is not None:
                 break
-            except ValueError:
-                pass
 
     menu = Table(menu_choices, title=title, prompt=prompt, default_choice=default_idx, default_str=default_str,
                 add_exit=add_exit, style=use_style, **menu_options)
     result = menu.get_table_choice()
 
+    # Fixing: a second branch here tested `result == 'exit'`, which could never be true --
+    # do_action handed back the TableItem for the exit row and a TableItem never equals a
+    # string, so get_menu returned the row instead of the documented 'exit'. do_action now
+    # returns None for an exit row, the same as choosing no row, so this one branch covers
+    # both ways of leaving the menu.
     if result is None:
-        return 'exit'
-
-    # if add_exit and result.action=='exit':
-    if add_exit!="none" and result=='exit':
         return 'exit'
 
     return result

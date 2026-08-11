@@ -165,23 +165,20 @@ class TestGetMenu:
         assert get_menu(["red", "green", "blue"]) == 3
         assert feeder.remaining == 0
 
-    @pytest.mark.xfail(
-        reason="#47: do_action returns the TableItem for the auto-added exit row, so "
-               "get_menu's `result == 'exit'` test can never be true",
-        strict=True,
-    )
     def test_picking_exit_returns_the_exit_tag(self, fake_input, capsys):
-        fake_input("exit")
-        assert get_menu(["red", "green"], add_exit=True) == "exit"
-
-    def test_picking_exit_currently_returns_a_table_item(self, fake_input, capsys):
-        # The other half of #47: what actually happens today. Kept alongside the
-        # xfail so the defect is visible in the suite either way -- when #47 is
-        # fixed this one goes red and the xfail above goes green.
+        # Regression guard for #47: do_action handed back the TableItem for the exit row,
+        # and a TableItem never equals a string, so get_menu's `result == 'exit'` test was
+        # dead and callers doing `if get_menu(...) == 'exit':` never took that branch.
         fake_input("exit")
         result = get_menu(["red", "green"], add_exit=True)
-        assert isinstance(result, TableItem)
-        assert result.tag == "exit"
+        assert result == "exit"
+        assert not isinstance(result, TableItem)
+
+    def test_leaving_the_menu_blank_also_returns_the_exit_tag(self, fake_input, capsys):
+        # The other way out of a menu, which has always worked, and now shares one branch
+        # with picking Exit.
+        fake_input("")
+        assert get_menu(["red", "green"], add_exit=True, required=False) == "exit"
 
 
 class TestTableStyleOptions:

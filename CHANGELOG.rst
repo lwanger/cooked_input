@@ -12,6 +12,26 @@ see TODO.md for list of TODO items
 
 * unreleased:
 
+  * fixed: ``get_menu`` returned a ``TableItem`` instead of ``'exit'`` when the user picked
+    the automatically added Exit row. ``Table.do_action`` fell through and handed back the
+    row, and a ``TableItem`` never equals ``'exit'``, so ``get_menu``'s own test for it was
+    dead code and callers writing ``if get_menu(...) == 'exit':`` never took that branch.
+    ``do_action`` now returns **None** for a row whose action is ``TABLE_ITEM_EXIT`` or
+    ``TABLE_ITEM_RETURN`` -- choosing one of those is choosing no row, which is what
+    ``Table.run`` has always assumed -- so ``Table.get_table_choice`` returns **None** there
+    and ``get_menu`` returns ``'exit'`` as documented. **Callers of**
+    ``Table.get_table_choice`` **that inspected the returned exit row will see None instead.**
+  * fixed: a numeric ``default_choice`` never resolved in ``get_menu``, so the menu silently
+    had no default and simply reprompted. The resolution loop ended with an unconditional
+    ``break`` inside its ``try`` body, so only the first choice was ever examined; matching
+    by text survived that only because ``int('green')`` raised ``ValueError`` before the
+    ``break`` was reached. The numeric comparison was also off by one, testing 0-based
+    positions against the 1-based tags the table assigns.
+  * fixed: a table cell containing a brace-delimited word, such as ``{literal}`` in a
+    template or a log line, raised ``KeyError`` and crashed on display. The fallback that
+    doubles up braces only caught ``ValueError``, which is what an *unmatched* brace raises;
+    a well-formed field reference naming something absent from ``action_dict`` raises
+    ``KeyError`` instead.
   * fixed: ``DecimalConvertor`` ignored both ``precision`` and ``rounding``. It passed its
     ``decimal.Context`` to the ``Decimal`` constructor, where the context affects only error
     signalling -- neither setting was ever applied, so
