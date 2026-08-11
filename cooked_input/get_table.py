@@ -14,16 +14,21 @@ from __future__ import annotations
 
 import sys
 import string
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from typing import Any, NoReturn
 
 import prettytable as pt  # note: pt.TableStyle is prettytable's style enum, not our TableStyle class below
 
 from cooked_input import get_input
+# GetInputCommand is not used in the code below, only in the ``CommandsArg`` annotation -- but
+# that alias leaves the class name quoted (see ``_typing``), and a quoted forward reference is
+# resolved in the module that *uses* the alias. Without the name here, sphinx_autodoc_typehints
+# reports it as unresolvable and prints the raw string in place of the type.
+from cooked_input import GetInputCommand  # noqa: F401
 from cooked_input import GetInputInterrupt, RefreshScreenInterrupt
 from cooked_input import PageUpRequest, PageDownRequest, FirstPageRequest, LastPageRequest, UpOneRowRequest, DownOneRowRequest
 
-from ._typing import ItemFilter, RowAction
+from ._typing import CommandsArg, ItemFilter, RowAction
 from .input_utils import put_in_a_list, isstring
 from .cleaners import Cleaner, CapitalizationCleaner, StripCleaner, ChoiceCleaner
 from .convertors import ChoiceConvertor
@@ -367,38 +372,31 @@ class Table(object):
     :param default_str: An optional string to display for the default table selection.
     :param default_action: The default action function to call a table item is selected. See below for details.
     :param style: a :class:`TableStyle` defining the look of the table.
-    :param options: see below for a list of valid options
+    :param required: requires an entry if **True** (default), exits the table on blank entry if **False**.
+    :param tag_str: string to use for the tag column name. Defaults to an empty string ("").
+    :param add_exit: automatically adds a :class:`TableItem` to exit the table menu (``TABLE_ADD_EXIT``) or
+        return to the parent table/menu (``TABLE_ADD_RETURN``), or not to add a :class:`TableItem` at all
+        (**False** or ``TABLE_ADD_NONE`` - default). Used to exit menus or return from sub-menus.
+    :param action_dict: a dictionary of values to pass to action functions. Used to provide context to
+        the action. Helpful to provide items such as data base sessions, user credentials, etc.
+    :param case_sensitive: whether choosing table items should be case sensitive (**True**) or not
+        (**False** - default)
+    :param commands: a dictionary of commands for the table. For each entry, the key is the command and the
+        value the action to take for the command. See :class:`GetInput` and :class:`GetInputCommand`
+        for further details
+    :param refresh: refresh table items each time the table is shown (**True** - default), or just when
+        created (**False**). Useful for dynamic tables
+    :param item_filter: a function used to determine which table items to display. Displays all items if
+        **None**. See below for more details.
+    :param header: a format string to print before the table, can use any value from ``action_dict`` as
+        well as pagination information
+    :param footer: a format string to print after the table, can use any values from ``action_dict`` as
+        well as pagination information
 
-    Options:
-
-        **required**:    requires an entry if **True**, exits the table on blank entry if **False**.
-        
-        **tag_str**:     string to use for the tag column name. Defaults to an empty string ("").
-
-        **add_exit**:    automatically adds a :class:`TableItem` to exit the table menu (``TABLE_ITEM_EXIT``) or
-                            return to the parent table/menu (``TABLE_ADD_RETURN``), or not to add a :class:`TableItem` at all (**False**).
-                            Used to exit menus or return from sub-menus.
-
-        **action_dict**: a dictionary of values to pass to action functions. Used to provide context to
-                            the action. Helpful to provide items such as data base sessions, user credentials, etc.
-
-        **case_sensitive**:  whether choosing table items should be case sensitive (**True**) or not (**False** - default)
-
-        **commands**:    a dictionary of commands for the table. For each entry, the key is the command and the
-                            value the action to take for the command. See :class:`GetInput` and :class:`GetInputCommand`
-                            for further details
-
-        **item_filter**: a function used to determine which table items to display. Displays all items if **None**.
-                            See below for more details.
-
-        **refresh**: refresh table items each time the table is shown (**True** - default), or just when created
-                            (**False**). Useful for dynamic tables
-
-        **header**:  a format string to print before the table, can use any value from ``action_dict`` as well as
-                            pagination information
-
-        **footer**:  a format string to print after the table, can use any values from ``action_dict`` as well as
-                            pagination information
+    Every parameter from ``required`` onwards is keyword-only. They used to be collected from a
+    ``**options`` bag, which silently ignored anything it did not recognise -- so a misspelled option,
+    or one belonging to :class:`TableStyle` rather than here, did nothing and said nothing. Naming them
+    means Python rejects an unknown one where it was written.
 
     Table default actions:
 
@@ -467,70 +465,45 @@ class Table(object):
     def __init__(self, rows: Iterable[TableItem], col_names: str | Sequence[str] | None = None,
                  title: str | None = None, prompt: str | None = None, default_choice: Any = None,
                  default_str: str | None = None, default_action: str | RowAction | None = None,
-                 style: TableStyle | None = None, **options: Any) -> None:
+                 style: TableStyle | None = None, *,
+                 required: bool = True,
+                 tag_str: str = '',
+                 add_exit: bool | str = TABLE_ADD_NONE,
+                 action_dict: dict[str, Any] | None = None,
+                 case_sensitive: bool = False,
+                 commands: CommandsArg = None,
+                 refresh: bool = True,
+                 item_filter: ItemFilter | bool | None = None,
+                 header: str | None = None,
+                 footer: str | None = None) -> None:
 
-        try:
-            self.required = options['required']
-        except KeyError:
-            self.required = True
+        # Fixing: TABLE_ADD_NONE was missing from this set, so the one value this method
+        # assigns as its own default was the one value a caller could not pass -- it went
+        # to the else and raised. refresh_items tests for 'none' alongside False when it
+        # decides whether to add the row, so both have always meant "don't", here too.
+        if add_exit not in {True, False, TABLE_ADD_EXIT, TABLE_ADD_RETURN, TABLE_ADD_NONE}:
+            # Fixing: dropped a stray `print('Table:__init__: ')` debug statement
+            # that fired on the way to this exception.
+            raise RuntimeError('Table: unexpected value for add_exit option ({})'.format(add_exit))
 
-        try:
-            self.tag_str = options['tag_str']
-        except KeyError:
-            self.tag_str = ''
-
-        try:
-            add_exit = options['add_exit']
-            if add_exit in { True, False, TABLE_ADD_EXIT, TABLE_ADD_RETURN }:
-                self.add_exit = add_exit
-            else:
-                # Fixing: dropped a stray `print('Table:__init__: ')` debug statement
-                # that fired on the way to this exception.
-                raise RuntimeError('Table: unexpected value for add_exit option ({})'.format(add_exit))
-        except KeyError:
-            self.add_exit = TABLE_ADD_NONE
-
-        try:
-            self.action_dict = options['action_dict']
-        except KeyError:
-            self.action_dict = {}
-
-        try:
-            self.case_sensitive = options['case_sensitive']
-        except KeyError:
-            self.case_sensitive = False
-
-        try:
-            self.commands = options['commands']
-        except KeyError:
-            self.commands = None
-
-        try:
-            self.refresh = options['refresh']
-        except KeyError:
-            self.refresh = True
-
-        try:
-            self.item_filter = options['item_filter']
-        except KeyError:
-            self.item_filter = None
-
-        try:
-            self.header = options['header']
-        except KeyError:
-            self.header = None
-
-        try:
-            self.footer = options['footer']
-        except KeyError:
-            self.footer = None
+        self.required = required
+        self.tag_str = tag_str
+        self.add_exit = add_exit
+        # An absent action_dict means "no context to pass", and every action is called with this
+        # dict, so it becomes an empty one here rather than leaving each call site to guard.
+        self.action_dict = {} if action_dict is None else action_dict
+        self.case_sensitive = case_sensitive
+        self.commands = commands
+        self.refresh = refresh
+        self.item_filter = item_filter
+        self.header = header
+        self.footer = footer
 
         if prompt is None:
             self.prompt = 'Choose a table item'
         else:
             self.prompt = prompt
 
-        self.options = options
         self.title = title
         self.default_choice = default_choice
         self.default_str= default_str
@@ -905,6 +878,11 @@ class Table(object):
             * **commands** (Dict) -- a dictionary of commands for the table. For each entry, the key is the
                     command and the value the action to take for the command. See :class:`GetInput` and
                     :class:`GetInputCommand` for further details
+
+        These are :class:`GetInput`'s options, not the :class:`Table` options above -- they are handed
+        straight to :func:`get_input` for the one prompt this call makes, so any option that class
+        accepts works here, and it is the one that reports an unrecognised name. That is why this
+        stayed a ``**options`` bag when the table's own options became named parameters.
         """
         table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
         self.show_rows(0)
@@ -1121,8 +1099,8 @@ class Table(object):
         return True
 
 
-def create_rows(items: Any, fields: Sequence[str], gen_tags: bool | None = None,
-                item_data: dict[str, Any] | None = None,
+def create_rows(items: Iterable[Any] | Mapping[Any, Any], fields: Sequence[str],
+                gen_tags: bool | None = None, item_data: dict[str, Any] | None = None,
                 add_item_to_item_data: bool = False) -> list[TableItem]:
     """
     Create a list of TableItems from an iterable (items) of objects
@@ -1242,13 +1220,24 @@ def create_rows(items: Any, fields: Sequence[str], gen_tags: bool | None = None,
     return tis
 
 
-def create_table(items: Any, fields: Sequence[str], field_names: Sequence[str] | None = None,
+def create_table(items: Iterable[Any] | Mapping[Any, Any], fields: Sequence[str],
+                 field_names: Sequence[str] | None = None,
                  gen_tags: bool | None = None, item_data: dict[str, Any] | None = None,
                  add_item_to_item_data: bool = False, title: str | None = None,
                  prompt: str | None = None, default_choice: Any = None,
                  default_str: str | None = None,
                  default_action: str | RowAction = TABLE_RETURN_TABLE_ITEM,
-                 style: TableStyle | None = None, **options: Any) -> Table:
+                 style: TableStyle | None = None, *,
+                 required: bool = True,
+                 tag_str: str | None = None,
+                 add_exit: bool | str = TABLE_ADD_NONE,
+                 action_dict: dict[str, Any] | None = None,
+                 case_sensitive: bool = False,
+                 commands: CommandsArg = None,
+                 refresh: bool = True,
+                 item_filter: ItemFilter | bool | None = None,
+                 header: str | None = None,
+                 footer: str | None = None) -> Table:
     """
     Convenience function to create ``cooked_input`` a table.
 
@@ -1265,7 +1254,17 @@ def create_table(items: Any, fields: Sequence[str], field_names: Sequence[str] |
     :param default_str: an optional string to display for the default choice value.
     :param default_action: the default action to take when a table item is picked. Defaults to **TABLE_RETURN_TABLE_ITEM***.
     :param style: an optional :class:`TableStyle` to use for the table.
-    :param options: a dictionary of optional values for the table. See :class:`Table` for details.
+    :param tag_str: string to use for the tag column name. Defaults to the name of whichever column
+        became the tag -- see ``gen_tags`` above.
+    :param required: see :class:`Table`.
+    :param add_exit: see :class:`Table`.
+    :param action_dict: see :class:`Table`.
+    :param case_sensitive: see :class:`Table`.
+    :param commands: see :class:`Table`.
+    :param refresh: see :class:`Table`.
+    :param item_filter: see :class:`Table`.
+    :param header: see :class:`Table`.
+    :param footer: see :class:`Table`.
 
     :return: an instance of a ``cooked_input`` :class:`Table`
 
@@ -1276,7 +1275,7 @@ def create_table(items: Any, fields: Sequence[str], field_names: Sequence[str] |
     of the: ``items``, ``fields``, ``gen_tags``, ``item_data``, and ``add_item_to_item_data`` parameters.
 
     See :class:`Table` for an explanation of the: ``title``, ``prompt``, ``default_choice``, ``default_str``,
-        ``default_action``, ``style`` and ``options`` parameters.
+        ``default_action``, ``style`` and keyword-only parameters.
 
     .. note::
 
@@ -1304,8 +1303,7 @@ def create_table(items: Any, fields: Sequence[str], field_names: Sequence[str] |
         item = choice.item_data["item"]
         print('{}: {}'.format(item['name'], item['season']))
     """
-    new_options = dict(**options)
-    use_tag_str = options.get('tag_str')
+    use_tag_str = tag_str
 
     # `fields` names the columns when the caller supplied no display names of its own. Both
     # arms below only ever read from this one sequence; the previous form interleaved the
@@ -1324,29 +1322,33 @@ def create_table(items: Any, fields: Sequence[str], field_names: Sequence[str] |
         if use_tag_str is None:
             use_tag_str = column_names[0]
 
-    new_options['tag_str'] = use_tag_str
-
     tis = create_rows(items, fields, gen_tags, item_data, add_item_to_item_data)
     # Dropped `show_cols=` and `show_border=` arguments here, taken from a `use_style` built
-    # just above. Table reads named options only, so both landed in **options and were
-    # ignored; the style has always come from `style` alone, and `use_style` merely rebuilt
-    # the default TableStyle that Table builds for itself when style is None.
+    # just above. Neither is a Table option -- they are TableStyle fields -- so back when this
+    # call ended in **options they were accepted and silently discarded. The style has always
+    # come from `style` alone, and `use_style` merely rebuilt the default TableStyle that Table
+    # builds for itself when style is None.
     tbl = Table(tis, col_names=use_field_names, default_choice=default_choice,
                 default_str=default_str, default_action=default_action, prompt=prompt, title=title,
-                style=style, **new_options)
+                style=style, required=required, tag_str=use_tag_str, add_exit=add_exit,
+                action_dict=action_dict, case_sensitive=case_sensitive, commands=commands,
+                refresh=refresh, item_filter=item_filter, header=header, footer=footer)
     return tbl
 
 
-def show_table(table: Table, **options: Any) -> None:
+def show_table(table: Table) -> None:
     """
     Displays a table without asking for input from the user.
 
     :param table: a :class:`Table` instance
-    :param options: all :class:`Table` options supported, see :class:`Table` documentation for details
 
     :return: None
+
+    This took a ``**options`` bag it could not use: :meth:`Table.show_table` accepts no arguments, so
+    every option raised ``TypeError: got an unexpected keyword argument``. A table's options are set
+    when it is built, which is the only place they can affect what is drawn.
     """
-    return table.show_table(**options)
+    return table.show_table()
 
 
 def get_table_input(table: Table, **options: Any) -> Any:
@@ -1364,7 +1366,17 @@ def get_table_input(table: Table, **options: Any) -> Any:
 
 def get_menu(choices: Iterable[Any], title: str | None = None, prompt: str | None = None,
              default_choice: Any = None, add_exit: bool | str = False,
-             style: TableStyle | None = None, **options: Any) -> Any:
+             style: TableStyle | None = None, *,
+             default_action: str | RowAction = return_tag_action,
+             required: bool = True,
+             tag_str: str = '',
+             action_dict: dict[str, Any] | None = None,
+             case_sensitive: bool = False,
+             commands: CommandsArg = None,
+             refresh: bool = True,
+             item_filter: ItemFilter | bool | None = None,
+             header: str | None = None,
+             footer: str | None = None) -> Any:
     """
     :param choices: the list of text strings to use for the menu items
     :param title: a title to use for the menu
@@ -1373,10 +1385,20 @@ def get_menu(choices: Iterable[Any], title: str | None = None, prompt: str | Non
         ``choices`` or its position in the menu, counting from 1.
     :param add_exit: add an exit item if `True` or not if `False` (default)
     :param style: a :class:`TableStyle` defining the look of the menu.
-    :param options: all :class:`Table` options supported, see :class:`Table` documentation for details.
+    :param default_action: the action to take when a menu item is picked. Defaults to returning the
+        item's tag, which is its one-based position in the menu.
+    :param required: see :class:`Table`.
+    :param tag_str: see :class:`Table`.
+    :param action_dict: see :class:`Table`.
+    :param case_sensitive: see :class:`Table`.
+    :param commands: see :class:`Table`.
+    :param refresh: see :class:`Table`.
+    :param item_filter: see :class:`Table`.
+    :param header: see :class:`Table`.
+    :param footer: see :class:`Table`.
 
     :return: the result of calling :func:`Table.get_table_choice` on the menu table. Will return the index (one based) of
-        the choice selected, unless a different default action is provided in the options. Returns 'exit' if the input
+        the choice selected, unless a different ``default_action`` is given. Returns 'exit' if the input
         value is `None` or the menu was exited.
 
     This is a convenience function to create a Table that acts as a simple menu. It takes a list of text strings
@@ -1396,12 +1418,6 @@ def get_menu(choices: Iterable[Any], title: str | None = None, prompt: str | Non
         use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
     else:
         use_style = style
-
-    # return the tag for the menu item unless the user set a specific default action.
-    menu_options = dict(**options)
-
-    if 'default_action' not in options:
-        menu_options['default_action'] = return_tag_action
 
     if default_choice is not None:
         # Fixing: the `break` used to sit at the end of the try body, so it ran on the
@@ -1425,7 +1441,10 @@ def get_menu(choices: Iterable[Any], title: str | None = None, prompt: str | Non
                 break
 
     menu = Table(menu_choices, title=title, prompt=prompt, default_choice=default_idx, default_str=default_str,
-                add_exit=add_exit, style=use_style, **menu_options)
+                default_action=default_action, add_exit=add_exit, style=use_style, required=required,
+                tag_str=tag_str, action_dict=action_dict, case_sensitive=case_sensitive,
+                commands=commands, refresh=refresh, item_filter=item_filter, header=header,
+                footer=footer)
     result = menu.get_table_choice()
 
     # Fixing: a second branch here tested `result == 'exit'`, which could never be true --

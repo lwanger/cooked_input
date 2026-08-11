@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING, Any, Callable, TypeAlias
 from .cleaners import Cleaner
 
 if TYPE_CHECKING:
-    from .get_input import CommandResponse
+    from .get_input import CommandResponse, GetInputCommand
     from .get_table import TableItem
 
 #: What ``cooked_input`` calls to report a rejected value, invoked as
@@ -60,6 +60,11 @@ ValidatorArg: TypeAlias = ValidatorFunc | Iterable[ValidatorFunc] | None
 #: What a :class:`~cooked_input.get_input.GetInputCommand` calls, invoked as
 #: ``cmd_action(cmd_str, cmd_vars, cmd_dict)``.
 CommandAction: TypeAlias = Callable[[str, str, dict[str, Any] | None], "CommandResponse"]
+
+#: The ``commands`` argument a :class:`~cooked_input.get_table.Table` accepts: the string that invokes
+#: each command, mapped to the :class:`~cooked_input.get_input.GetInputCommand` it runs. **None** for a
+#: table with no commands.
+CommandsArg: TypeAlias = dict[str, "GetInputCommand"] | None
 
 #: What a table row does when it is chosen, invoked as ``action(row, action_dict)``. The
 #: return value becomes the result of

@@ -9,6 +9,7 @@ from .get_input import GetInputCommand, CommandResponse, COMMAND_ACTION_USE_VALU
 
 from .get_table import get_table_input, create_table, create_rows, show_table, get_menu, Table, TableItem
 from .get_table import TABLE_ITEM_EXIT, TABLE_ITEM_RETURN, TABLE_ITEM_DEFAULT, TABLE_ADD_EXIT, TABLE_ADD_RETURN
+from .get_table import TABLE_ADD_NONE
 from .get_table import TABLE_RETURN_TAG, TABLE_RETURN_FIRST_VAL, TABLE_RETURN_ROW, TABLE_RETURN_TABLE_ITEM
 from .get_table import TableStyle, RULE_ALL, RULE_NONE, RULE_FRAME, RULE_HEADER
 

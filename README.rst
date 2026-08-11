@@ -55,6 +55,38 @@ cooked_input requires Python 3.10 or later, and has been tested through Python 3
 Python 2 is no longer supported (the last release supporting it is v0.5.4).
 
 
+Release Notes
+-------------
+
+The next release is a large one by volume of change, even though it adds no new functionality.
+Every function, method and class in the package was annotated with types, and the package now
+ships a ``py.typed`` marker so downstream projects actually see them. Running the result through
+``ty`` and Ruff -- both now part of CI -- meant reading essentially all of the code, and that
+turned up a series of real defects that had been sitting behind an untyped signature. Those fixes
+are the bulk of the release.
+
+**There are breaking changes.** Most code will not notice, but they are worth a look before
+upgrading:
+
+* ``in_all``, ``in_any`` and ``not_in`` are no longer importable from ``cooked_input``. They were
+  always internal plumbing and appeared in no documentation. ``validate()`` is unaffected.
+* The module-level validation helpers, and ``SimpleValidator``, now return a real ``bool`` rather
+  than passing a validator's truthy return value through.
+* ``Table``, ``create_table`` and ``get_menu`` take their options as named keyword-only
+  parameters instead of a ``**options`` dictionary. An unrecognised option now raises a
+  ``TypeError`` rather than being silently ignored -- which is how a bug in one of the shipped
+  examples had gone unnoticed. Code that builds an options dictionary still works by unpacking
+  it: ``Table(rows, **options)``.
+* ``Cleaner``, ``Convertor`` and ``Validator`` are now real abstract base classes. A subclass
+  that never implemented ``__call__`` raises ``TypeError`` when instantiated, where before it
+  silently returned **None** from every call.
+* A single string given to ``AnyOfValidator`` or ``NoneOfValidator`` is now one choice rather
+  than being iterated one character at a time.
+
+See `CHANGELOG.rst <https://github.com/lwanger/cooked_input/blob/master/CHANGELOG.rst>`_ for the
+full list, including the defects the type checker found and what each of them affected.
+
+
 Installation
 ------------
 

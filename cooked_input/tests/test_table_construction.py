@@ -116,6 +116,93 @@ class TestAddExitValidation:
             make_table(col_names=["Value"], add_exit="return_row")
 
 
+class TestOptionsAreNamedParameters:
+    """The ten table options are keyword-only parameters, not a ``**options`` bag.
+
+    The bag accepted any key and kept the ones it recognised, so a misspelled option --
+    or one belonging to TableStyle rather than to Table -- did nothing and reported
+    nothing. Naming them hands the rejection to Python.
+    """
+
+    def test_an_unknown_option_is_rejected(self):
+        with pytest.raises(TypeError, match="item_filtr"):
+            make_table(col_names=["Value"], item_filtr=lambda row, action_dict: (True, False))
+
+    def test_a_tablestyle_field_is_not_a_table_option(self):
+        # The live instance of this: examples/get_menu.py passed show_border and show_cols
+        # to Table and drew its usual border while announcing it had none.
+        with pytest.raises(TypeError, match="show_border"):
+            make_table(col_names=["Value"], show_border=False)
+
+    def test_create_table_rejects_an_unknown_option(self):
+        with pytest.raises(TypeError, match="item_filtr"):
+            # ty is right that there is no such parameter -- that it can now say so is the
+            # point of the change, and calling it anyway is the point of the test.
+            ci.create_table([["a", "b"]], ["one", "two"], item_filtr=1)  # ty: ignore[unknown-argument]
+
+    def test_get_menu_rejects_an_unknown_option(self):
+        with pytest.raises(TypeError, match="case_sensitve"):
+            ci.get_menu(["red", "green"], case_sensitve=True)  # ty: ignore[unknown-argument]
+
+    def test_the_raw_options_dict_is_no_longer_kept(self):
+        # Table.options held whatever was passed and was never read by anything.
+        assert not hasattr(make_table(col_names=["Value"]), "options")
+
+
+class TestAddExitNone:
+    def test_the_no_exit_row_sentinel_is_accepted(self):
+        # TABLE_ADD_NONE is what __init__ assigns when add_exit is left alone, and what
+        # refresh_items tests for alongside False, but it was missing from the set of
+        # accepted values -- so the one value the class chose for itself was the one
+        # value a caller could not pass.
+        table = make_table(col_names=["Value"], add_exit=ci.TABLE_ADD_NONE)
+
+        assert table.add_exit == ci.TABLE_ADD_NONE
+
+    def test_it_adds_no_exit_row(self):
+        table = make_table(col_names=["Value"], add_exit=ci.TABLE_ADD_NONE)
+        table.refresh_items(add_exit=ci.TABLE_ADD_NONE)
+
+        assert table.get_num_rows() == 2
+
+
+class TestOptionsReachTheTableThroughTheHelpers:
+    """create_table and get_menu restate the options rather than forwarding a bag."""
+
+    def test_create_table_forwards_them(self):
+        table = ci.create_table([["a", "b"]], ["one", "two"], gen_tags=True,
+                                case_sensitive=True, header="top", footer="bottom",
+                                action_dict={"user": "len"})
+
+        assert table.case_sensitive is True
+        assert (table.header, table.footer) == ("top", "bottom")
+        assert table.action_dict == {"user": "len"}
+
+    def test_get_menu_forwards_them(self, fake_input):
+        # case_sensitive and default_action are what examples/get_menu.py sends through
+        # this path, so they are the pair worth pinning. Menu rows are picked by tag --
+        # the one-based position -- and default_action decides what that returns.
+        fake_input("2")
+        result = ci.get_menu(["red", "green"], case_sensitive=True,
+                             default_action=ci.return_first_col_action)
+
+        assert result == "green"
+
+
+class TestShowTableTakesNoOptions:
+    def test_options_are_not_accepted(self, capsys):
+        # The module-level show_table advertised "all Table options supported" and
+        # forwarded them to Table.show_table(), which has never taken any.
+        table = make_table(col_names=["Value"])
+        with pytest.raises(TypeError, match="prompt"):
+            ci.show_table(table, prompt="pick one")  # ty: ignore[unknown-argument]
+
+    def test_the_table_still_displays(self, capsys):
+        ci.show_table(make_table(col_names=["Value"]))
+
+        assert "alpha" in capsys.readouterr().out
+
+
 class TestTableWithNoRows:
     def test_an_exit_row_can_be_added_to_an_empty_table(self, capsys):
         # The exit row's width is taken from the first row, so an empty table has to

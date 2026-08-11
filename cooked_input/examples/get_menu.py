@@ -88,7 +88,12 @@ def test_action_table():
 
     print('\nget_table_choice - add_exit=False, w/ prompt, default="stop", no columns, no border\n')
     use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
-    menu = Table(menu_choices, prompt='Choose or die!', default_choice='stop', default_action=default_action, add_exit=False, show_border=False , show_cols=False)
+    # Fixing: this passed show_border/show_cols to Table, which has no such options -- they are
+    # TableStyle fields. They landed in the **options bag and were silently dropped, so this demo
+    # drew its usual border and column headings while announcing it had neither. use_style, built
+    # on the line above with exactly those two settings, was never passed at all.
+    menu = Table(menu_choices, prompt='Choose or die!', default_choice='stop', default_action=default_action,
+                 add_exit=False, style=use_style)
     choice = menu.get_table_choice()
     show_choice(menu, choice)
 

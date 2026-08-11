@@ -81,6 +81,27 @@ see TODO.md for list of TODO items
     the restriction. Its table of ``RULE`` values now renders as four rows rather than one:
     the grid was missing the row separators, so docutils had been folding all four
     descriptions into a single cell.
+  * changed: ``Table``, ``create_table`` and ``get_menu`` take the table options as named
+    keyword-only parameters instead of collecting them from a ``**options`` bag. The bag kept the
+    ten keys it recognised and silently discarded everything else, so a misspelled option -- or one
+    belonging to :class:`TableStyle` rather than to :class:`Table` -- did nothing and reported
+    nothing. ``examples/get_menu.py`` was doing exactly that: it passed ``show_border=False,
+    show_cols=False`` to ``Table``, which has no such options, and drew its usual border and column
+    headings while announcing it had neither. An unrecognised option now raises a ``TypeError``
+    naming it, and a type checker reports it at the call site. Code that builds an options
+    dictionary still works by unpacking it: ``Table(rows, **options)``.
+
+    Two consequences worth noting. ``Table.options``, which held the raw bag and was never read by
+    anything, has been removed. And ``show_table(table, **options)`` no longer accepts options: it
+    forwarded them to ``Table.show_table()``, which takes none, so every one of them raised
+    ``TypeError: got an unexpected keyword argument`` in every version that had them.
+  * fixed: ``Table(rows, add_exit=TABLE_ADD_NONE)`` raised ``RuntimeError: unexpected value for
+    add_exit option (none)``. ``TABLE_ADD_NONE`` is the value ``Table.__init__`` assigns when
+    ``add_exit`` is left alone, and the value ``refresh_items`` tests for alongside **False** when
+    deciding whether to add the row -- but it was missing from the set of accepted values, so the
+    one setting the class chose for itself was the one setting a caller could not ask for. It is
+    now accepted, and exported from ``cooked_input`` alongside ``TABLE_ADD_EXIT`` and
+    ``TABLE_ADD_RETURN``.
   * changed: ``in_all``, ``in_any`` and ``not_in`` are no longer part of the public API. They are
     internal plumbing -- they back :class:`AnyOfValidator`, :class:`NoneOfValidator` and
     ``GetInput.process_value``, and appear in no documentation -- but were exported from
@@ -127,6 +148,8 @@ see TODO.md for list of TODO items
     The function was never wired into ``app_cmds`` and does not appear in this example's
     documented walkthrough at all, so it has been removed rather than given semantics the
     library does not have. The examples ship in the sdist, so this was distributed code.
+  * fixed: the ``tutorial2.rst`` listing had ``commands=cmds'])`` -- a stray quote and bracket
+    that make the line a syntax error. ``events.rst`` prints the same call correctly.
   * fixed: the ``events.py`` listing in the documentation could not be run as printed. Two
     lines had been mangled into syntax errors -- ``commandscmd`` for ``commands=cmds``, and a
     bare ``'style'`` where ``style=style`` belongs -- and a prompt string had drifted from the
