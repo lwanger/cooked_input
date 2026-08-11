@@ -1,11 +1,13 @@
 """Tests for Table construction options not covered elsewhere.
 
 Column names given as a whitespace-delimited string, case-sensitive tag matching,
-the 'return' flavour of add_exit, and the TABLE_ITEM_RETURN branch of run().
+the 'return' flavour of add_exit, the TABLE_ITEM_RETURN branch of run(), and which
+RULE values TableStyle accepts for each axis.
 
 Len Wanger, 2026
 """
 
+import prettytable as pt
 import pytest
 
 from cooked_input import (
@@ -189,3 +191,49 @@ class TestRefreshRepagination:
         # Refreshing with fewer rows must pull the window back inside the table.
         table.refresh_items(rows=[TableItem(["only"], tag="only")])
         assert table.table.start == 0
+
+
+class TestVerticalRules:
+    """``TableStyle`` documents one set of RULE values for both axes, but prettytable
+    has two enums and only three of the four constants appear in both."""
+
+    @pytest.mark.parametrize("rule", [ci.RULE_FRAME, ci.RULE_ALL, ci.RULE_NONE])
+    def test_a_rule_with_a_vertical_equivalent_is_kept(self, rule):
+        style = TableStyle(vrules=rule)
+
+        assert style.vrules == rule
+        assert isinstance(style.vrules, pt.VRuleStyle)
+
+    def test_a_prettytable_vrule_is_accepted_unchanged(self):
+        # Nothing documents this spelling, but it is the type the attribute holds.
+        style = TableStyle(vrules=pt.VRuleStyle.ALL)
+
+        assert style.vrules is pt.VRuleStyle.ALL
+
+    def test_rule_header_is_rejected_where_it_was_written(self):
+        with pytest.raises(ValueError, match="RULE_HEADER"):
+            TableStyle(vrules=ci.RULE_HEADER)
+
+    def test_rule_header_is_still_legal_for_horizontal_rules(self):
+        assert TableStyle(hrules=ci.RULE_HEADER).hrules is ci.RULE_HEADER
+
+    def test_a_value_that_is_no_rule_at_all_is_rejected(self):
+        # Annotations do not reach a caller who is not type checking, so the runtime
+        # check earns its keep. ty is right about this call -- that is the test.
+        with pytest.raises(ValueError, match="not a RULE value"):
+            TableStyle(vrules=99)  # ty: ignore[invalid-argument-type]
+
+    def test_assigning_after_construction_is_checked_too(self):
+        style = TableStyle()
+
+        with pytest.raises(ValueError, match="RULE_HEADER"):
+            style.vrules = ci.RULE_HEADER
+
+    def test_a_table_renders_with_every_legal_vrule(self, capsys):
+        # The failure this guards against surfaced in refresh_items, not construction.
+        for rule in (ci.RULE_FRAME, ci.RULE_ALL, ci.RULE_NONE):
+            table = make_table(style=TableStyle(vrules=rule))
+            table.refresh_items()
+            table.show_table()
+
+            assert "alpha" in capsys.readouterr().out

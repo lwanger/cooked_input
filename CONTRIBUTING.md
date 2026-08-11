@@ -90,11 +90,11 @@ the modules that were not yet annotated, and shrank by one line per PR. Every so
 is annotated now, so what remains in that list is the tests-and-examples policy exemption
 below — not a backlog. Never add a source module back to it: a new module arrives annotated.
 
-`[[tool.ty.overrides]]` holds one suppression, `invalid-assignment` on `get_table.py`. That
-one is not a checker artifact — it marks issue #65, where `TableStyle` documents the four
-`RULE_*` constants for `vrules` but they are all `HRuleStyle` members, so
-`TableStyle(vrules=RULE_HEADER)` raises. Fixing it changes behavior, so it wants its own PR;
-the suppression goes away with it.
+There are no `[[tool.ty.overrides]]` at all. There was one — `invalid-assignment` on
+`get_table.py`, marking issue #65 — and it came off with the fix, which is the shape to aim
+for: a suppression records a defect someone intends to fix, not a rule the project has opted
+out of. Prefer an inline `# ty: ignore[rule-name]` with a comment saying why, so the
+suppression is read alongside the code it applies to and disappears with it.
 
 Tests and examples are exempt from `ANN` by policy — annotations buy little in a test, and
 the examples are demo scripts rather than library code. `ty` still checks the tests, and
