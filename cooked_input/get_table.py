@@ -50,6 +50,41 @@ RULE_ALL = pt.HRuleStyle.ALL
 RULE_NONE = pt.HRuleStyle.NONE
 
 
+def _as_vrule(rule: pt.HRuleStyle | pt.VRuleStyle) -> pt.VRuleStyle:
+    """
+    Translate a ``RULE_*`` constant into the vertical rule style prettytable expects.
+
+    :param rule: one of the ``RULE_*`` constants, or a prettytable ``VRuleStyle``
+    :return: the matching **VRuleStyle**
+
+    Raises a **ValueError** naming the rules that are legal here if ``rule`` has no vertical
+    counterpart, which ``RULE_HEADER`` does not.
+
+    All four ``RULE_*`` constants above are ``HRuleStyle`` members, but :class:`TableStyle`
+    documents one set of values for both axes -- so ``vrules`` is handed an ``HRuleStyle``
+    where prettytable wants a ``VRuleStyle``. Three of the four worked anyway, by the
+    coincidence that ``FRAME``, ``ALL`` and ``NONE`` carry the same values in both enums.
+    ``RULE_HEADER`` has no vertical counterpart at all -- a header rule between *columns*
+    means nothing -- so it reached prettytable and raised ``Invalid value for vrules``, from
+    inside :meth:`Table.refresh_items`, long after the mistake was made.
+    """
+    if isinstance(rule, pt.VRuleStyle):
+        return rule
+
+    try:
+        hrule = pt.HRuleStyle(rule)
+    except ValueError:
+        raise ValueError('vrules: {!r} is not a RULE value. Use RULE_FRAME, RULE_ALL or '
+                         'RULE_NONE.'.format(rule)) from None
+
+    try:
+        return pt.VRuleStyle[hrule.name]
+    except KeyError:
+        raise ValueError('vrules: RULE_{} draws a rule around the table header, which has no '
+                         'vertical equivalent. Use RULE_FRAME, RULE_ALL or RULE_NONE for vrules, '
+                         'and RULE_HEADER for hrules.'.format(hrule.name)) from None
+
+
 def _as_row_action(action: str | RowAction | None) -> RowAction | None:
     """
     Return ``action`` if it is a row action worth calling, otherwise **None**.
@@ -214,28 +249,46 @@ class TableStyle():
 
     ``hrules`` and ``vrules`` can use the following ``RULE`` values for the rows and columns respectively:
 
-        +-------------+-------------------------------------------------------------------+
-        | value       | action                                                            |
-        +-------------+-------------------------------------------------------------------+
-        | RULE_FRAME  | Draw ruled lines around the outside (frame) of the table.         |
-        | RULE_HEADER | Draw ruled lines around the header of the table.                  |
-        | RULE_ALL    | Draw ruled line around the table, header and between columns/rows.|
-        | RULE_NONE   | Do not draw any rules lines around columns/rows.                  |
-        +-------------+-------------------------------------------------------------------+
+        +-------------+--------------------------------------------------------------------+
+        | value       | action                                                             |
+        +=============+====================================================================+
+        | RULE_FRAME  | Draw ruled lines around the outside (frame) of the table.          |
+        +-------------+--------------------------------------------------------------------+
+        | RULE_HEADER | Draw ruled lines around the header of the table.                   |
+        +-------------+--------------------------------------------------------------------+
+        | RULE_ALL    | Draw ruled line around the table, header and between columns/rows. |
+        +-------------+--------------------------------------------------------------------+
+        | RULE_NONE   | Do not draw any rules lines around columns/rows.                   |
+        +-------------+--------------------------------------------------------------------+
+
+    ``RULE_HEADER`` is the one exception: a rule around the header has no vertical equivalent, so
+    it is legal for ``hrules`` only. Passing it as ``vrules`` raises a **ValueError**.
     """
     def __init__(self, show_cols: bool = True, show_border: bool = True,
-                 hrules: pt.HRuleStyle = RULE_FRAME, vrules: pt.HRuleStyle = RULE_ALL,
+                 hrules: pt.HRuleStyle = RULE_FRAME,
+                 vrules: pt.HRuleStyle | pt.VRuleStyle = RULE_ALL,
                  rows_per_page: int | None = 20) -> None:
-        # vrules is annotated HRuleStyle because that is what all four RULE_* constants
-        # are, and what this class documents callers to pass. prettytable wants a
-        # VRuleStyle; three of the four happen to share values with one, and RULE_HEADER
-        # has no counterpart at all and raises. See #65.
         self.show_cols = show_cols
         self.show_border = show_border
         self.hrules = hrules
         self.vrules = vrules
         self.rows_per_page = rows_per_page
         #TODO -- add:   header fmt str, footer fmt str, alignment, tag_alignment.
+
+    @property
+    def vrules(self) -> pt.VRuleStyle:
+        """
+        Which vertical lines to draw, as one of the ``RULE_*`` values.
+
+        Stored as the ``VRuleStyle`` prettytable wants rather than the ``HRuleStyle`` the
+        ``RULE_*`` constants are, so that an unusable value is rejected here, where it was
+        written, instead of on the next redraw.
+        """
+        return self._vrules
+
+    @vrules.setter
+    def vrules(self, rule: pt.HRuleStyle | pt.VRuleStyle) -> None:
+        self._vrules = _as_vrule(rule)
 
 
 class TableItem(object):

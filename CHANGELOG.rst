@@ -68,6 +68,19 @@ see TODO.md for list of TODO items
     format strings reference ``action_dict`` by name only, so nothing ever indexed it, but a
     caller who wrote ``{0}`` got a ``TypeError`` rather than the ``IndexError`` that says
     what is actually wrong.
+  * fixed: ``TableStyle(vrules=RULE_HEADER)`` raised ``ValueError: Invalid value for vrules``,
+    although ``TableStyle`` documents all four ``RULE_*`` values for both axes. The four
+    constants are ``prettytable`` ``HRuleStyle`` members, and vertical rules want a
+    ``VRuleStyle``; ``RULE_FRAME``, ``RULE_ALL`` and ``RULE_NONE`` worked only by the
+    coincidence that they carry the same values in both enums, and ``RULE_HEADER`` has no
+    vertical counterpart at all -- a rule around the header means nothing between *columns*.
+    ``TableStyle`` now translates ``vrules`` as it is set, so the three usable values keep
+    working as spelled and ``RULE_HEADER`` is refused where it is written, with a message
+    naming the values that are legal there, instead of surfacing from inside a later
+    ``refresh_items``. ``RULE_HEADER`` remains valid for ``hrules``, and the class documents
+    the restriction. Its table of ``RULE`` values now renders as four rows rather than one:
+    the grid was missing the row separators, so docutils had been folding all four
+    descriptions into a single cell.
   * tests: package coverage reached 100% (branch coverage, source only) and the suite grew to
     456 tests. The CI floor is now ``--cov-fail-under=99`` -- deliberately one point below the
     measured value, so that a genuinely awkward line does not have to be answered with a

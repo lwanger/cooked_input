@@ -137,17 +137,6 @@ exclude = [
     "scripts",
 ]
 
-# The last standing suppression, and the only one that is not a checker artifact: the four
-# RULE_* constants are all HRuleStyle members, but TableStyle documents them for `vrules`
-# too, which prettytable types as VRuleStyle. Three of the four happen to share values with
-# a VRuleStyle member and RULE_HEADER has no counterpart at all, so TableStyle(vrules=
-# RULE_HEADER) raises. Fixing that changes behaviour and needs its own PR -- see #65.
-[[tool.ty.overrides]]
-include = ["cooked_input/get_table.py"]
-
-[tool.ty.overrides.rules]
-invalid-assignment = "ignore"
-
 [tool.setuptools.packages.find]
 # Matches the old find_packages() result: cooked_input and cooked_input.tests.
 # cooked_input/examples has no __init__.py, so it is not an importable package;
