@@ -208,7 +208,9 @@ class TestDecimalConvertor:
 
     def test_a_non_integer_precision_is_rejected_at_construction(self):
         with pytest.raises(ValueError, match="precision must be a whole number"):
-            DecimalConvertor(precision=2.5)
+            # A fractional precision is the point: the guard is for callers who are not
+            # running a type checker.
+            DecimalConvertor(precision=2.5)  # ty: ignore[invalid-argument-type]
 
     def test_junk_input_raises_convertor_error(self):
         # Regression guard for #48: decimal raises InvalidOperation, an ArithmeticError,
