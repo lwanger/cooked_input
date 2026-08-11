@@ -116,7 +116,9 @@ class TestCleaners(object):
 
         assert repr(rc) == "RemoveCleaner(patterns=['is', 'bar'])"
 
-        rc = RemoveCleaner(patterns=['is', 10])
+        # A non-string pattern is the point: str.replace rejects it at call time, which
+        # is why the construction sits outside the raises block.
+        rc = RemoveCleaner(patterns=['is', 10])  # ty: ignore[invalid-argument-type]
         with pytest.raises(TypeError):
             fake_input(input_str)
             result = get_input(cleaners=rc)

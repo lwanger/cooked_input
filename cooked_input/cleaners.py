@@ -6,9 +6,13 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017-2026
 """
 
+from __future__ import annotations
+
 import re
 from string import capwords
 from abc import ABCMeta, abstractmethod
+from collections.abc import Iterable
+from typing import Any
 
 from .input_utils import put_in_a_list, cap_last_word
 
@@ -45,11 +49,15 @@ class Cleaner(metaclass=ABCMeta):
     of failing. ``__init__`` is deliberately not abstract, so a subclass that only implements
     ``__call__`` still works.
     """
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     @abstractmethod
-    def __call__(self, value):
+    def __call__(self, value: Any) -> Any:
+        # Any in both directions on purpose. Cleaners are chained through
+        # input_utils.compose, so what arrives is whatever the previous cleaner
+        # returned, and ChoiceCleaner may hand back a non-string choice. Concrete
+        # cleaners that really do require a string say so in their own signatures.
         pass
 
 
@@ -83,7 +91,7 @@ class CapitalizationCleaner(Cleaner):
   on getting the last word.
 
     """
-    def __init__(self, style='lower'):
+    def __init__(self, style: int | str = 'lower') -> None:
         if isinstance(style, int):
             if style in CAP_STYLES:
                 self._style = style
@@ -95,7 +103,7 @@ class CapitalizationCleaner(Cleaner):
             else:
                 raise ValueError('CapitalizationCleaner: {} is not a valid capitalization style'.format(style))
 
-    def __call__(self, value):
+    def __call__(self, value: str) -> str:
         if self._style == LOWER_CAP_STYLE:
             return value.lower()
         elif self._style == UPPER_CAP_STYLE:
@@ -107,7 +115,7 @@ class CapitalizationCleaner(Cleaner):
         else:    # ALL_WORDS_CAP_STYLE:
             return capwords(value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'CapitalizationCleaner(style={})'.format(self._style)
 
 
@@ -122,11 +130,11 @@ class StripCleaner(Cleaner):
     Strips white space from the input value. Strips from the left side if lstrip=True, and from the
     right side if rstrip=True. Both are True by default (i.e. strips from both left and right).
     """
-    def __init__(self, lstrip=True, rstrip=True):
+    def __init__(self, lstrip: bool = True, rstrip: bool = True) -> None:
         self._lstrip = lstrip
         self._rstrip = rstrip
 
-    def __call__(self, value):
+    def __call__(self, value: str) -> str:
         result = value
         if self._lstrip:
             result = result.lstrip()
@@ -134,7 +142,7 @@ class StripCleaner(Cleaner):
             result = result.rstrip()
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'StripCleaner(lstrip=%r, rstrip=%s)' % (self._lstrip, self._rstrip)
 
 
@@ -177,7 +185,7 @@ class ChoiceCleaner(Cleaner):
 
 .. [#f2] Would return `"brown"` if ``case_sensitive`` is **False**
     """
-    def __init__(self, choices, case_sensitive=True):
+    def __init__(self, choices: Iterable[Any], case_sensitive: bool = True) -> None:
         self._case_sensitive = case_sensitive
 
         # create a dictionary as choices may not be strings
@@ -186,7 +194,9 @@ class ChoiceCleaner(Cleaner):
         else:
             self._str_choices = {str(choice).lower(): choice for choice in choices}
 
-    def __call__(self, value):
+    def __call__(self, value: Any) -> Any:
+        # The one cleaner that is not str -> str: choices may hold any object, and a
+        # match returns the choice itself rather than the text that selected it.
         if self._case_sensitive:
             str_value = str(value)
         else:
@@ -200,7 +210,7 @@ class ChoiceCleaner(Cleaner):
         else:
             return value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'ChoiceCleaner(choices={})'.format(self._str_choices)
 
 
@@ -215,11 +225,11 @@ class RemoveCleaner(Cleaner):
 
     Removes all occurrences of any of the strings in the ``patterns`` list from the input value.
     """
-    def __init__(self, patterns, count=0):
+    def __init__(self, patterns: str | Iterable[str], count: int = 0) -> None:
         self._patterns = put_in_a_list(patterns)
         self._count = count
 
-    def __call__(self, value):
+    def __call__(self, value: str) -> str:
         result = value
         for pattern in self._patterns:
             if self._count == 0:
@@ -229,7 +239,7 @@ class RemoveCleaner(Cleaner):
 
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'RemoveCleaner(patterns={})'.format(self._patterns)
 
 
@@ -246,12 +256,12 @@ class ReplaceCleaner(Cleaner):
     Replaces occurrences of ``old`` string with ``new`` string from the input value. If `count` is specified the first
     ``count`` occurrences, from left to right, are replaced. If count is **0**, or not specified, all occurrences are replaced.
     """
-    def __init__(self, old, new, count=0):
+    def __init__(self, old: str, new: str, count: int = 0) -> None:
         self._old = str(old)
         self._new = str(new)
         self._count = count
 
-    def __call__(self, value):
+    def __call__(self, value: str) -> str:
         if self._count == 0:
             result = value.replace(self._old, self._new)
         else:
@@ -259,7 +269,7 @@ class ReplaceCleaner(Cleaner):
 
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'ReplaceCleaner(old="{}", new="{}")'.format(self._old, self._new)
 
 
@@ -282,15 +292,16 @@ class RegexCleaner(Cleaner):
     `re.sub <https://docs.python.org/3/library/re.html#re.sub>`_ function in the `re <https://docs.python.org/3/library/re.html>`_
     module in the Python standard library.
     """
-    def __init__(self, pattern, repl, count=0, flags=0):
+    def __init__(self, pattern: str | re.Pattern[str], repl: str, count: int = 0,
+                 flags: int | re.RegexFlag = 0) -> None:
         self._pattern = pattern
         self._repl = repl
         self._count = count
         self._flags = flags
 
-    def __call__(self, value):
+    def __call__(self, value: str) -> str:
         result = re.sub(self._pattern, self._repl, value, count=self._count, flags=self._flags)
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'RegexCleaner(pattern={}, repl={}, count={}, flags={})'.format(self._pattern, self._repl, self._count, self._flags)
