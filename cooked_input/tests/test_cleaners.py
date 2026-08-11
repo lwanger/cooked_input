@@ -137,7 +137,8 @@ class TestCleaners(object):
         assert (result == 'foo & bar and blat')
 
         with pytest.raises(TypeError):
-            rc = ReplaceCleaner(old='and', new='&', bad_option='foo')
+            # The bad keyword is the point of the test, so the type error is expected.
+            rc = ReplaceCleaner(old='and', new='&', bad_option='foo')  # ty: ignore[unknown-argument]
 
 
     def test_regex_cleaner(self, fake_input):
