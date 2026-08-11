@@ -59,8 +59,7 @@ within the correct range, etc. becomes::
                 print('That is not an integer, try again.')
 
 That's a lot of code to handle the simplest of inputs. This also forces a beginer to deal with advanced concepts such
-as exceptions and versions of Python. This boiler plate code
-is replicated and expanded for each input from the
+as exceptions. This boiler plate code is replicated and expanded for each input from the
 command line. Just think of how much code you would need to get and validate a new password from a user --
 making sure the input is hidden, is at least 8 characters long, has at least 2 upper case letters, has at least 2
 punctuation marks, has at least 1 number, doesn't use the characters '[', ']', or '&', and
