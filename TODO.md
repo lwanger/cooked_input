@@ -13,7 +13,6 @@ a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version 
 
 ## Next Up:
 
-- [ ] Add type hints
 - [ ] Re-test Python 3.15 once it is released (expected October 2026). It is currently blocked
   upstream, not by us: `regex`, a transitive dependency via `dateparser`, has no cp315 wheels,
   so installing on 3.15.0b3 falls back to a source build. Nothing to change here until then --
@@ -25,6 +24,29 @@ a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version 
 ## Completed:
 
 Items here move into CHANGELOG.rst when the version number is incremented.
+
+- [x] Add type hints. Every function, method and class in `cooked_input/` is annotated, and
+  `py.typed` ships in the wheel and the sdist so downstream projects actually see them --
+  verified by installing the built wheel into a clean environment and type-checking a
+  consumer against it, not just by looking for the file in the archive.
+
+  Two tools, because neither is sufficient alone: `ty` checks that the annotations are
+  correct, and Ruff's `ANN` rules check that they exist, which `ty` has no way to report.
+  Both run in the `types` CI job. `ty` is pinned exactly rather than floored, since it is
+  pre-1.0 and its diagnostics move between releases. The per-module annotation ratchet in
+  `per-file-ignores` is now empty of source modules; only the tests and examples remain
+  exempt, by policy.
+
+  The type checker found six real defects, each of which is described in CHANGELOG.rst:
+  `TableStyle(rows_per_page=None)` crashing every navigation method, `get_money` refusing a
+  single cleaner, `Table.do_action` calling a string, `process_value` returning a bare tuple,
+  and `vformat` passed `None` for its positional arguments. Three more were filed rather than
+  fixed, because each changes public behavior and wants its own decision: #65, #66 and #71.
+
+  The docs now take parameter and return types from the annotations via
+  `sphinx-autodoc-typehints`, so the 171 `:param <type> <name>:` and 46 `:rtype:` fields are
+  gone. That was not only tidying -- a docstring type shadows the annotation, and several had
+  gone stale. A `docs` CI job now builds with `-W`, mirroring Read the Docs.
 
 - [x] Improve test cases and coverage. Package coverage went 79.6% -> 98.0% (branch
   coverage, source only) and the suite went from 86 tests to 391. get_table.py, the
@@ -87,14 +109,12 @@ Items here move into CHANGELOG.rst when the version number is incremented.
 * Add model tooling (uv? lock files? Poetry?)
 * add dash/zeal docset (add to: https://github.com/Kapeli/Dash-User-Contributions/tree/master/docsets) - https://kapeli.com/docsets#python
 * add support for Rich (text color, tables, etc)
-* full type hinting (run through mypy?)
 * expand tutorials
   * add support for rich consoles, rich tables?
 
 * general:
     * Create extension directory (can add things with extra pip requirements like viridus)
     * Add profanity-check extension (https://github.com/vzhou842/profanity-check)
-    * Add type hint stub files (*.pyi) 
     * _get_choice should create a GetInput instance and call get_input on it, instead of calling the GetInput.get_input
         convenience function (so don't have to reconstruct the GetInput everytime through the loop)
     * List processing - have process done on each list element - allows ChoiceCleaner on each element, etc.
