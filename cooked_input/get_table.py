@@ -10,8 +10,12 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017-2026
 """
 
+from __future__ import annotations
+
 import sys
 import string
+from collections.abc import Iterable, Sequence
+from typing import Any, NoReturn
 
 import prettytable as pt  # note: pt.TableStyle is prettytable's style enum, not our TableStyle class below
 
@@ -19,8 +23,9 @@ from cooked_input import get_input
 from cooked_input import GetInputInterrupt, RefreshScreenInterrupt
 from cooked_input import PageUpRequest, PageDownRequest, FirstPageRequest, LastPageRequest, UpOneRowRequest, DownOneRowRequest
 
+from ._typing import ItemFilter, RowAction
 from .input_utils import put_in_a_list, isstring
-from .cleaners import CapitalizationCleaner, StripCleaner, ChoiceCleaner
+from .cleaners import Cleaner, CapitalizationCleaner, StripCleaner, ChoiceCleaner
 from .convertors import ChoiceConvertor
 from .validators import ChoiceValidator
 
@@ -45,8 +50,25 @@ RULE_ALL = pt.HRuleStyle.ALL
 RULE_NONE = pt.HRuleStyle.NONE
 
 
+def _as_row_action(action: str | RowAction | None) -> RowAction | None:
+    """
+    Return ``action`` if it is a row action worth calling, otherwise **None**.
+
+    :param action: a row's ``action``, or a table's ``default_action``
+    :return: the action to call, or **None** if there is nothing callable here
+
+    An action is either one of the ``TABLE_ITEM_*`` sentinels -- plain strings -- or a
+    function to call when the row is chosen. ``callable()`` on its own does not separate the
+    two cleanly, so the string case is ruled out first.
+    """
+    if isinstance(action, str) or not callable(action):
+        return None
+
+    return action
+
+
 # Supplied table actions
-def return_table_item_action(row, action_dict):
+def return_table_item_action(row: TableItem, action_dict: dict[str, Any]) -> TableItem:
     """
     Action function for Tables. This function returns the TableItem instance. Used by the **TABLE_RETURN_TABLE_ITEM** action.
 
@@ -59,7 +81,7 @@ def return_table_item_action(row, action_dict):
     return row
 
 
-def return_row_action(row, action_dict):
+def return_row_action(row: TableItem, action_dict: dict[str, Any]) -> list[Any]:
     """
     Default action function for Tables. This function returns the whole row of data including the tag. Used by
     the **TABLE_RETURN_ROW** action.
@@ -73,7 +95,7 @@ def return_row_action(row, action_dict):
     return [row.tag] + row.values
 
 
-def return_tag_action(row, action_dict):
+def return_tag_action(row: TableItem, action_dict: dict[str, Any]) -> Any:
     """
     Default action function for tables. This function returns the tag for the row of data. Used by the **TABLE_RETURN_TAG** action.
 
@@ -85,7 +107,7 @@ def return_tag_action(row, action_dict):
     return row.tag
 
 
-def return_first_col_action(row, action_dict):
+def return_first_col_action(row: TableItem, action_dict: dict[str, Any]) -> Any:
     """
     Default action function for tables. This function returns the first data column value for the row of
         data. Used by the **TABLE_RETURN_FIRST_VAL** action.
@@ -99,7 +121,7 @@ def return_first_col_action(row, action_dict):
 
 
 # command actions for supporting table pagination
-def first_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
+def first_page_cmd_action(cmd_str: str, cmd_vars: str, cmd_dict: dict[str, Any] | None) -> NoReturn:
     """
     Command action to show the first (home) page in a paginated table. This command raises a :class:`FirstPageRequest`
     exception.
@@ -112,7 +134,7 @@ def first_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
     raise FirstPageRequest
 
 
-def last_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
+def last_page_cmd_action(cmd_str: str, cmd_vars: str, cmd_dict: dict[str, Any] | None) -> NoReturn:
     """
     Command action to show the last (end) page in a paginated table. This command raises a :class:`LastPageRequest`
     exception.
@@ -125,7 +147,7 @@ def last_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
     raise LastPageRequest
 
 
-def next_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
+def next_page_cmd_action(cmd_str: str, cmd_vars: str, cmd_dict: dict[str, Any] | None) -> NoReturn:
     """
     Command action to show the next page in a paginated table. This command raises a :class:`PageDownRequest`
     exception.
@@ -138,7 +160,7 @@ def next_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
     raise PageDownRequest
 
 
-def prev_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
+def prev_page_cmd_action(cmd_str: str, cmd_vars: str, cmd_dict: dict[str, Any] | None) -> NoReturn:
     """
     Command action to show the previous page in a paginated table. This command raises a :class:`PageUpRequest`
     exception.
@@ -151,7 +173,7 @@ def prev_page_cmd_action(cmd_str, cmd_vars, cmd_dict):
     raise PageUpRequest
 
 
-def scroll_up_one_row_cmd_action(cmd_str, cmd_vars, cmd_dict):
+def scroll_up_one_row_cmd_action(cmd_str: str, cmd_vars: str, cmd_dict: dict[str, Any] | None) -> NoReturn:
     """
     Command action to scroll up one row in a paginated table. This command raises a :class:`UpOneRowRequest`
     exception.
@@ -164,7 +186,7 @@ def scroll_up_one_row_cmd_action(cmd_str, cmd_vars, cmd_dict):
     raise UpOneRowRequest
 
 
-def scroll_down_one_row_cmd_action(cmd_str, cmd_vars, cmd_dict):
+def scroll_down_one_row_cmd_action(cmd_str: str, cmd_vars: str, cmd_dict: dict[str, Any] | None) -> NoReturn:
     """
     Command action to scroll down one row in a paginated table. This command raises a :class:`DownOneRowRequest`
     exception.
@@ -203,7 +225,13 @@ class TableStyle():
         | RULE_NONE   | Do not draw any rules lines around columns/rows.                  |
         +-------------+-------------------------------------------------------------------+
     """
-    def __init__(self, show_cols=True, show_border=True, hrules=RULE_FRAME, vrules=RULE_ALL, rows_per_page=20):
+    def __init__(self, show_cols: bool = True, show_border: bool = True,
+                 hrules: pt.HRuleStyle = RULE_FRAME, vrules: pt.HRuleStyle = RULE_ALL,
+                 rows_per_page: int | None = 20) -> None:
+        # vrules is annotated HRuleStyle because that is what all four RULE_* constants
+        # are, and what this class documents callers to pass. prettytable wants a
+        # VRuleStyle; three of the four happen to share values with one, and RULE_HEADER
+        # has no counterpart at all and raises. See #65.
         self.show_cols = show_cols
         self.show_border = show_border
         self.hrules = hrules
@@ -256,7 +284,10 @@ class TableItem(object):
             * **row** (TableItem) -- The ``TableItem`` instance selected (i.e. this table item)
             * **action_dict** (Dict) --  The parent table's ``action_dict``.
     """
-    def __init__(self, col_values, tag=None, action=TABLE_ITEM_DEFAULT, item_data=None, hidden=False, enabled=True):
+    def __init__(self, col_values: Any, tag: Any = None,
+                 action: str | RowAction = TABLE_ITEM_DEFAULT,
+                 item_data: dict[str, Any] | None = None, hidden: bool = False,
+                 enabled: bool = True) -> None:
 
         self.values = put_in_a_list(col_values)
         self.tag = tag
@@ -265,7 +296,7 @@ class TableItem(object):
         self.hidden = hidden
         self.enabled = enabled
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'TableItem(col_values={}, tag={}, action={}, item_data={}, hidden={}, enabled={})'.format(self.values,
                                                     self.tag, self.action, self.item_data, self.hidden, self.enabled)
 
@@ -382,8 +413,10 @@ class Table(object):
                 TableItem('list users', action=user_list_action) ]
             menu = Table(menu_items=rows, action_dict=action_dict, item_filter=user_role_filter)
     """
-    def __init__(self, rows, col_names=None, title=None, prompt=None, default_choice=None, default_str=None,
-                 default_action=None, style=None, **options):
+    def __init__(self, rows: Iterable[TableItem], col_names: str | Sequence[str] | None = None,
+                 title: str | None = None, prompt: str | None = None, default_choice: Any = None,
+                 default_str: str | None = None, default_action: str | RowAction | None = None,
+                 style: TableStyle | None = None, **options: Any) -> None:
 
         try:
             self.required = options['required']
@@ -475,10 +508,14 @@ class Table(object):
         if col_names is None:
             num_cols = len(self._table_items[0].values)
             field_names = ['col {}'.format(i) for i in range(1, num_cols+1)]
-        elif isstring(col_names):
+        elif isinstance(col_names, str):
+            # A single string is shorthand for whitespace-separated column names. This tested
+            # isstring(), which also answers True for bytes -- but bytes.split() yields bytes,
+            # and a bytes column name is not something the rest of this method or prettytable
+            # can do anything with. str is what the parameter has always meant.
             field_names = col_names.split()
         else:
-            field_names = col_names
+            field_names = list(col_names)
 
         # Dropped a `if len(field_names) != num_cols: raise RuntimeError(...)` check here.
         # Every branch above derives num_cols from field_names, so the two could never
@@ -503,11 +540,11 @@ class Table(object):
         self.show_rows(0)
 
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'Table(rows={}, col_name={}, title={}, prompt={}, default_choice={}, action_dict={})'.format(self._table_items,
                                             self.field_names, self.title, self.prompt, self.default_choice, self.action_dict)
 
-    def get_num_rows(self):
+    def get_num_rows(self) -> int:
         """
         Get the number of rows in the table.
 
@@ -516,7 +553,7 @@ class Table(object):
         """
         return len(self._rows)
 
-    def get_row(self, tag):
+    def get_row(self, tag: Any) -> TableItem:
         """
         Get the number of rows in the table.
 
@@ -528,7 +565,7 @@ class Table(object):
                 return row
         raise ValueError('Table.get_row: tag ({}) not in the table'.format(tag))
 
-    def get_action(self, tag):
+    def get_action(self, tag: Any) -> str | RowAction:
         """
         Return the action callback function for the first row matching the specified tag.
 
@@ -539,7 +576,7 @@ class Table(object):
         row = self.get_row(tag)
         return row.action
 
-    def do_action(self, row):
+    def do_action(self, row: TableItem) -> Any:
         """
         Call the action function for the specified row
 
@@ -553,10 +590,18 @@ class Table(object):
             * **row** -- The :class:`TableItem` instance selected (i.e. this table item)
         """
         action = row.action
-        if callable(action):
-            return action(row, self.action_dict)
-        elif action == TABLE_ITEM_DEFAULT and self.default_action is not None:
-            return self.default_action(row, self.action_dict)
+        row_action = _as_row_action(action)
+        # Was `self.default_action is not None`, which it never is -- __init__ maps None to
+        # return_tag_action -- so an unrecognised string default_action reached the call and
+        # raised "'str' object is not callable". Table.run already tests the same value with
+        # callable() and reports it, and this method's own contract is to hand back the row
+        # when it has no action to run, so agreeing with both is what this asks now.
+        default_action = _as_row_action(self.default_action)
+
+        if row_action is not None:
+            return row_action(row, self.action_dict)
+        elif action == TABLE_ITEM_DEFAULT and default_action is not None:
+            return default_action(row, self.action_dict)
         elif action in (TABLE_ITEM_EXIT, TABLE_ITEM_RETURN):
             # Fixing: 'exit' is neither callable nor the default sentinel, so this used to
             # fall through and hand back the TableItem. A TableItem never equals 'exit', so
@@ -568,7 +613,25 @@ class Table(object):
         else:
             return row
 
-    def show_rows(self, start_row):
+    @property
+    def _page_size(self) -> int:
+        """
+        The number of rows on one page of the table.
+
+        :class:`TableStyle` documents ``rows_per_page=None`` as "no maximum", which is the
+        same thing as a single page holding every row. Saying so once here is what lets the
+        paging methods do arithmetic with it: they each used ``self.rows_per_page`` raw, and
+        none of them guarded, so ``TableStyle(rows_per_page=None)`` made page up, page down
+        and go-to-end raise ``TypeError: unsupported operand type(s) for -: 'int' and
+        'NoneType'``, and did the same to :meth:`refresh_items` whenever an item filter
+        shrank the table. With no maximum they are all no-ops that land on the first row.
+        """
+        if self.rows_per_page is None:
+            return self.get_num_rows()
+
+        return self.rows_per_page
+
+    def show_rows(self, start_row: int) -> None:
         """
         Set the starting row for to display in the table. Last row shown is the ``start_row`` plus the number of
         rows per page (or the last row if ``start_row`` is within ``rows_per_page`` of the end of the table).
@@ -579,16 +642,18 @@ class Table(object):
         """
         # set the starting and ending rows to show
         table_max_rows = self.get_num_rows()
-        if self.rows_per_page and start_row > (table_max_rows - self.rows_per_page):
-            start_row = table_max_rows - self.rows_per_page
+        rows_per_page = self._page_size
+
+        if rows_per_page and start_row > (table_max_rows - rows_per_page):
+            start_row = table_max_rows - rows_per_page
 
         if start_row < 1:
             self.table.start = 0
         else:
             self.table.start = start_row
 
-        if self.rows_per_page:
-            table_end = self.table.start + self.rows_per_page
+        if rows_per_page:
+            table_end = self.table.start + rows_per_page
         else:
             table_end = table_max_rows
 
@@ -597,25 +662,25 @@ class Table(object):
 
         self.table.end = table_end
 
-    def page_up(self):
+    def page_up(self) -> None:
         """
         Display the previous page of the table (if available)
 
         :return: None
         """
-        self.show_rows(self.table.start - self.rows_per_page)
+        self.show_rows(self.table.start - self._page_size)
         print(self.table.get_string())
 
-    def page_down(self):
+    def page_down(self) -> None:
         """
         Display the next page of the table (if available)
 
         :return: None
         """
-        self.show_rows(self.table.start + self.rows_per_page)
+        self.show_rows(self.table.start + self._page_size)
         print(self.table.get_string())
 
-    def goto_home(self):
+    def goto_home(self) -> None:
         """
         Display the first page of the table
 
@@ -624,16 +689,16 @@ class Table(object):
         self.show_rows(0)
         print(self.table.get_string())
 
-    def goto_end(self):
+    def goto_end(self) -> None:
         """
         Display the last page of the table
 
         :return: None
         """
-        self.show_rows(self.get_num_rows() - self.rows_per_page)
+        self.show_rows(self.get_num_rows() - self._page_size)
         print(self.table.get_string())
 
-    def scroll_up_one_row(self):
+    def scroll_up_one_row(self) -> None:
         """
         Display the one row earlier in the table (if available)
 
@@ -646,7 +711,7 @@ class Table(object):
         self.show_rows(self.table.start - 1)
         print(self.table.get_string())
 
-    def scroll_down_one_row(self):
+    def scroll_down_one_row(self) -> None:
         """
         Display the one row later in the table (if available)
 
@@ -656,7 +721,8 @@ class Table(object):
         print(self.table.get_string())
 
 
-    def _prep_get_input(self, force_refresh=False):
+    def _prep_get_input(self, force_refresh: bool = False) -> tuple[
+            dict[str, int], list[Cleaner], ChoiceConvertor, ChoiceValidator]:
         """
         Internal function to prepare the table for getting input. Refreshes the tabl (for dynamic tables) and prepares
         the choices, cleaners, covertor and validators.
@@ -681,7 +747,7 @@ class Table(object):
 
         return choices, cleaners, convertor, validators
 
-    def refresh_screen(self):
+    def refresh_screen(self) -> None:
         """
         Display the current page of the table (including any header or footer)
 
@@ -691,7 +757,12 @@ class Table(object):
 
         # print header
         if self.header:
-            print(formatter.vformat(self.header, None, self.action_dict))
+            # vformat's second argument is the sequence of positional format arguments, and
+            # was None here. Header and footer strings reference action_dict by name only, so
+            # nothing ever indexed it -- but a caller who wrote {0} got TypeError instead of
+            # the IndexError that says what is actually wrong. An empty tuple is the honest
+            # "no positional arguments".
+            print(formatter.vformat(self.header, (), self.action_dict))
 
         # print table
         if self.title is not None:
@@ -701,10 +772,10 @@ class Table(object):
 
         # print footer
         if self.footer:
-            print(formatter.vformat(self.footer, None, self.action_dict))
+            print(formatter.vformat(self.footer, (), self.action_dict))
 
 
-    def show_table(self):
+    def show_table(self) -> None:
         """
         Show the table without asking for input.
 
@@ -716,7 +787,9 @@ class Table(object):
         self.refresh_screen()
 
 
-    def _get_choice(self, table_choices, table_cleaners, table_convertor, table_validators, **options):
+    def _get_choice(self, table_choices: dict[str, int], table_cleaners: list[Cleaner],
+                    table_convertor: ChoiceConvertor, table_validators: ChoiceValidator,
+                    **options: Any) -> TableItem | None:
         """
         Internal function to get the input for the table choice.
 
@@ -762,7 +835,7 @@ class Table(object):
                 table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input(force_refresh=True)
                 self.show_rows(0)
 
-    def get_table_choice(self, **options):
+    def get_table_choice(self, **options: Any) -> Any:
         """
         Prompts the user to choose a value from the table. This is the main method used to choose a value from a table.
 
@@ -792,7 +865,9 @@ class Table(object):
             return self.do_action(row)
 
 
-    def refresh_items(self, rows=None, add_exit=False, item_filter=None):
+    def refresh_items(self, rows: TableItem | Iterable[TableItem] | None = None,
+                      add_exit: bool | str = False,
+                      item_filter: ItemFilter | bool | None = None) -> None:
         """
         Refresh which rows of the table are enabled and shown. Used to update rows in the table. Adds tags if
         necessary. `formatter <https://docs.python.org/3.6/library/formatter.html>`_ is used so values can be
@@ -860,7 +935,7 @@ class Table(object):
             for v in item.values:
                 if isstring(v):
                     try:
-                        formatted_val = formatter.vformat(str(v), None, self.action_dict)
+                        formatted_val = formatter.vformat(str(v), (), self.action_dict)
                     except (ValueError, KeyError):
                         # A curly brace in the value breaks the format string, so double the
                         # braces up and format the literal text instead. An unmatched brace
@@ -869,7 +944,7 @@ class Table(object):
                         # nothing caught -- so any table holding data with a {word} in it,
                         # such as a template or a log line, crashed on display.
                         v2 = str(v).replace('}', '}}').replace('{', '{{')
-                        formatted_val = formatter.vformat(str(v2), None, self.action_dict)
+                        formatted_val = formatter.vformat(str(v2), (), self.action_dict)
 
                     item_values.append(formatted_val)
                 else:
@@ -908,7 +983,7 @@ class Table(object):
 
         if self.table.start > self.get_num_rows():
             # filtering can cause the table to not show any rows. If so, show last page of filtered table
-            start_row = max(self.get_num_rows() - self.rows_per_page, 0)
+            start_row = max(self.get_num_rows() - self._page_size, 0)
             self.show_rows(start_row)
 
         if self.rows_per_page:
@@ -917,7 +992,7 @@ class Table(object):
             self.table.end = self.get_num_rows()
 
 
-    def __call__(self, choice=None, action_dict=None):
+    def __call__(self, choice: Any = None, action_dict: dict[str, Any] | None = None) -> bool:
         """
         Call the run method on the table.
 
@@ -933,7 +1008,7 @@ class Table(object):
         return self.run()
 
 
-    def run(self):
+    def run(self) -> bool:
         """
         Continue to get input from the table until a blank row (**None**) is returned, or a :class:`GetInputInterrupt`
             exception is raised. This is primarily used to use tables as menus. Choosing exit or return in a menu is
@@ -958,27 +1033,30 @@ class Table(object):
                 # meant, so `action` was never assigned on this path. First time
                 # through the loop that is an UnboundLocalError; later it leaves the
                 # previous row's action in place and `str - str` raises TypeError.
-                # Blank input has therefore never been able to exit the menu.
-                action = TABLE_ITEM_EXIT
-            else:
-                action = choice.action
-
-            if action == TABLE_ITEM_EXIT:
+                # Blank input has therefore never been able to exit the menu. Choosing no
+                # row means the same as choosing the exit row, so leaving the loop here is
+                # more direct than setting a sentinel for the chain below to decode again --
+                # and it is what makes `choice` a row from this point down.
                 break
-            elif action == TABLE_ITEM_RETURN:
+
+            action = choice.action
+            default_action = _as_row_action(self.default_action)
+            row_action = _as_row_action(action)
+
+            if action in (TABLE_ITEM_EXIT, TABLE_ITEM_RETURN):
                 break
             elif action == TABLE_ITEM_DEFAULT:
-                if callable(self.default_action):
+                if default_action is not None:
                     try:
-                        self.default_action(choice, self.action_dict)
+                        default_action(choice, self.action_dict)
                     except (GetInputInterrupt) as gii:
                         print('\n{}\n'.format(gii))
                         return False
                 else:
                     print('Table:run: default_action not set for {}'.format(choice), file=sys.stderr)
-            elif callable(action):
+            elif row_action is not None:
                 try:
-                    action(choice, self.action_dict)
+                    row_action(choice, self.action_dict)
                 except (GetInputInterrupt) as gii:
                     print('\n{}\n'.format(gii))
                     continue
@@ -992,7 +1070,9 @@ class Table(object):
         return True
 
 
-def create_rows(items, fields, gen_tags=None, item_data=None, add_item_to_item_data=False):
+def create_rows(items: Any, fields: Sequence[str], gen_tags: bool | None = None,
+                item_data: dict[str, Any] | None = None,
+                add_item_to_item_data: bool = False) -> list[TableItem]:
     """
     Create a list of TableItems from an iterable (items) of objects
 
@@ -1111,9 +1191,13 @@ def create_rows(items, fields, gen_tags=None, item_data=None, add_item_to_item_d
     return tis
 
 
-def create_table(items, fields, field_names=None, gen_tags=None, item_data=None,
-                 add_item_to_item_data=False, title=None, prompt=None, default_choice=None,
-                 default_str=None, default_action=TABLE_RETURN_TABLE_ITEM, style=None, **options):
+def create_table(items: Any, fields: Sequence[str], field_names: Sequence[str] | None = None,
+                 gen_tags: bool | None = None, item_data: dict[str, Any] | None = None,
+                 add_item_to_item_data: bool = False, title: str | None = None,
+                 prompt: str | None = None, default_choice: Any = None,
+                 default_str: str | None = None,
+                 default_action: str | RowAction = TABLE_RETURN_TABLE_ITEM,
+                 style: TableStyle | None = None, **options: Any) -> Table:
     """
     Convenience function to create ``cooked_input`` a table.
 
@@ -1169,33 +1253,25 @@ def create_table(items, fields, field_names=None, gen_tags=None, item_data=None,
         item = choice.item_data["item"]
         print('{}: {}'.format(item['name'], item['season']))
     """
-    use_field_names = None
     new_options = dict(**options)
-    if 'tag_str' in options:
-        use_tag_str = options['tag_str']
-    else:
-        use_tag_str = None
+    use_tag_str = options.get('tag_str')
 
-    if field_names is None:
-        use_field_names = fields
+    # `fields` names the columns when the caller supplied no display names of its own. Both
+    # arms below only ever read from this one sequence; the previous form interleaved the
+    # two sources, which meant every branch had to re-ask which one it was looking at -- and
+    # left a field_names[1:] on a path where field_names could not be proved non-None.
+    column_names = fields if field_names is None else field_names
 
     if gen_tags is True:
-        if use_field_names is None:
-            use_field_names = field_names
-
+        use_field_names = column_names
         if use_tag_str is None:
             use_tag_str = ' '
     else:
-        if use_field_names is None:
-            use_field_names = field_names[1:]
-        else:
-            use_field_names = use_field_names[1:]
-
+        # Without generated tags the first column becomes the row tag, so it leaves the
+        # table body and names the tag column instead.
+        use_field_names = column_names[1:]
         if use_tag_str is None:
-            if field_names is None:
-                use_tag_str = fields[0]
-            else:
-                use_tag_str = field_names[0]
+            use_tag_str = column_names[0]
 
     new_options['tag_str'] = use_tag_str
 
@@ -1210,7 +1286,7 @@ def create_table(items, fields, field_names=None, gen_tags=None, item_data=None,
     return tbl
 
 
-def show_table(table, **options):
+def show_table(table: Table, **options: Any) -> None:
     """
     Displays a table without asking for input from the user.
 
@@ -1222,7 +1298,7 @@ def show_table(table, **options):
     return table.show_table(**options)
 
 
-def get_table_input(table, **options):
+def get_table_input(table: Table, **options: Any) -> Any:
     """
     Get input value from a table of values.
 
@@ -1235,7 +1311,9 @@ def get_table_input(table, **options):
     return table.get_table_choice(**options)
 
 
-def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=False, style=None, **options):
+def get_menu(choices: Iterable[Any], title: str | None = None, prompt: str | None = None,
+             default_choice: Any = None, add_exit: bool | str = False,
+             style: TableStyle | None = None, **options: Any) -> Any:
     """
     :param choices: the list of text strings to use for the menu items
     :param title: a title to use for the menu

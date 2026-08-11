@@ -73,6 +73,7 @@ class TestCreateRowsFetchStrategies:
     def test_add_item_to_item_data_keeps_the_original_object(self):
         printer = Printer("Beast", "IO-PROD", "Model One G2")
         rows = create_rows([printer], FIELDS, add_item_to_item_data=True)
+        assert rows[0].item_data is not None
         assert rows[0].item_data["item"] is printer
 
     def test_add_item_to_item_data_is_merged_into_supplied_item_data(self):
