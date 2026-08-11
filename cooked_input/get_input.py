@@ -645,6 +645,9 @@ def get_money(symbol="$", separator=",", cleaners=(StripCleaner(),), validators=
     """
     :param str symbol: Symbol for the currency used (default: "$").
     :param str separator: Thousands separator (default: ",").
+    :param int precision: (optional) digits after the decimal point to round the amount to.
+        ``precision=2`` gives whole cents. If not given, the amount is not rounded at all.
+    :param str rounding: (optional) the rounding rule to use, see :class:`DecimalConvertor`.
     :param List[Cleaner] cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value. Not needed in general.
     :param List[Validator] validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
     :param options: all :class:`GetInput` options supported, see :class:`GetInput` documentation for details.
