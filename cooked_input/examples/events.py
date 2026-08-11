@@ -33,9 +33,6 @@ def cancel_cmd_action(cmd_str, cmd_vars, cmd_dict):
     else:
         return ci.CommandResponse(ci.COMMAND_ACTION_NOP, None)
 
-def exit_cmd_action(cmd_str, cmd_vars, cmd_dict):
-    return ci.CommandResponse(ci.COMMAND_ACTION_EXIT, None)
-
 help_cmd = ci.GetInputCommand(help_cmd_action)
 cancel_cmd = ci.GetInputCommand(cancel_cmd_action)
 app_cmds = {'/?': help_cmd, '/h': help_cmd, '/cancel': cancel_cmd}

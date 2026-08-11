@@ -35,7 +35,7 @@ This is the complete source for the event manager application built step by step
         return ci.CommandResponse(ci.COMMAND_ACTION_NOP, None)
 
     def cancel_cmd_action(cmd_str, cmd_vars, cmd_dict):
-        if ci.get_yes_no(prompt='Are you sure?', default='no') == 'yes':
+        if ci.get_yes_no(prompt='Are you sure you want to cancel?', default='no') == 'yes':
             print('\nCommand cancelled...')
             return ci.CommandResponse(ci.COMMAND_ACTION_CANCEL, None)
         else:
@@ -55,7 +55,7 @@ This is the complete source for the event manager application built step by step
         events = action_dict['events']
         event_types = action_dict['event_types']
         cmds = action_dict['commands']
-        desc = ci.get_string(prompt="Event description? ", commandscmd)
+        desc = ci.get_string(prompt="Event description? ", commands=cmds)
         tbl = ci.create_table(event_types, ["name", "desc"], ["Name", "Desc"], add_item_to_item_data=True)
         event_type = tbl.get_table_choice(prompt='Type? ', commands=cmds)
         date = ci.get_date(prompt='Date? ', default='today', commands=cmds)
@@ -87,7 +87,7 @@ This is the complete source for the event manager application built step by step
     def db_submenu_action(row, action_item):
         style = action_dict['menu_style']
         items = [ ci.TableItem('Delete all events', action=reset_db_action) ]
-        menu = ci.Table(rows=items, add_exit=ci.TABLE_ADD_RETURN, 'style', action_dict=action_dict)
+        menu = ci.Table(rows=items, add_exit=ci.TABLE_ADD_RETURN, style=style, action_dict=action_dict)
         menu.run()
 
     if __name__ == '__main__':
