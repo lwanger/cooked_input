@@ -178,11 +178,19 @@ class TestDoAction:
 
         assert table.do_action(table.get_row("1")) == "default for 1"
 
-    def test_a_row_with_no_usable_action_comes_back_unchanged(self):
-        # 'exit' is neither callable nor the default sentinel, so do_action returns
-        # the TableItem itself. This is why picking Exit yields a TableItem rather
-        # than the 'exit' tag -- the same defect get_menu has.
-        rows = [TableItem(["a row"], tag="1", action="exit")]
+    @pytest.mark.parametrize("action", ["exit", "return"])
+    def test_an_exit_row_yields_no_selection(self, action):
+        # Regression guard for #47: 'exit' is neither callable nor the default sentinel,
+        # so do_action used to fall through and hand back the TableItem -- which is why
+        # get_menu's `result == 'exit'` test could never be true.
+        rows = [TableItem(["a row"], tag="1", action=action)]
+        table = Table(rows, col_names=["Value"])
+        table.refresh_items()
+
+        assert table.do_action(table.get_row("1")) is None
+
+    def test_a_row_with_an_unrecognised_action_comes_back_unchanged(self):
+        rows = [TableItem(["a row"], tag="1", action="something else")]
         table = Table(rows, col_names=["Value"])
         table.refresh_items()
 
