@@ -75,6 +75,14 @@ class TestCreateRowsFetchStrategies:
         rows = create_rows([printer], FIELDS, add_item_to_item_data=True)
         assert rows[0].item_data["item"] is printer
 
+    def test_add_item_to_item_data_is_merged_into_supplied_item_data(self):
+        # The two options compose: item_data is copied per row and 'item' added to
+        # the copy, rather than one replacing the other.
+        printer = Printer("Beast", "IO-PROD", "Model One G2")
+        rows = create_rows([printer], FIELDS, item_data={"origin": "test"},
+                           add_item_to_item_data=True)
+        assert rows[0].item_data == {"origin": "test", "item": printer}
+
 
 class TestCreateRowsErrors:
     def test_an_item_with_no_usable_accessor_raises(self):
@@ -130,6 +138,27 @@ class TestCreateTable:
         fake_input("2")
         assert table.get_table_choice() == [2, "Ford2", "Dearborn"]
 
+    def test_the_field_names_default_to_the_field_list(self, capsys):
+        # field_names is optional: without it the raw field names become the headings.
+        items = [["Beast", "IO-PROD"], ["Ford2", "Dearborn"]]
+        table = create_table(items, ["name", "location"], gen_tags=True)
+        table.show_table()
+
+        rendered = capsys.readouterr().out
+        assert "name" in rendered and "location" in rendered
+
+    def test_without_gen_tags_the_first_field_becomes_the_tag_column(self, capsys):
+        # The first field is consumed as the tag, so it heads the tag column rather
+        # than appearing as a value column of its own.
+        items = [["Beast", "IO-PROD"], ["Ford2", "Dearborn"]]
+        table = create_table(items, ["name", "location"])
+        table.show_table()
+
+        rendered = capsys.readouterr().out
+        assert "name" in rendered and "location" in rendered
+        # 'Beast' is the tag now, not a value.
+        assert table.get_row("Beast").values == ["IO-PROD"]
+
 
 class TestModuleLevelWrappers:
     def test_show_table_renders_the_table(self, capsys):
@@ -179,6 +208,33 @@ class TestGetMenu:
         # with picking Exit.
         fake_input("")
         assert get_menu(["red", "green"], add_exit=True, required=False) == "exit"
+
+    def test_a_supplied_style_replaces_the_borderless_menu_default(self, fake_input, capsys):
+        # A menu renders without borders unless the caller asks for a table style.
+        fake_input("1")
+        get_menu(["red", "green"], style=TableStyle(show_border=True, show_cols=True))
+        assert "|" in capsys.readouterr().out
+
+    def test_the_default_menu_style_has_no_borders(self, fake_input, capsys):
+        fake_input("1")
+        get_menu(["red", "green"])
+        assert "|" not in capsys.readouterr().out
+
+    def test_a_supplied_default_action_overrides_returning_the_tag(self, fake_input, capsys):
+        # get_menu installs return_tag_action unless the caller named one.
+        fake_input("2")
+        assert get_menu(["red", "green"], default_action=ci.return_first_col_action) == "green"
+
+    def test_a_default_choice_by_position_preselects_that_row(self, fake_input, capsys):
+        # Menu items carry no tags, so a numeric default_choice matches the 1-based
+        # position the table generates.
+        feeder = fake_input("")
+        assert get_menu(["red", "green", "blue"], default_choice="2") == 2
+        assert feeder.remaining == 0
+
+    def test_a_default_choice_by_value_preselects_that_row(self, fake_input, capsys):
+        fake_input("")
+        assert get_menu(["red", "green", "blue"], default_choice="green") == 2
 
 
 class TestTableStyleOptions:

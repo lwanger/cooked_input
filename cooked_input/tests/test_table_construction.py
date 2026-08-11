@@ -106,6 +106,79 @@ class TestInterruptFromTheChoicePrompt:
         assert feeder.remaining == 0
 
 
+class TestAddExitValidation:
+    def test_an_unrecognised_add_exit_value_is_rejected_at_construction(self):
+        # The guard lives here, which is why refresh_items can assume the value is
+        # one of the four legal ones and needs only to single out TABLE_ADD_RETURN.
+        with pytest.raises(RuntimeError, match="unexpected value for add_exit"):
+            make_table(col_names=["Value"], add_exit="return_row")
+
+
+class TestTableWithNoRows:
+    def test_an_exit_row_can_be_added_to_an_empty_table(self, capsys):
+        # The exit row's width is taken from the first row, so an empty table has to
+        # fall back to a single column rather than indexing into nothing.
+        table = Table([], col_names=["Value"], add_exit=True)
+        table.refresh_items(add_exit=True)
+
+        assert table.get_num_rows() == 1
+        assert table.get_row("exit").action == "exit"
+
+
+class TestHiddenRows:
+    def test_a_row_hidden_at_construction_is_not_rendered(self, capsys):
+        # item_filter drops hidden rows before they are added, but a TableItem built
+        # hidden reaches the table and has to be skipped when the rows are rendered.
+        rows = [
+            TableItem(["alpha"], tag="a"),
+            TableItem(["beta"], tag="b", hidden=True),
+            TableItem(["gamma"], tag="c"),
+        ]
+        table = Table(rows, col_names=["Value"])
+        table.refresh_items()
+        table.show_table()
+
+        rendered = capsys.readouterr().out
+        assert "alpha" in rendered and "gamma" in rendered
+        assert "beta" not in rendered
+
+
+class TestNonRefreshingTable:
+    """refresh=False builds the rows once, at construction, and never again."""
+
+    def test_the_rows_are_built_during_construction(self):
+        rows = [TableItem(["alpha"], tag="a"), TableItem(["beta"], tag="b")]
+        table = Table(rows, col_names=["Value"], add_exit=True, refresh=False)
+
+        # A refreshing table has no rows until refresh_items runs; this one does.
+        assert table.get_num_rows() == 3  # two rows plus the exit row
+        assert table.get_row("exit").action == "exit"
+
+    def test_show_table_does_not_rebuild_the_rows(self, capsys):
+        rows = [TableItem(["alpha"], tag="a")]
+        table = Table(rows, col_names=["Value"], refresh=False)
+
+        # Mutating the source list has no effect: a non-refreshing table is a snapshot.
+        rows.append(TableItem(["beta"], tag="b"))
+        table.show_table()
+
+        rendered = capsys.readouterr().out
+        assert "alpha" in rendered
+        assert "beta" not in rendered
+
+    def test_the_menu_loop_runs_without_rebuilding_between_choices(self, fake_input, capsys,
+                                                                   recording_action):
+        calls, action = recording_action
+        rows = [TableItem(["alpha"], tag="a", action=action),
+                TableItem(["beta"], tag="b", action=action)]
+        table = Table(rows, col_names=["Value"], add_exit=True, refresh=False)
+
+        feeder = fake_input("a", "b", "exit")
+        assert table.run() is True
+        assert [tag for tag, _ in calls] == ["a", "b"]
+        assert feeder.remaining == 0
+
+
 class TestRefreshRepagination:
     def test_the_window_is_clamped_when_the_table_shrinks(self):
         rows = [TableItem([f"row {i}"], tag=str(i)) for i in range(10)]

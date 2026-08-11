@@ -836,7 +836,9 @@ class Table(object):
 
         if item_filter is None or item_filter is True:
             filtered_items = table_items
-        elif callable(item_filter):
+        else:
+            # Everything that is not None or True is callable by now -- the guard above
+            # rejected the rest -- so this is an `else`, not a second `callable()` test.
             filtered_items = []
             for item in table_items:
                 # could set hidden and enabled directly, but it's easy to forget to return the tuple so warn the user...
@@ -884,10 +886,14 @@ class Table(object):
                 num_values = len(self._rows[0].values)
             row_values = ['' for i in range(num_values)]
            
-            if self.add_exit in (TABLE_ADD_EXIT, True):
-                row_tag, row_action = 'exit', TABLE_ITEM_EXIT
-            elif self.add_exit == TABLE_ADD_RETURN:
+            # __init__ rejects any add_exit outside {True, False, TABLE_ADD_EXIT,
+            # TABLE_ADD_RETURN}, and the test above has already excluded False and
+            # 'none', so only TABLE_ADD_RETURN needs naming -- everything still
+            # standing is a request for an exit row.
+            if self.add_exit == TABLE_ADD_RETURN:
                 row_tag, row_action = 'return', TABLE_ITEM_EXIT
+            else:
+                row_tag, row_action = 'exit', TABLE_ITEM_EXIT
 
             row_entry = TableItem(row_values, row_tag, row_action)
 
@@ -1282,15 +1288,12 @@ def get_menu(choices, title=None, prompt=None, default_choice=None, add_exit=Fal
         except (TypeError, ValueError):
             numeric_choice = None
 
+        # Menu items are built as TableItem(choice) just above, so mc.tag is always None
+        # and the menu's tags are the 1-based positions the table assigns. Matching on
+        # mc.tag, as the Table path does, would be dead code here.
         for i, mc in enumerate(menu_choices, start=1):
-            if mc.tag is not None and mc.tag == default_choice:
+            if mc.values[0] == default_choice or i == numeric_choice:
                 default_idx = i
-            elif mc.values[0] == default_choice:
-                default_idx = i
-            elif mc.tag is None and i == numeric_choice:
-                default_idx = i
-
-            if default_idx is not None:
                 break
 
     menu = Table(menu_choices, title=title, prompt=prompt, default_choice=default_idx, default_str=default_str,

@@ -20,10 +20,12 @@ from cooked_input import (
     RemoveCleaner,
     StripCleaner,
     SimpleValidator,
+    get_boolean,
     get_date,
     get_list,
     get_money,
     get_string,
+    get_yes_no,
     print_error,
     silent_error,
 )
@@ -98,6 +100,47 @@ class TestGetStringWithValidatorList:
         no_digits = SimpleValidator(lambda value: not any(c.isdigit() for c in value))
         fake_input("ab", "abcd")
         assert get_string(validators=no_digits, min_len=3, error_callback=silent_error) == "abcd"
+
+
+class TestConvenienceFunctionPrompts:
+    """Each get_* convenience function supplies a default prompt unless given one.
+
+    The whole suite had always taken the default, so the caller-supplied side of
+    that choice went untested in three functions at once.
+    """
+
+    def test_get_boolean_uses_its_default_prompt(self, fake_input):
+        feeder = fake_input("true")
+        assert get_boolean() is True
+        assert "Enter true or false" in feeder.prompts[0]
+
+    def test_get_boolean_prefers_a_caller_supplied_prompt(self, fake_input):
+        feeder = fake_input("true")
+        assert get_boolean(prompt="Ship it") is True
+        assert "Ship it" in feeder.prompts[0]
+        assert "Enter true or false" not in feeder.prompts[0]
+
+    def test_get_yes_no_uses_its_default_prompt(self, fake_input):
+        feeder = fake_input("yes")
+        assert get_yes_no() == "yes"
+        assert "Enter yes or no" in feeder.prompts[0]
+
+    def test_get_yes_no_prefers_a_caller_supplied_prompt(self, fake_input):
+        feeder = fake_input("no")
+        assert get_yes_no(prompt="Continue") == "no"
+        assert "Continue" in feeder.prompts[0]
+        assert "Enter yes or no" not in feeder.prompts[0]
+
+    def test_get_date_uses_its_default_prompt(self, fake_input):
+        feeder = fake_input("9/4/2017")
+        assert get_date().day == 4
+        assert "Enter a date" in feeder.prompts[0]
+
+    def test_get_date_prefers_a_caller_supplied_prompt(self, fake_input):
+        feeder = fake_input("9/4/2017")
+        assert get_date(prompt="Delivery date").day == 4
+        assert "Delivery date" in feeder.prompts[0]
+        assert "Enter a date" not in feeder.prompts[0]
 
 
 class TestGetDateWithValidatorList:
