@@ -17,14 +17,27 @@ from cooked_input import Cleaner, StripCleaner, CapitalizationCleaner, RemoveCle
 
 class TestCleaners(object):
 
-    def test_base_cleaner_is_instantiable_and_is_a_no_op(self):
-        # Cleaner declares `__metaclass__ = ABCMeta`, the Python 2 spelling, which is
-        # inert on Python 3. So the "abstract" base is instantiable and its __call__
-        # silently returns None rather than raising. Asserting it here means the day
-        # that is corrected to `class Cleaner(metaclass=ABCMeta)` this test fails
-        # loudly instead of the change slipping through as a coverage wobble.
-        c = Cleaner()
-        assert c(10) is None
+    def test_the_base_cleaner_cannot_be_instantiated(self):
+        # Regression guard for #50: Cleaner used to declare `__metaclass__ = ABCMeta`, the
+        # Python 2 spelling, which is inert on Python 3 -- so the "abstract" base was
+        # instantiable and its __call__ silently returned None.
+        with pytest.raises(TypeError, match="abstract"):
+            Cleaner()
+
+    def test_a_subclass_implementing_call_alone_is_concrete(self):
+        # __init__ is deliberately not abstract, so this common shape keeps working.
+        class ShoutCleaner(Cleaner):
+            def __call__(self, value):
+                return value.upper()
+
+        assert ShoutCleaner()("quiet") == "QUIET"
+
+    def test_a_subclass_without_call_cannot_be_instantiated(self):
+        class ForgetfulCleaner(Cleaner):
+            pass
+
+        with pytest.raises(TypeError, match="abstract"):
+            ForgetfulCleaner()
 
     def test_bad_cleaner(self, fake_input):
         input_str = 'foo'

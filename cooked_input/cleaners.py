@@ -34,11 +34,17 @@ CAP_STYLE_STRS = {
 ###
 ### Cleaners:
 ###
-class Cleaner(object):
-    # Abstract base class for cleaner classes
-    __metaclass__ = ABCMeta
+class Cleaner(metaclass=ABCMeta):
+    """
+    Abstract base class for cleaners. Subclasses must implement :meth:`__call__`, which takes
+    the value to clean and returns the cleaned value.
 
-    @abstractmethod
+    Fixing: this used to say ``__metaclass__ = ABCMeta``, the Python 2 spelling, which on
+    Python 3 is an inert class attribute. Nothing was enforced -- ``Cleaner()`` instantiated
+    happily and a subclass that forgot ``__call__`` returned **None** from every call instead
+    of failing. ``__init__`` is deliberately not abstract, so a subclass that only implements
+    ``__call__`` still works.
+    """
     def __init__(self):
         pass
 

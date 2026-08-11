@@ -8,6 +8,7 @@ Len Wanger, 2017
 
 import decimal
 
+import pytest
 
 from cooked_input import get_input, get_boolean, get_list, get_date, get_yes_no, get_money
 from cooked_input import Convertor, IntConvertor, BooleanConvertor, ListConvertor, DateConvertor, YesNoConvertor, DecimalConvertor
@@ -17,13 +18,22 @@ from cooked_input import StripCleaner
 class TestConvertors(object):
     bool_convertor = BooleanConvertor()
 
-    def test_base_convertor_is_instantiable_and_is_a_no_op(self):
-        # Same Python 2 __metaclass__ artifact as Cleaner: the base is not actually
-        # abstract, and __call__ returns None instead of raising.
-        c = Convertor('')
-        assert c('foo', None, None) is None
-        # Unlike every concrete convertor, the base defines no __repr__ of its own.
-        assert repr(c).startswith('<cooked_input.convertors.Convertor object at ')
+    def test_the_base_convertor_cannot_be_instantiated(self):
+        # Regression guard for #50, the same Python 2 __metaclass__ artifact Cleaner had:
+        # the base was not actually abstract and its __call__ returned None.
+        with pytest.raises(TypeError, match="abstract"):
+            Convertor('')
+
+    def test_a_subclass_implementing_call_is_concrete(self):
+        class ShoutConvertor(Convertor):
+            def __call__(self, value, error_callback, convertor_fmt_str):
+                return value.upper()
+
+        convertor = ShoutConvertor('a shout')
+        assert convertor('quiet', None, None) == 'QUIET'
+        assert convertor.value_error_str == 'a shout'
+        # Unlike every concrete convertor in the library, the base defines no __repr__.
+        assert repr(convertor).startswith('<cooked_input.tests.test_convertors.')
 
     def test_get_boolean_true(self, fake_input):
         input_str = u"""

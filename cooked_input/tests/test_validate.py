@@ -37,9 +37,20 @@ class TestValidate(object):
         assert validate(A(), RangeValidator(min_val=1, max_val=None)) is False
         assert validate(A(), RangeValidator(min_val=None, max_val=10)) is False
 
-    def test_call_abstract(self):
-        v = Validator()
-        v(10, None, None)
+    def test_the_base_validator_cannot_be_instantiated(self):
+        # Regression guard for #50: the Python 2 __metaclass__ spelling left this base
+        # instantiable, and its __call__ returned None -- which reads as a validation
+        # failure, so a subclass that forgot __call__ quietly rejected everything.
+        with pytest.raises(TypeError, match="abstract"):
+            Validator()
+
+    def test_a_subclass_implementing_call_is_concrete(self):
+        class EvenValidator(Validator):
+            def __call__(self, value, error_callback, validator_fmt_str):
+                return value % 2 == 0
+
+        assert validate(4, EvenValidator()) is True
+        assert validate(5, EvenValidator()) is False
 
 
     def test_any_of(self, fake_input):
