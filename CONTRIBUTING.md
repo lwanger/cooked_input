@@ -57,6 +57,11 @@ The floor starts below the measured baseline rather than at the project's 97% ta
 that every PR along the way can be green on its own. Raise it by the whole amount a PR
 gains; leaving it slack lets the next regression hide.
 
+The floor is **99%**, not 100%, even though the package currently measures 100%. A 100%
+gate means every future line needs either a test or a `# pragma: no cover`, and the usual
+outcome is that pragmas accumulate until the number stops meaning anything. 99% keeps
+essentially all of the value and leaves room for one genuinely awkward line.
+
 Coverage is deliberately not in `addopts` — it would slow all eight matrix jobs and every
 local run for no benefit.
 

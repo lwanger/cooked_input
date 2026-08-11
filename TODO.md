@@ -46,6 +46,10 @@ Items here move into CHANGELOG.rst when the version number is incremented.
   Six bugs were fixed along the way (see CHANGELOG.rst) and seven issues opened for
   the ones that change public behavior: #44, #46, #47, #48, #49, #50.
 
+  Coverage later reached 100% (#63), with 456 tests. The floor sits at 99% by choice:
+  a 100% gate has to be answered with `# pragma: no cover` the first time a line is
+  genuinely awkward to reach, and the pragmas do not go away again.
+
 - [X] Test on Python 3.14, and find how far back we can go in Python 3 (was: 3.8?).
   3.14 passes the full suite (86 tests) with the existing dependency versions, so it needed no
   code or dependency changes; it is now in the CI matrix, tox envlist and classifiers.

@@ -12,6 +12,14 @@ see TODO.md for list of TODO items
 
 * unreleased:
 
+  * tests: package coverage reached 100% (branch coverage, source only) and the suite grew to
+    456 tests. The CI floor is now ``--cov-fail-under=99`` -- deliberately one point below the
+    measured value, so that a genuinely awkward line does not have to be answered with a
+    ``# pragma: no cover``. Closing the last gaps removed two unreachable branches in
+    ``get_table.py``: a second ``callable(item_filter)`` test that the guard above it had
+    already made redundant, and a tag comparison in ``get_menu``'s ``default_choice`` loop that
+    could never match, since menu items are built without tags and are matched by value or by
+    position. No behavior changes.
   * changed: ``Cleaner``, ``Convertor`` and ``Validator`` are now real abstract base classes.
     They declared ``__metaclass__ = ABCMeta``, the Python 2 spelling, which is an inert class
     attribute on Python 3 -- so nothing was enforced: the bases instantiated and a subclass
