@@ -3,3 +3,4 @@ include LICENSE.txt
 include LICENSE
 recursive-include docs *.rst conf.py Makefile
 recursive-include cooked_input/examples *.py
+include cooked_input/py.typed

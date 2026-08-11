@@ -42,6 +42,11 @@ dependencies = [
 # pytest-timeout is the backstop for a test that forgets the fake_input fixture and
 # reaches the real getpass; pytest-cov backs the coverage floor checked in CI.
 test = ["pytest>=8", "pytest-timeout>=2.3", "pytest-cov>=5"]
+# ty is pinned exactly, not floored: it is pre-1.0 and its diagnostics change between
+# releases, so an unpinned checker would turn CI red on someone else's release
+# schedule. Bump the pin deliberately, as its own commit.
+# dateparser ships no inline types; prettytable ships py.typed and needs no stub.
+typecheck = ["ty==0.0.70", "ruff>=0.16.2", "types-dateparser>=1.4"]
 
 [project.urls]
 Homepage = "https://github.com/lwanger/cooked_input"
@@ -94,8 +99,79 @@ exclude_also = [
     "@abstractmethod",
 ]
 
+# Two tools, two jobs. ty checks that the annotations are *correct*; it has no
+# equivalent of mypy's --disallow-untyped-defs, so it cannot tell us a function was
+# missed. Ruff's ANN rules check that the annotations *exist*. Neither alone is enough.
+[tool.ruff]
+target-version = "py310"
+
+[tool.ruff.lint]
+# Deliberately only the annotation rules. Turning on Ruff's default rule set across a
+# codebase this old is a much larger diff and a separate piece of work.
+select = ["ANN"]
+# ANN401 bans `Any` in annotations. cooked_input is a library about converting unknown
+# console text into whatever the caller asked for, so `Any` is the honest annotation in
+# places -- the **options bags and Convertor.__call__ especially.
+ignore = ["ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests and examples are exempt by policy: annotations there buy little, and the
+# examples are demo scripts rather than library code. conftest.py is annotated anyway,
+# because it is infrastructure the whole suite leans on.
+"cooked_input/tests/*" = ["ANN"]
+"cooked_input/examples/*" = ["ANN"]
+# The annotation ratchet. Each line is deleted by the PR that types that module, the
+# same shape as the coverage floor: it only ever shrinks.
+"cooked_input/cleaners.py" = ["ANN"]
+"cooked_input/convertors.py" = ["ANN"]
+"cooked_input/error_callbacks.py" = ["ANN"]
+"cooked_input/get_input.py" = ["ANN"]
+"cooked_input/get_table.py" = ["ANN"]
+"cooked_input/input_utils.py" = ["ANN"]
+"cooked_input/validators.py" = ["ANN"]
+
+[tool.ty.environment]
+# The floor, not the version CI happens to run. ty would infer this from
+# requires-python, but stating it means a change to one does not silently move the other.
+python-version = "3.10"
+
+[tool.ty.src]
+exclude = [
+    # Demo scripts, not library code. Several import optional third-party packages
+    # (sqlalchemy, pyperclip) that are not install dependencies, so they cannot be
+    # resolved here at all.
+    "cooked_input/examples",
+    # A dev-only utility that imports tomllib and so requires 3.11+, which contradicts
+    # the 3.10 floor set above. It is not shipped and not importable from the package.
+    "scripts",
+]
+
+# Pre-existing findings in the one module not yet annotated. Each is a real diagnostic
+# left standing on purpose so that turning the gate on did not require rewriting the
+# largest module in the same PR; they are addressed by the PR that types get_table.py.
+#   invalid-assignment    -- the RULE_* constants are all HRuleStyle members but are
+#                            documented for vrules too, which needs VRuleStyle. See #65.
+#   no-matching-overload  -- Formatter.vformat is passed None where a sequence of
+#                            positional arguments belongs; works only because the format
+#                            strings involved use named fields exclusively.
+#   not-subscriptable     -- create_table subscripts field_names on a path where ty
+#                            cannot prove it is not None. It provably is not.
+[[tool.ty.overrides]]
+include = ["cooked_input/get_table.py"]
+
+[tool.ty.overrides.rules]
+invalid-assignment = "ignore"
+no-matching-overload = "ignore"
+not-subscriptable = "ignore"
+
 [tool.setuptools.packages.find]
 # Matches the old find_packages() result: cooked_input and cooked_input.tests.
 # cooked_input/examples has no __init__.py, so it is not an importable package;
 # its sources reach the sdist through MANIFEST.in instead.
 include = ["cooked_input*"]
+
+[tool.setuptools.package-data]
+# PEP 561. Without this marker inside the installed package, a downstream project's
+# type checker ignores our annotations entirely and cooked_input stays untyped for
+# everyone but us.
+cooked_input = ["py.typed"]

@@ -65,6 +65,39 @@ essentially all of the value and leaves room for one genuinely awkward line.
 Coverage is deliberately not in `addopts` — it would slow all eight matrix jobs and every
 local run for no benefit.
 
+### Type checking
+
+Install the tools and run both, from the repository root:
+
+```
+pip install -e ".[test,typecheck]"
+ruff check
+ty check
+```
+
+**Two tools, two jobs.** `ty` checks that the annotations are *correct*. It has no
+equivalent of mypy's `--disallow-untyped-defs`, so it cannot tell you a function was
+missed — Ruff's `ANN` rules do that. Neither alone is enough, so the `types` CI job runs
+both and Ruff goes first: "you forgot to annotate this" is the more actionable failure.
+
+`ty` is pinned to an exact version in the `typecheck` extra rather than floored. It is
+pre-1.0, and its diagnostics change between releases; an unpinned checker turns CI red on
+someone else's release schedule. Bump the pin deliberately, in its own commit, so that a
+new checker's findings are never mixed into an unrelated change.
+
+**The annotation ratchet.** `per-file-ignores` in `pyproject.toml` lists the modules that
+are not yet annotated. Like the coverage floor, that list only ever shrinks, and it shrinks
+in the PR that types the module. Never add a module back to it.
+
+Tests and examples are exempt from `ANN` by policy — annotations buy little in a test, and
+the examples are demo scripts rather than library code. `ty` still checks the tests, and
+that is deliberate: the suite calls the public API several hundred times from the outside,
+which is the cheapest validation the annotations get.
+
+`Any` is allowed (`ANN401` is off). `cooked_input` converts unknown console text into
+whatever the caller asked for, so `Any` is sometimes the honest annotation — the `**options`
+bags and `Convertor.__call__` especially. Prefer a real type wherever one exists.
+
 ### Faking console input
 
 `cooked_input` reads from the console, so nearly every test needs a fake keyboard. Use the

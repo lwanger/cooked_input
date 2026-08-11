@@ -22,16 +22,26 @@ from cooked_input import IntConvertor, RangeValidator, EqualToValidator
 from cooked_input import NoneOfValidator, AnyOfValidator
 
 
-def my_print_error(fmt_str, value, error_content):
+class RecordingErrorCallback:
     """A user-supplied error callback, recording instead of printing.
 
     Keeping the formatted messages lets a test assert which values were rejected
     and with what wording, which printing them never could.
+
+    This was a plain function carrying a ``messages`` attribute. That is legal
+    Python but not expressible in the type system, so it is the one shape a type
+    checker cannot follow; an instance with an ordinary attribute says the same
+    thing and reads the same at every call site.
     """
-    my_print_error.messages.append('<<< ' + fmt_str.format(value=value, error_content=error_content) + ' >>>')
+
+    def __init__(self):
+        self.messages = []
+
+    def __call__(self, fmt_str, value, error_content):
+        self.messages.append('<<< ' + fmt_str.format(value=value, error_content=error_content) + ' >>>')
 
 
-my_print_error.messages = []
+my_print_error = RecordingErrorCallback()
 
 
 class TestGetInt(object):
