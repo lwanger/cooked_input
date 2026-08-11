@@ -57,6 +57,13 @@ ValidatorFunc: TypeAlias = Callable[[Any, ErrorCallback, str], Any]
 #: helpers in that module take, which also compare bare values for equality.
 ValidatorArg: TypeAlias = ValidatorFunc | Iterable[ValidatorFunc] | None
 
+#: The ``validators`` argument :class:`~cooked_input.get_input.GetInput` and the ``get_*`` functions
+#: accept. Deliberately ``Any`` rather than :data:`ValidatorArg`: these run their validators through
+#: the private ``_in_all``, which also takes a bare value and compares it for equality, so
+#: ``get_input(validators=16)`` legitimately means "the value must equal 16". Since any object can be
+#: an equality target, there is nothing narrower to say.
+GetInputValidatorArg: TypeAlias = Any
+
 #: What a :class:`~cooked_input.get_input.GetInputCommand` calls, invoked as
 #: ``cmd_action(cmd_str, cmd_vars, cmd_dict)``.
 CommandAction: TypeAlias = Callable[[str, str, dict[str, Any] | None], "CommandResponse"]

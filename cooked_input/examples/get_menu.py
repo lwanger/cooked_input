@@ -18,6 +18,7 @@ from sqlalchemy import Sequence
 from sqlalchemy.orm import sessionmaker
 
 from cooked_input import get_menu, get_string, get_int, get_list, validate, Validator, ChoiceValidator
+from cooked_input import GetInput
 from cooked_input import silent_error
 from cooked_input import Table
 from cooked_input import TableItem, TableStyle, TABLE_ITEM_DEFAULT, TABLE_ITEM_EXIT, TABLE_ITEM_RETURN, TABLE_ADD_RETURN, TABLE_ADD_EXIT
@@ -211,7 +212,12 @@ def change_roles(row, action_dict):
     # an action item to get a new list of roles for the user
     role_validator = ChoiceValidator(['admin', 'editor', 'user'])
     prompt_str = 'Enter roles for user {} {}'.format(action_dict['first'], action_dict['last'])
-    result = get_list(prompt=prompt_str, default=action_dict['roles'], elem_validators=role_validator)
+    # Fixing: this passed elem_validators, which get_list has never had -- it landed in the
+    # **options bag, was forwarded to GetInput and logged as an unknown option, so this demo
+    # accepted any role at all while appearing to check them against the list above. Per-element
+    # validation goes through elem_get_input, which get_list applies to each value in turn.
+    elem_get_input = GetInput(validators=role_validator)
+    result = get_list(prompt=prompt_str, default=action_dict['roles'], elem_get_input=elem_get_input)
     action_dict['roles'] = set(result)
     return result
 

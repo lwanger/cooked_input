@@ -28,7 +28,8 @@ from cooked_input import GetInputCommand  # noqa: F401
 from cooked_input import GetInputInterrupt, RefreshScreenInterrupt
 from cooked_input import PageUpRequest, PageDownRequest, FirstPageRequest, LastPageRequest, UpOneRowRequest, DownOneRowRequest
 
-from ._typing import CommandsArg, ItemFilter, RowAction
+from ._typing import CommandsArg, ErrorCallback, ItemFilter, RowAction
+from .error_callbacks import print_error, DEFAULT_CONVERTOR_ERROR, DEFAULT_VALIDATOR_ERROR
 from .input_utils import put_in_a_list, isstring
 from .cleaners import Cleaner, CapitalizationCleaner, StripCleaner, ChoiceCleaner
 from .convertors import ChoiceConvertor
@@ -812,32 +813,46 @@ class Table(object):
 
 
     def _get_choice(self, table_choices: dict[str, int], table_cleaners: list[Cleaner],
-                    table_convertor: ChoiceConvertor, table_validators: ChoiceValidator,
-                    **options: Any) -> TableItem | None:
+                    table_convertor: ChoiceConvertor, table_validators: ChoiceValidator, *,
+                    prompt: str | None = None,
+                    required: bool | None = None,
+                    default: Any = None,
+                    default_str: str | None = None,
+                    hidden: bool = False,
+                    retries: int | None = None,
+                    commands: CommandsArg = None,
+                    error_callback: ErrorCallback = print_error,
+                    convertor_error_fmt: str = DEFAULT_CONVERTOR_ERROR,
+                    validator_error_fmt: str = DEFAULT_VALIDATOR_ERROR) -> TableItem | None:
         """
         Internal function to get the input for the table choice.
 
-        :param table_cleaners:
-        :param table_convertor:
-        :param table_validators:
-        :param options:
+        :param table_choices: the tag each row is chosen by, mapped to its index
+        :param table_cleaners: the cleaners built for this table by :meth:`_prep_get_input`
+        :param table_convertor: the convertor built for this table by :meth:`_prep_get_input`
+        :param table_validators: the validators built for this table by :meth:`_prep_get_input`
 
         :return:  the table row for the choice picked
+
+        The first five options fall back to the table's own settings when left at **None**; the rest
+        are :func:`get_input` defaults. See :meth:`get_table_choice` for what each one does.
         """
-        gi_options = {
-            'prompt': self.prompt,
-            'required': self.required,
-            'default': self.default_choice,
-            'default_str': self.default_str,
-            'commands': self.commands,
-        }
-        for k,v in options.items():
-            gi_options[k] = v
+        use_prompt = self.prompt if prompt is None else prompt
+        use_required = self.required if required is None else required
+        use_default = self.default_choice if default is None else default
+        use_default_str = self.default_str if default_str is None else default_str
+        use_commands = self.commands if commands is None else commands
 
         while True:
             try:
                 self.refresh_screen()
-                result = get_input(cleaners=table_cleaners, convertor=table_convertor, validators=table_validators, **gi_options)
+                result = get_input(cleaners=table_cleaners, convertor=table_convertor,
+                                   validators=table_validators, prompt=use_prompt,
+                                   required=use_required, default=use_default,
+                                   default_str=use_default_str, hidden=hidden, retries=retries,
+                                   commands=use_commands, error_callback=error_callback,
+                                   convertor_error_fmt=convertor_error_fmt,
+                                   validator_error_fmt=validator_error_fmt)
 
                 if result is None:
                     return None
@@ -859,34 +874,53 @@ class Table(object):
                 table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input(force_refresh=True)
                 self.show_rows(0)
 
-    def get_table_choice(self, **options: Any) -> Any:
+    def get_table_choice(self, *,
+                         prompt: str | None = None,
+                         required: bool | None = None,
+                         default: Any = None,
+                         default_str: str | None = None,
+                         hidden: bool = False,
+                         retries: int | None = None,
+                         commands: CommandsArg = None,
+                         error_callback: ErrorCallback = print_error,
+                         convertor_error_fmt: str = DEFAULT_CONVERTOR_ERROR,
+                         validator_error_fmt: str = DEFAULT_VALIDATOR_ERROR) -> Any:
         """
         Prompts the user to choose a value from the table. This is the main method used to choose a value from a table.
 
-        :param options: See below for details.
+        :param prompt: the prompt for choosing a table value. Defaults to the table's own ``prompt``.
+        :param required: requires an entry if **True**, exits the table on blank entry if **False**.
+            Defaults to the table's own ``required``.
+        :param default: the default value to use. Defaults to the table's own ``default_choice``.
+        :param default_str: an optional string to display for the default table selection. Defaults to
+            the table's own ``default_str``.
+        :param hidden: **True** to keep the typed choice off the screen
+        :param retries: maximum attempts before raising :class:`MaxRetriesError`
+        :param commands: a dictionary of commands for the table. For each entry, the key is the
+            command and the value the action to take for the command. See :class:`GetInput` and
+            :class:`GetInputCommand` for further details. Defaults to the table's own ``commands``.
+        :param error_callback: called when a choice is rejected. Defaults to :func:`print_error`
+        :param convertor_error_fmt: format string for `convertor <convertors.html>`_ errors
+        :param validator_error_fmt: format string for `validator <validators.html>`_ errors
 
         :return: the result of performing the action (specified by the table or row) on the row. Returns **None** if no
             row is selected -- either because the entry was blank or because the row chosen was an
             exit or return row, which counts as choosing nothing.
 
-        Options:
+        :raises TypeError: if given an option this method does not have
 
-            * **prompt** (str) -- the prompt for choosing a table value.
-            * **required** (bool) -- requires an entry if **True**, exits the table on blank entry if **False**.
-            * **default** (str) -- the default value to use.
-            * **default_str** (str) -- An optional string to display for the default table selection.
-            * **commands** (Dict) -- a dictionary of commands for the table. For each entry, the key is the
-                    command and the value the action to take for the command. See :class:`GetInput` and
-                    :class:`GetInputCommand` for further details
-
-        These are :class:`GetInput`'s options, not the :class:`Table` options above -- they are handed
-        straight to :func:`get_input` for the one prompt this call makes, so any option that class
-        accepts works here, and it is the one that reports an unrecognised name. That is why this
-        stayed a ``**options`` bag when the table's own options became named parameters.
+        These are :class:`GetInput`'s options, not the :class:`Table` options above: they apply to the
+        one prompt this call makes, not to how the table was built. The first five default to **None**
+        meaning "use what the table was given"; passing one overrides it for this prompt only.
         """
         table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
         self.show_rows(0)
-        row = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
+        row = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators,
+                               prompt=prompt, required=required, default=default,
+                               default_str=default_str, hidden=hidden, retries=retries,
+                               commands=commands, error_callback=error_callback,
+                               convertor_error_fmt=convertor_error_fmt,
+                               validator_error_fmt=validator_error_fmt)
 
         if row is None:
             return None
@@ -1048,11 +1082,10 @@ class Table(object):
         table_choices, table_cleaners, table_convertor, table_validators = self._prep_get_input()
         self.show_rows(0)
 
-        options = {'prompt': self.prompt}
-
         while True:
             try:
-                choice = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators, **options)
+                # No overrides: _get_choice already falls back to the table's own prompt.
+                choice = self._get_choice(table_choices, table_cleaners, table_convertor, table_validators)
             except (GetInputInterrupt) as gii:
                 print('\n{}\n'.format(gii))
                 continue
@@ -1351,17 +1384,49 @@ def show_table(table: Table) -> None:
     return table.show_table()
 
 
-def get_table_input(table: Table, **options: Any) -> Any:
+def get_table_input(table: Table, *,
+                    prompt: str | None = None,
+                    required: bool | None = None,
+                    default: Any = None,
+                    default_str: str | None = None,
+                    hidden: bool = False,
+                    retries: int | None = None,
+                    commands: CommandsArg = None,
+                    error_callback: ErrorCallback = print_error,
+                    convertor_error_fmt: str = DEFAULT_CONVERTOR_ERROR,
+                    validator_error_fmt: str = DEFAULT_VALIDATOR_ERROR) -> Any:
     """
     Get input value from a table of values.
 
+    Typical use::
+
+        ci.get_table_input(tbl, prompt="Which event type?")
+
     :param table: a :class:`Table` instance
-    :param options: all :class:`Table` options supported, see :class:`Table` documentation for details
+    :param prompt: the prompt for choosing a table value. Defaults to the table's own ``prompt``.
+    :param required: requires an entry if **True**, exits the table on blank entry if **False**
+    :param default: the default value to use
+    :param default_str: an optional string to display for the default table selection
+    :param hidden: **True** to keep the typed choice off the screen
+    :param retries: maximum attempts before raising :class:`MaxRetriesError`
+    :param commands: a dictionary of commands for the table
+    :param error_callback: called when a choice is rejected. Defaults to :func:`print_error`
+    :param convertor_error_fmt: format string for `convertor <convertors.html>`_ errors
+    :param validator_error_fmt: format string for `validator <validators.html>`_ errors
 
     :return: the value from calling :func:`Table.get_table_choice` on the table. The return type
         is **Any** because it is whatever the selected row's action function returns.
+
+    :raises TypeError: if given an option this function does not have
+
+    These are the options for the one prompt this call makes, not options for building the table --
+    see :meth:`Table.get_table_choice`, which this hands them to unchanged.
     """
-    return table.get_table_choice(**options)
+    return table.get_table_choice(prompt=prompt, required=required, default=default,
+                                  default_str=default_str, hidden=hidden, retries=retries,
+                                  commands=commands, error_callback=error_callback,
+                                  convertor_error_fmt=convertor_error_fmt,
+                                  validator_error_fmt=validator_error_fmt)
 
 
 def get_menu(choices: Iterable[Any], title: str | None = None, prompt: str | None = None,

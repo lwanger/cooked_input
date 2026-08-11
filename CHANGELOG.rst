@@ -81,6 +81,34 @@ see TODO.md for list of TODO items
     the restriction. Its table of ``RULE`` values now renders as four rows rather than one:
     the grid was missing the row separators, so docutils had been folding all four
     descriptions into a single cell.
+  * changed: ``GetInput`` and every ``get_*`` convenience function take their options as named
+    keyword-only parameters instead of collecting them from a ``**options`` bag. The bag logged
+    ``Warning: get_input received unknown option (...)`` for anything it did not recognise and then
+    carried on with the default, so a misspelled option produced a prompt that looked almost right --
+    ``get_int(promt="How old are you?")`` asked "Enter a whole (integer) number" and buried the
+    reason in a log record. An unrecognised option now raises a ``TypeError`` naming it, and a type
+    checker reports it at the call site. Code that builds an options dictionary still works by
+    unpacking it: ``get_int(**options)``.
+
+    The same change covers ``Table.get_table_choice`` and ``get_table_input``, which pass these
+    options through to the one prompt they make. Their first five (``prompt``, ``required``,
+    ``default``, ``default_str``, ``commands``) default to **None**, meaning "use whatever the table
+    was built with"; passing one overrides it for that prompt only.
+  * fixed: ``get_money(precision=2)`` -- the documented way to get an amount in whole cents -- logged
+    two spurious ``unknown option`` warnings on every call. ``precision`` and ``rounding`` are
+    ``get_money``'s own parameters, but they arrived through the ``**options`` bag, and it copied
+    them into the convertor's arguments without removing them from the bag, so they were forwarded
+    to ``GetInput`` as well. They are named parameters now and go only where they belong.
+  * fixed: ``get_int``, ``get_float`` and ``get_date`` raised ``TypeError: can only concatenate
+    tuple (not "list") to tuple`` when given a *tuple* of validators together with a ``minimum`` or
+    ``maximum``. Each built its validator list with ``validators + [range_validator]``, which needs a
+    list on the left, while ``get_string`` accepted a tuple because it extends a list instead -- so
+    the functions disagreed about what ``validators`` could be. All three now share one helper that
+    uses ``put_in_a_list``.
+  * fixed: ``examples/get_menu.py`` passed ``elem_validators`` to ``get_list``, which has never had
+    such a parameter. It landed in the ``**options`` bag and was forwarded to ``GetInput`` as an
+    unknown option, so the demo accepted any role at all while appearing to check each one against
+    ``['admin', 'editor', 'user']``. Per-element validation goes through ``elem_get_input``.
   * changed: ``Table``, ``create_table`` and ``get_menu`` take the table options as named
     keyword-only parameters instead of collecting them from a ``**options`` bag. The bag kept the
     ten keys it recognised and silently discarded everything else, so a misspelled option -- or one

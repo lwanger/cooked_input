@@ -58,11 +58,14 @@ upgrading:
   always internal plumbing and appeared in no documentation. `validate()` is unaffected.
 * The module-level validation helpers, and `SimpleValidator`, now return a real `bool` rather
   than passing a validator's truthy return value through.
-* `Table`, `create_table` and `get_menu` take their options as named keyword-only parameters
-  instead of a `**options` dictionary. An unrecognised option now raises a `TypeError` rather
-  than being silently ignored -- which is how a bug in one of the shipped examples had gone
-  unnoticed. Code that builds an options dictionary still works by unpacking it:
-  `Table(rows, **options)`.
+* `GetInput` and every `get_*` function take their options as named keyword-only parameters
+  instead of a `**options` dictionary. An unrecognised option raises a `TypeError` rather than
+  logging a warning and carrying on with the default, so `get_int(promt="Age?")` is now reported
+  instead of quietly asking the wrong question. Code that builds an options dictionary still
+  works by unpacking it: `get_int(**options)`.
+* `Table`, `create_table`, `get_menu`, `Table.get_table_choice` and `get_table_input` changed the
+  same way. An unrecognised option raises a `TypeError` rather than being silently ignored --
+  which is how two bugs in the shipped examples had gone unnoticed.
 * `Cleaner`, `Convertor` and `Validator` are now real abstract base classes. A subclass that
   never implemented `__call__` raises `TypeError` when instantiated, where before it silently
   returned **None** from every call.

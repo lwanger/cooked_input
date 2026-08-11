@@ -26,6 +26,45 @@ calls to :class:`GetInput`, but simpler to use. For instance, the following two 
     result = get_int(prompt='Enter a whole number')
 
 
+Common options
+--------------
+
+Every function below accepts the same set of :class:`GetInput` options, which is why their parameter
+lists look long. **They are all optional and all keyword-only, and most calls use one or two** --
+usually just ``prompt``::
+
+    ci.get_string(prompt="What is your favorite color?")
+
+The full set, in rough order of how often you will reach for them:
+
++-------------------------+------------------------------------------------------------------------+
+| **Option**              | **What it does**                                                       |
++=========================+========================================================================+
+| ``prompt``              | the text to prompt with. Each function has a sensible default.         |
++-------------------------+------------------------------------------------------------------------+
+| ``required``            | **False** accepts a blank response and returns **None**.               |
++-------------------------+------------------------------------------------------------------------+
+| ``default``             | the value to use when the response is blank.                           |
++-------------------------+------------------------------------------------------------------------+
+| ``default_str``         | what to display for the default, when it differs from the value.       |
++-------------------------+------------------------------------------------------------------------+
+| ``hidden``              | **True** keeps the typing off the screen -- for passwords.             |
++-------------------------+------------------------------------------------------------------------+
+| ``retries``             | give up after this many bad attempts, raising :class:`MaxRetriesError`.|
++-------------------------+------------------------------------------------------------------------+
+| ``commands``            | commands callable from the prompt, see :class:`GetInputCommand`.       |
++-------------------------+------------------------------------------------------------------------+
+| ``error_callback``      | what to call when a value is rejected. Defaults to :func:`print_error`.|
++-------------------------+------------------------------------------------------------------------+
+| ``convertor_error_fmt`` | how to word a conversion failure.                                      |
++-------------------------+------------------------------------------------------------------------+
+| ``validator_error_fmt`` | how to word a validation failure.                                      |
++-------------------------+------------------------------------------------------------------------+
+
+See :class:`GetInput` for the full description of each. An option these functions do not have raises
+a ``TypeError``, so a misspelling is reported rather than quietly ignored.
+
+
 get_string
 ----------
 
