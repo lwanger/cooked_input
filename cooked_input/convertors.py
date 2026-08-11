@@ -5,14 +5,23 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017-2026
 """
 
+from __future__ import annotations
+
 import csv
 import dateparser
 import decimal
+from datetime import datetime
 from io import StringIO
 from abc import ABCMeta, abstractmethod
+from typing import TYPE_CHECKING, Any
 
 
+from ._typing import ErrorCallback
 from .error_callbacks import ConvertorError
+
+if TYPE_CHECKING:
+    # get_input imports this module, so the reverse import only exists for annotations.
+    from .get_input import GetInput
 
 
 TABLE_ID = 0
@@ -33,11 +42,14 @@ class Convertor(metaclass=ABCMeta):
     instantiated happily and a subclass that forgot ``__call__`` returned **None** from every
     conversion instead of failing.
     """
-    def __init__(self, value_error_str):
+    def __init__(self, value_error_str: str) -> None:
         self.value_error_str = value_error_str
 
     @abstractmethod
-    def __call__(self, value, error_callback, convertor_fmt_str):
+    def __call__(self, value: str, error_callback: ErrorCallback, convertor_fmt_str: str) -> Any:
+        # Any is the honest return type for the base: the whole point of a convertor is
+        # to decide what the text becomes, and the concrete subclasses below say
+        # precisely which type each of them produces.
         pass
 
 
@@ -56,18 +68,18 @@ class IntConvertor(Convertor):
     Legal values for the `base` parameter are 0 and 2-36. See the Python `int <https://docs.python.org/3/library/functions.html#int>`_
     built-in function for more information.
     """
-    def __init__(self, base=10, value_error_str='an integer number'):
+    def __init__(self, base: int = 10, value_error_str: str = 'an integer number') -> None:
         self._base = base
         super(IntConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value, error_callback, convertor_fmt_str):
+    def __call__(self, value: str, error_callback: ErrorCallback, convertor_fmt_str: str) -> int:
         try:
             return int(value, self._base)
         except (ValueError) as ve:
             error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ConvertorError(str(ve)) from ve
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'IntConvertor(base=%d, value_error_str=%s)' % (self._base, self.value_error_str)
 
 
@@ -81,17 +93,17 @@ class FloatConvertor(Convertor):
     :rtype: float
     :raises ConvertorError: if ``value`` cannot be converted to `float`
     """
-    def __init__(self, value_error_str='a float number'):
+    def __init__(self, value_error_str: str = 'a float number') -> None:
         super(FloatConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value, error_callback, convertor_fmt_str):
+    def __call__(self, value: str, error_callback: ErrorCallback, convertor_fmt_str: str) -> float:
         try:
             return float(value)
         except ValueError as ve:
             error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ConvertorError(str(ve)) from ve
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'FloatConvertor(%s)' % self.value_error_str
 
 
@@ -109,10 +121,10 @@ class BooleanConvertor(Convertor):
     `BooleanConvertor` returns **True** for input values: 't', 'true', 'y', 'yes', and '1'. `BooleanConvertor` returns
     **False** for input values: 'f', 'false', 'n', 'no', '0'.
     """
-    def __init__(self, value_error_str='true or false'):
+    def __init__(self, value_error_str: str = 'true or false') -> None:
         super(BooleanConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value, error_callback, convertor_fmt_str):
+    def __call__(self, value: str, error_callback: ErrorCallback, convertor_fmt_str: str) -> bool:
         true_set = {'t', 'true', 'y', 'yes', '1'}
         false_set = {'f', 'false', 'n', 'no', '0'}
 
@@ -124,7 +136,7 @@ class BooleanConvertor(Convertor):
             error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ConvertorError('value not true or false.')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'BooleanConvertor(%s)' % self.value_error_str
 
 
@@ -151,13 +163,13 @@ class ListConvertor(Convertor):
       lc = ListConvertor(delimiter=':', elem_get_input=GetInput(convertor=IntConvertor()))
       result = get_input(prompt=prompt_str, convertor=lc)
     """
-    def __init__(self, elem_get_input=None, delimiter=',', value_error_str='list of values' ):
+    def __init__(self, elem_get_input: GetInput | None = None, delimiter: str | None = ',',
+                 value_error_str: str = 'list of values') -> None:
         self._delimeter = delimiter
         self._elem_get_input = elem_get_input
         super(ListConvertor, self).__init__(value_error_str)
 
-
-    def __call__(self, value, error_callback, convertor_fmt_str):
+    def __call__(self, value: str, error_callback: ErrorCallback, convertor_fmt_str: str) -> list[Any]:
         buffer = StringIO(value)
 
         if self._delimeter is None:
@@ -167,7 +179,7 @@ class ListConvertor(Convertor):
             csv.register_dialect('my_dialect', delimiter=self._delimeter, quoting=csv.QUOTE_MINIMAL, skipinitialspace=True)
             dialect = csv.get_dialect('my_dialect')
 
-        converted_list = []
+        converted_list: list[Any] = []
         reader = csv.reader(buffer, dialect)
 
         try:
@@ -178,10 +190,13 @@ class ListConvertor(Convertor):
         try:
             if self._elem_get_input:
                 for item in lst:
-                    valid, value = self._elem_get_input.process_value(item)
+                    # Not `value`: that is the whole comma-separated string this method
+                    # was handed, and rebinding it to one converted element made the two
+                    # different things share a name.
+                    valid, converted_elem = self._elem_get_input.process_value(item)
 
                     if valid is True:
-                        converted_list.append(value)
+                        converted_list.append(converted_elem)
                     else:
                         raise ConvertorError
             else:
@@ -191,7 +206,7 @@ class ListConvertor(Convertor):
 
         return converted_list
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'ListConvertor(%s)' % self.value_error_str
 
 
@@ -211,10 +226,10 @@ class DateConvertor(Convertor):
     a lot of flexibility in how date input is entered (e.g. '12/12/12', 'October 1, 2015', 'today', or 'next Tuesday').
     For more information about dateparser see: `<https://dateparser.readthedocs.io/en/latest/>`_
     """
-    def __init__(self, value_error_str='a date'):
+    def __init__(self, value_error_str: str = 'a date') -> None:
         super(DateConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value, error_callback, convertor_fmt_str):
+    def __call__(self, value: str, error_callback: ErrorCallback, convertor_fmt_str: str) -> datetime:
         result = dateparser.parse(value)
         if result:
             return result
@@ -222,7 +237,7 @@ class DateConvertor(Convertor):
             error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ConvertorError('value not a valid date')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'DateConvertor(%s)' % self.value_error_str
 
 
@@ -240,10 +255,10 @@ class YesNoConvertor(Convertor):
     'hai', 'gee', 'da', 'tak', 'affirmative'. `YesNoConvertor` returns `no` for input values: 'n', 'no', 'nope',
     'na', 'nae', 'non', 'negatory', 'nein', 'nie', 'nyet', 'lo'.
     """
-    def __init__(self, value_error_str='yes or no'):
+    def __init__(self, value_error_str: str = 'yes or no') -> None:
         super(YesNoConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value, error_callback, convertor_fmt_str):
+    def __call__(self, value: str, error_callback: ErrorCallback, convertor_fmt_str: str) -> str:
         yes_set = {'y', 'yes', 'yeah', 'yup', 'aye', 'qui', 'si', 'ja', 'ken', 'hai', 'gee', 'da', 'tak', 'affirmative'}
         no_set = {'n', 'no', 'nope', 'na', 'nae', 'non', 'negatory', 'nein', 'nie', 'nyet', 'lo'}
 
@@ -255,7 +270,7 @@ class YesNoConvertor(Convertor):
             error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ConvertorError('value not yes or no.')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'YesNoConvertor(%s)' % self.value_error_str
 
 
@@ -280,18 +295,18 @@ class ChoiceConvertor(Convertor):
       choice_convertor = ci.ChoiceConvertor(value_dict=value_map)
       result = ci.get_input(convertor=choice_convertor, prompt='Pick a color (1 - red, 2 - green, 3 - blue)')
     """
-    def __init__(self, value_dict, value_error_str='a valid row number'):
+    def __init__(self, value_dict: dict[Any, Any], value_error_str: str = 'a valid row number') -> None:
         self._choices = value_dict
         super(ChoiceConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value, error_callback, convertor_fmt_str):
+    def __call__(self, value: str, error_callback: ErrorCallback, convertor_fmt_str: str) -> Any:
         try:
             return self._choices[value]
         except (KeyError) as ve:
             error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ConvertorError(str(ve)) from ve
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'ChoiceConvertor(choices={}, value_error_str={})'.format(self._choices, self.value_error_str)
 
 
@@ -325,7 +340,7 @@ class DecimalConvertor(Convertor):
 
     See the Python `Decimal <https://docs.python.org/3/library/decimal.html>`_
     """
-    def _rounding_str_to_int(self, rounding_str):
+    def _rounding_str_to_int(self, rounding_str: str) -> str:
         # Despite the name this maps each name to itself: decimal's rounding constants
         # are strings (decimal.ROUND_UP == 'ROUND_UP'), so the dict's real job is to
         # reject anything that is not one of the eight legal names.
@@ -348,7 +363,7 @@ class DecimalConvertor(Convertor):
             raise ValueError('DecimalConvertor: unknown rounding {!r} -- legal values are: {}'.format(
                 rounding_str, ', '.join(sorted(rounding_dict)))) from ke
 
-    def _rounding_int_to_str(self, rounding_int):
+    def _rounding_int_to_str(self, rounding_int: str) -> str:
         rounding_dict = {
             decimal.ROUND_CEILING: "ROUND_CEILING",
             decimal.ROUND_DOWN: "ROUND_DOWN",
@@ -361,7 +376,8 @@ class DecimalConvertor(Convertor):
         }
         return rounding_dict[rounding_int]
 
-    def __init__(self, precision=None, rounding="ROUND_HALF_UP", value_error_str='a decimal number'):
+    def __init__(self, precision: int | None = None, rounding: str = "ROUND_HALF_UP",
+                 value_error_str: str = 'a decimal number') -> None:
         if precision is not None and not isinstance(precision, int):
             raise ValueError('DecimalConvertor: precision must be a whole number of decimal '
                              'places or None -- got {!r}'.format(precision))
@@ -376,7 +392,8 @@ class DecimalConvertor(Convertor):
         self._context = decimal.Context(prec=decimal.MAX_PREC, rounding=self._rounding)
         super(DecimalConvertor, self).__init__(value_error_str)
 
-    def __call__(self, value, error_callback, convertor_fmt_str):
+    def __call__(self, value: str, error_callback: ErrorCallback,
+                 convertor_fmt_str: str) -> decimal.Decimal:
         try:
             converted = decimal.Decimal(value)
 
@@ -397,6 +414,6 @@ class DecimalConvertor(Convertor):
             error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ConvertorError(str(ve)) from ve
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         rounding_str = self._rounding_int_to_str(self._rounding)
         return 'DecimalConvertor(precision=%s, rounding=%s, value_error_str=%s)' % (self._precision, rounding_str, self.value_error_str)
