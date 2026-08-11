@@ -12,6 +12,21 @@ see TODO.md for list of TODO items
 
 * unreleased:
 
+  * fixed: ``DecimalConvertor`` ignored both ``precision`` and ``rounding``. It passed its
+    ``decimal.Context`` to the ``Decimal`` constructor, where the context affects only error
+    signalling -- neither setting was ever applied, so
+    ``DecimalConvertor(precision=2, rounding='ROUND_DOWN')('1.999')`` returned ``1.999``.
+    The value is now quantized to ``precision`` digits after the decimal point using the
+    requested rounding rule, which is what the documentation has always described and what
+    makes ``get_money(precision=2)`` return whole cents. **Numeric results change** for any
+    caller who set ``precision`` and expected it to be honoured. ``precision`` now defaults
+    to **None**, meaning "round nothing" -- the same thing the old inert default of 28 did in
+    practice -- and a non-integer ``precision`` is rejected at construction.
+  * fixed: ``DecimalConvertor`` let bad input escape as ``decimal.InvalidOperation``. That is
+    an ``ArithmeticError``, so the ``except ValueError`` handler never fired: no
+    ``ConvertorError`` was raised and ``error_callback`` was never called for this convertor.
+  * fixed: ``DecimalConvertor`` raised a bare ``KeyError`` for an unknown ``rounding`` name.
+    It now raises a ``ValueError`` naming the eight legal values.
   * fixed: four crashes and inconsistencies in the "nothing was supplied" case, where an
     empty list or ``None`` was passed where validators or cleaners were expected.
     ``in_any(value, [])`` and ``get_input(retries=0)`` both raised ``UnboundLocalError``

@@ -293,23 +293,36 @@ class DecimalConvertor(Convertor):
     """
     convert the cleaned input to a Decimal value.
 
-    :param int precision: the fixed number of digits after the decimal point (default=28)
+    :param int precision: the fixed number of digits after the decimal point. **None** (the
+        default) keeps every digit entered and rounds nothing.
     :param str rounding:  rules used for rounding (default: "ROUND_HALF_UP")
     :param str value_error_str: (optional) the error string to use when an improper value is input
 
     :return: ``value`` converted to `Decimal`
     :rtype: Decimal
     :raises ConvertorError: if ``value`` cannot be converted to `Decimal`
+    :raises ValueError: at construction, if ``rounding`` is not one of the legal names or
+        ``precision`` is not a whole number
 
     Converts the value to a Decimal value (see the Python standard library Decimal module for me details.)
 
-    The rounding parameter sets the rules for rounding the value. The default rounding rule is "ROUND_HALF_UP". Legal
+    ``precision`` counts digits after the decimal point, not significant digits, so
+    ``DecimalConvertor(precision=2)('1234.567')`` gives ``Decimal('1234.57')``. This is what makes
+    :func:`get_money` useful: ``get_money(precision=2)`` returns an amount in whole cents. A
+    negative ``precision`` rounds to the left of the decimal point -- ``precision=-2`` rounds to
+    hundreds.
+
+    The rounding parameter sets the rules for rounding the value, and only has an effect when
+    ``precision`` is set. The default rounding rule is "ROUND_HALF_UP". Legal
     values for the `rounding` parameter are: "ROUND_CEILING", "ROUND_DOWN", "ROUND_FLOOR", "ROUND_HALF_DOWN",
     "ROUND_HALF_EVEN", "ROUND_HALF_UP", "ROUND_UP", and "ROUND_05UP".
 
     See the Python `Decimal <https://docs.python.org/3/library/decimal.html>`_
     """
     def _rounding_str_to_int(self, rounding_str):
+        # Despite the name this maps each name to itself: decimal's rounding constants
+        # are strings (decimal.ROUND_UP == 'ROUND_UP'), so the dict's real job is to
+        # reject anything that is not one of the eight legal names.
         rounding_dict = {
             "ROUND_CEILING": decimal.ROUND_CEILING,
             "ROUND_DOWN": decimal.ROUND_DOWN,
@@ -320,7 +333,14 @@ class DecimalConvertor(Convertor):
             "ROUND_UP": decimal.ROUND_UP,
             "ROUND_05UP": decimal.ROUND_05UP,
         }
-        return rounding_dict[rounding_str]
+
+        try:
+            return rounding_dict[rounding_str]
+        except KeyError as ke:
+            # Fixing: this used to escape as a bare KeyError showing only the bad name,
+            # leaving the caller to go and find the legal ones for themselves.
+            raise ValueError('DecimalConvertor: unknown rounding {!r} -- legal values are: {}'.format(
+                rounding_str, ', '.join(sorted(rounding_dict)))) from ke
 
     def _rounding_int_to_str(self, rounding_int):
         rounding_dict = {
@@ -335,19 +355,42 @@ class DecimalConvertor(Convertor):
         }
         return rounding_dict[rounding_int]
 
-    def __init__(self, precision=28, rounding="ROUND_HALF_UP", value_error_str='a decimal number'):
+    def __init__(self, precision=None, rounding="ROUND_HALF_UP", value_error_str='a decimal number'):
+        if precision is not None and not isinstance(precision, int):
+            raise ValueError('DecimalConvertor: precision must be a whole number of decimal '
+                             'places or None -- got {!r}'.format(precision))
+
         self._precision = precision
         self._rounding = self._rounding_str_to_int(rounding)
-        self._context= decimal.Context(prec=precision, rounding=rounding)
+
+        # Fixing: the precision used to be the prec of this context, which counts
+        # significant digits rather than the digits after the decimal point the docstring
+        # promises. Quantizing to an exponent is what gives decimal places, and it needs a
+        # precision large enough not to clip the result it is asked to produce.
+        self._context = decimal.Context(prec=decimal.MAX_PREC, rounding=self._rounding)
         super(DecimalConvertor, self).__init__(value_error_str)
 
     def __call__(self, value, error_callback, convertor_fmt_str):
         try:
-            return decimal.Decimal(value, self._context)
-        except (ValueError) as ve:
+            converted = decimal.Decimal(value)
+
+            if self._precision is not None:
+                # Fixing: this used to be `decimal.Decimal(value, self._context)`. Passing
+                # a context to the Decimal constructor only affects error signalling -- it
+                # applies neither prec nor rounding -- so both settings were silently
+                # inert and DecimalConvertor(precision=2, rounding='ROUND_DOWN')('1.999')
+                # returned 1.999 unchanged.
+                converted = self._context.quantize(converted, decimal.Decimal(1).scaleb(-self._precision))
+
+            return converted
+        except (ValueError, decimal.InvalidOperation) as ve:
+            # Fixing: decimal raises InvalidOperation, an ArithmeticError, for a value it
+            # cannot parse, so the ValueError-only handler never fired -- bad input escaped
+            # as InvalidOperation and error_callback was never called. A non-string value
+            # still raises TypeError, as it does in IntConvertor and FloatConvertor.
             error_callback(convertor_fmt_str, value, self.value_error_str)
             raise ConvertorError(str(ve)) from ve
 
     def __repr__(self):
         rounding_str = self._rounding_int_to_str(self._rounding)
-        return 'DecimalConvertor(precision=%d, rounding=%s, value_error_str=%s)' % (self._precision, rounding_str, self.value_error_str)
+        return 'DecimalConvertor(precision=%s, rounding=%s, value_error_str=%s)' % (self._precision, rounding_str, self.value_error_str)

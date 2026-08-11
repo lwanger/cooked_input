@@ -119,6 +119,16 @@ class TestGetMoneyDecimalOptions:
         fake_input("$1.23")
         assert get_money(rounding="ROUND_DOWN") == decimal.Decimal("1.23")
 
+    def test_precision_two_gives_whole_cents(self, fake_input):
+        # The point of #48 from a caller's seat: this used to return 1234.567 whatever
+        # precision and rounding were set to.
+        fake_input("$1,234.567")
+        assert get_money(precision=2) == decimal.Decimal("1234.57")
+
+    def test_rounding_changes_the_cents(self, fake_input):
+        fake_input("$1,234.567")
+        assert get_money(precision=2, rounding="ROUND_DOWN") == decimal.Decimal("1234.56")
+
 
 class TestGetListErrorOptions:
     def test_an_error_callback_is_forwarded_into_the_list_convertor(self, fake_input):
