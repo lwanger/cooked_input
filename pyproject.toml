@@ -120,9 +120,6 @@ ignore = ["ANN401"]
 # because it is infrastructure the whole suite leans on.
 "cooked_input/tests/*" = ["ANN"]
 "cooked_input/examples/*" = ["ANN"]
-# The annotation ratchet. Each line is deleted by the PR that types that module, the
-# same shape as the coverage floor: it only ever shrinks.
-"cooked_input/get_table.py" = ["ANN"]
 
 [tool.ty.environment]
 # The floor, not the version CI happens to run. ty would infer this from
@@ -140,23 +137,16 @@ exclude = [
     "scripts",
 ]
 
-# Pre-existing findings in the one module not yet annotated. Each is a real diagnostic
-# left standing on purpose so that turning the gate on did not require rewriting the
-# largest module in the same PR; they are addressed by the PR that types get_table.py.
-#   invalid-assignment    -- the RULE_* constants are all HRuleStyle members but are
-#                            documented for vrules too, which needs VRuleStyle. See #65.
-#   no-matching-overload  -- Formatter.vformat is passed None where a sequence of
-#                            positional arguments belongs; works only because the format
-#                            strings involved use named fields exclusively.
-#   not-subscriptable     -- create_table subscripts field_names on a path where ty
-#                            cannot prove it is not None. It provably is not.
+# The last standing suppression, and the only one that is not a checker artifact: the four
+# RULE_* constants are all HRuleStyle members, but TableStyle documents them for `vrules`
+# too, which prettytable types as VRuleStyle. Three of the four happen to share values with
+# a VRuleStyle member and RULE_HEADER has no counterpart at all, so TableStyle(vrules=
+# RULE_HEADER) raises. Fixing that changes behaviour and needs its own PR -- see #65.
 [[tool.ty.overrides]]
 include = ["cooked_input/get_table.py"]
 
 [tool.ty.overrides.rules]
 invalid-assignment = "ignore"
-no-matching-overload = "ignore"
-not-subscriptable = "ignore"
 
 [tool.setuptools.packages.find]
 # Matches the old find_packages() result: cooked_input and cooked_input.tests.

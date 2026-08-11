@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any, Callable, TypeAlias
 if TYPE_CHECKING:
     from .cleaners import Cleaner
     from .get_input import CommandResponse
+    from .get_table import TableItem
 
 #: What ``cooked_input`` calls to report a rejected value, invoked as
 #: ``error_callback(fmt_str, value, error_content)``. ``fmt_str`` is a format string
@@ -39,3 +40,15 @@ CleanerArg: TypeAlias = "Cleaner | Iterable[Cleaner] | None"
 #: What a :class:`~cooked_input.get_input.GetInputCommand` calls, invoked as
 #: ``cmd_action(cmd_str, cmd_vars, cmd_dict)``.
 CommandAction: TypeAlias = "Callable[[str, str, dict[str, Any] | None], CommandResponse]"
+
+#: What a table row does when it is chosen, invoked as ``action(row, action_dict)``. The
+#: return value becomes the result of
+#: :meth:`~cooked_input.get_table.Table.get_table_choice`, so it is deliberately ``Any``.
+#: A :class:`~cooked_input.get_table.Table` satisfies this too, which is how a table
+#: becomes a sub-menu.
+RowAction: TypeAlias = "Callable[[TableItem, dict[str, Any]], Any]"
+
+#: Decides which rows a table shows, invoked as ``item_filter(row, action_dict)`` and
+#: returning a ``(hidden, enabled)`` pair. Returning anything else is reported as a
+#: ``RuntimeError`` by :meth:`~cooked_input.get_table.Table.refresh_items`.
+ItemFilter: TypeAlias = "Callable[[TableItem, dict[str, Any]], tuple[bool, bool]]"
