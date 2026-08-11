@@ -26,10 +26,10 @@ def in_any(value: Any, validators: Any, error_callback: ErrorCallback,
     """
     return **True** if the value passes any of the ``validators`` - OR's the list of supplied `validators <validators.html>`_.
 
-    :param Any value: the input value to validate
-    :param List[Validator] validators: an iterable (list or tuple) containing the `validators <validators.html>`_ to use.
-    :param Callable error_callback: a function called when an error occurs during validation
-    :param str validator_fmt_str: format string for validation errors
+    :param value: the input value to validate
+    :param validators: an iterable (list or tuple) containing the `validators <validators.html>`_ to use.
+    :param error_callback: a function called when an error occurs during validation
+    :param validator_fmt_str: format string for validation errors
 
     :return: boolean **True** if any of the validators pass, **False** if they all fail.
 
@@ -66,10 +66,10 @@ def in_all(value: Any, validators: Any, error_callback: ErrorCallback,
     """
     return **True** if the value passes all of the validators - AND's the list of supplied `validators <validators.html>`_.
 
-    :param Any value: the input value to validate
-    :param List[Validator] validators: an iterable (list or tuple) containing the `validators <validators.html>`_ to use.
-    :param Callable error_callback: a function called when an error occurs during validation
-    :param str validator_fmt_str: format string to pass to the error callback routine for formatting the error.
+    :param value: the input value to validate
+    :param validators: an iterable (list or tuple) containing the `validators <validators.html>`_ to use.
+    :param error_callback: a function called when an error occurs during validation
+    :param validator_fmt_str: format string to pass to the error callback routine for formatting the error.
 
     :return: boolean **True** if all of the validators pass, **False** if they all fail.
     """
@@ -91,10 +91,10 @@ def not_in(value: Any, validators: Any, error_callback: ErrorCallback,
     """
     return **True** if the value does not pass any of the validators - NOT's the list of supplied `validators <validators.html>`_.
 
-    :param Any value: the input value to validate
-    :param List[Validator] validators: an iterable (list or tuple) containing the `validators <validators.html>`_ to use.
-    :param allable error_callback: a function called when an error occurs during validation
-    :param str validator_fmt_str: format string to pass to the error callback routine for formatting the error.
+    :param value: the input value to validate
+    :param validators: an iterable (list or tuple) containing the `validators <validators.html>`_ to use.
+    :param error_callback: a function called when an error occurs during validation
+    :param validator_fmt_str: format string to pass to the error callback routine for formatting the error.
 
     :return: boolean **True** if none of the validators pass, **False** if they any of them pass.
 
@@ -135,13 +135,12 @@ def validate(value: Any, validators: Any, error_callback: ErrorCallback = print_
     """
     return **True** is a value passes validation.
 
-    :param Any value: the value to validate
-    :param List[Validator] validators: an iterable (list or tuple) of `validators <validators.html>`_ to run on ``value``
-    :param Callable error_callback: a function called when an error occurs during validation
-    :param str validator_fmt_str: format string to pass to the error callback routine for formatting the error
+    :param value: the value to validate
+    :param validators: an iterable (list or tuple) of `validators <validators.html>`_ to run on ``value``
+    :param error_callback: a function called when an error occurs during validation
+    :param validator_fmt_str: format string to pass to the error callback routine for formatting the error
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: boolean
 
     .. note::
         Unlike :func:`in_any`, :func:`in_all` and :func:`not_in`, which all treat "no
@@ -188,11 +187,10 @@ class LengthValidator(Validator):
     check the length of a value is in a range (open interval). For exact length match set ``min_len`` and ``max_len`` lengths
     to the same value.
 
-    :param int min_len: the minimum required length for the input. If **None** (default), no minimum length is checked.
-    :param int max_len: the maximum required length for the input. If **None** (default), no maximum length is checked.
+    :param min_len: the minimum required length for the input. If **None** (default), no minimum length is checked.
+    :param max_len: the maximum required length for the input. If **None** (default), no maximum length is checked.
 
     :return: **True** if the input passed validation
-    :rtype: boolean
 
     Example::
 
@@ -231,10 +229,9 @@ class EqualToValidator(Validator):
     """
     check if a value is equal to a specified value.
 
-    :param Any value: the value to match
+    :param value: the value to match
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: boolean
     """
     def __init__(self, value: Any) -> None:
         self._value = value
@@ -257,11 +254,10 @@ class RangeValidator(Validator):
     check if a value is in a specified range (open interval.) The value can be of any type as long
     as the ``__ge__`` and ``__le__`` comparison functions are defined.
 
-    :param Any min_val: The minimum allowed value (i.e. ``value`` must be >= ``min_val``). If **None** (the default), no minimum value is checked.
-    :param Any max_val: The maximum allowed value (i.e. ``value`` must be <= max_val). If **None** (the default), no maximum value is checked.
+    :param min_val: The minimum allowed value (i.e. ``value`` must be >= ``min_val``). If **None** (the default), no minimum value is checked.
+    :param max_val: The maximum allowed value (i.e. ``value`` must be <= max_val). If **None** (the default), no maximum value is checked.
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: boolean
 
     Example::
 
@@ -303,10 +299,9 @@ class ChoiceValidator(Validator):
     """
     check if a value is in a set of choices.
 
-    :param Iterable choices: an iterable (tuple, list, or set) containing the allowed set of choices for the value.
+    :param choices: an iterable (tuple, list, or set) containing the allowed set of choices for the value.
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: boolean
 
 
     Example::
@@ -338,11 +333,10 @@ class NoneOfValidator(Validator):
     """
     check if a value does not pass validation for a list of `validators <validators.html>`_ (NOT operation).
 
-    :param List[Validator] validators: a list of `validators <validators.html>`_ that should not pass
+    :param validators: a list of `validators <validators.html>`_ that should not pass
         validation on the input value
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: boolean
 
     .. note::
         if ``choices`` is mutable, it can be changed after the instance is created.
@@ -373,11 +367,10 @@ class AnyOfValidator(Validator):
     """
     check if a value matches any of a set of `validators <validators.html>`_ (OR operation).
 
-    :param List[Validator] validators: a list of `validators <validators.html>`_. Returns **True**
+    :param validators: a list of `validators <validators.html>`_. Returns **True**
         once any of the `validators <validators.html>`_ passes.
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: boolean
 
     .. note::
         if ``choices`` is mutable, it can be changed after the instance is created.
@@ -406,10 +399,9 @@ class IsFileValidator(Validator):
     """
     check is a string is the name of an existing filename
 
-    :param str value: the filename to verify
+    :param value: the filename to verify
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: boolean
     """
     def __init__(self) -> None:
         pass
@@ -432,11 +424,10 @@ class SimpleValidator(Validator):
     validation functions, whether your own or from a third-party library. Can also be used with `func.partial
     <https://docs.python.org/3/library/functools.html#partial-objects>`_ to wrap validation functions that take more complex parameters.
 
-    :param Callable validator_func: a function (or other callable) called to validate the value
-    :param str name: an optional string to use for the validator name in error messages
+    :param validator_func: a function (or other callable) called to validate the value
+    :param name: an optional string to use for the validator name in error messages
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: boolean
 
     Example::
 
@@ -470,11 +461,10 @@ class RegexValidator(Validator):
     r"""
     check if a value matches a `regular expression <https://docs.python.org/3/library/re.html?highlight=re#module-re>`_.
 
-    :param str pattern: the `regular expression <https://docs.python.org/3/library/re.html?highlight=re#module-re>`_ to match
-    :param str regex_desc: a human readable string to use for the regular expression (used for error messages)
+    :param pattern: the `regular expression <https://docs.python.org/3/library/re.html?highlight=re#module-re>`_ to match
+    :param regex_desc: a human readable string to use for the regular expression (used for error messages)
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: boolean
 
     Example::
 
@@ -510,18 +500,17 @@ class PasswordValidator(Validator):
     """
     validate a password string.
 
-    :param int min_len: the minimum allowed password length (default=1)
-    :param int max_len: the maximum password length (default=64)
-    :param int min_lower: the minimum number of lower case letters (default=``None``)
-    :param int min_upper: the minimum number of upper case letters (default=``None``)
-    :param int min_digits: the minimum number of digits (default=``None``)
-    :param int min_puncts: the minimum number of punctuation characters (default=``None`)
-    :param str allowed: a string containing the allowed characters in the password. Default is upper and lower case ascii
+    :param min_len: the minimum allowed password length (default=1)
+    :param max_len: the maximum password length (default=64)
+    :param min_lower: the minimum number of lower case letters (default=``None``)
+    :param min_upper: the minimum number of upper case letters (default=``None``)
+    :param min_digits: the minimum number of digits (default=``None``)
+    :param min_puncts: the minimum number of punctuation characters (default=``None`)
+    :param allowed: a string containing the allowed characters in the password. Default is upper and lower case ascii
         letters, plus digits, plus punctuation characters
-    :param str disallowed: a string containing characters not allowed in the password (default=``None``)
+    :param disallowed: a string containing characters not allowed in the password (default=``None``)
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: boolean
 
     Example::
 
@@ -598,16 +587,15 @@ class ListValidator(Validator):
     """
     Run a set of `validators <validators.html>`_ on a list.
 
-    :param List[Validator] len_validators: a list of  `validators <validators.html>`_ to run on the length of the ``value``
+    :param len_validators: a list of  `validators <validators.html>`_ to run on the length of the ``value``
         list. if **None** (default) no validation is done on the list length.
-    :param List[Validator] elem_validators: a list of `validators <validators.html>`_ to apply to the
+    :param elem_validators: a list of `validators <validators.html>`_ to apply to the
         elements of the list.
-    :param str len_validator_fmt_str: a format string to use as an error message is the length of the ``value`` string
+    :param len_validator_fmt_str: a format string to use as an error message is the length of the ``value`` string
         does not pass the length validation (``len_validators``). If **None** (default), ``validator_fmt_str`` is used
         from the call to the validator.
 
     :return: **True** if the input passed validation, else **False**
-    :rtype: boolean
 
     .. note::
 

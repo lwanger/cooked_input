@@ -7,3 +7,9 @@
 # runs with fail_on_warning, so a major Sphinx release that introduces a new
 # warning would otherwise break the docs without a commit to this repository.
 sphinx~=8.2
+
+# Renders each parameter's type from the annotation rather than from the docstring, which
+# is why the docstrings no longer restate them. Pinned to a compatible release for the same
+# fail_on_warning reason as Sphinx itself: this one reports unresolvable forward references
+# as warnings, so a release that resolves them differently would break the build.
+sphinx-autodoc-typehints~=3.5

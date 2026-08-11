@@ -63,10 +63,9 @@ class Cleaner(metaclass=ABCMeta):
 
 class CapitalizationCleaner(Cleaner):
     """
-    :param CAP_STYLE_STR style: (optional) capitalization style to use. Defaults to  ``LOWER_CAP_STYLE``
+    :param style: (optional) capitalization style to use. Defaults to  ``LOWER_CAP_STYLE``
 
     :return: the cleaned (capitalized) value
-    :rtype: str
 
     Capitalize the value using the specified style
 
@@ -121,11 +120,10 @@ class CapitalizationCleaner(Cleaner):
 
 class StripCleaner(Cleaner):
     """
-    :param bool lstrip: (optional) strips white space from the left side of the value if **True** (default)
-    :param bool rstrip: (optional) strips white space from the right side of the value if **True** (default)
+    :param lstrip: (optional) strips white space from the left side of the value if **True** (default)
+    :param rstrip: (optional) strips white space from the right side of the value if **True** (default)
 
     :return: the cleaned (stripped) value
-    :rtype: str
 
     Strips white space from the input value. Strips from the left side if lstrip=True, and from the
     right side if rstrip=True. Both are True by default (i.e. strips from both left and right).
@@ -148,12 +146,11 @@ class StripCleaner(Cleaner):
 
 class ChoiceCleaner(Cleaner):
     """
-    :param List[str] choices: the list of choices to match
-    :param bool case_sensitive: (optional) if **True** (default) matching the choice is case sensitive, 
-      otherwise matching is case insensitive
+    :param choices: the list of choices to match
+    :param case_sensitive: (optional) if **True** (default) matching the choice is case
+        sensitive, otherwise matching is case insensitive
 
     :return: the cleaned (matched choice from the ``choices`` list) value or the original value if no match is found
-    :rtype: str (type is dependent on the mapped value in ``choices`` but is generally `str`)
 
     .. note:: The cleaned output uses the same capitalization as the item matched from the choices list regardless of the
         ``case_sensitive`` parameter.
@@ -183,7 +180,7 @@ class ChoiceCleaner(Cleaner):
         | 'BR'  | 'BR'    | original value returned as case of the input does not match [#f2]_ |
         +-------+---------+--------------------------------------------------------------------+
 
-.. [#f2] Would return `"brown"` if ``case_sensitive`` is **False**
+    .. [#f2] Would return `"brown"` if ``case_sensitive`` is **False**
     """
     def __init__(self, choices: Iterable[Any], case_sensitive: bool = True) -> None:
         self._case_sensitive = case_sensitive
@@ -216,12 +213,11 @@ class ChoiceCleaner(Cleaner):
 
 class RemoveCleaner(Cleaner):
     """
-    :param List[str] patterns: a list of strings to remove
-    :param int count: (optional) the maximum number of substitutions to perform on the input value. Default
+    :param patterns: a list of strings to remove
+    :param count: (optional) the maximum number of substitutions to perform on the input value. Default
       is to remove all occurrences
 
     :return: the cleaned (``patterns`` removed) value
-    :rtype: str
 
     Removes all occurrences of any of the strings in the ``patterns`` list from the input value.
     """
@@ -245,13 +241,12 @@ class RemoveCleaner(Cleaner):
 
 class ReplaceCleaner(Cleaner):
     """
-    :param str old: string to replace
-    :param str new: string to substitute for occurrences of ``old``
-    :param int count: (optional) the maximum number of substitutions to perform on the input value. Default
+    :param old: string to replace
+    :param new: string to substitute for occurrences of ``old``
+    :param count: (optional) the maximum number of substitutions to perform on the input value. Default
       is to replace all occurrences
 
     :return: the cleaned (``old`` replaced with ``new``) value
-    :rtype: str
 
     Replaces occurrences of ``old`` string with ``new`` string from the input value. If `count` is specified the first
     ``count`` occurrences, from left to right, are replaced. If count is **0**, or not specified, all occurrences are replaced.
@@ -275,14 +270,13 @@ class ReplaceCleaner(Cleaner):
 
 class RegexCleaner(Cleaner):
     """
-    :param Pattern[str] pattern: regular expression to search for
-    :param str repl: string to substitute for occurrences of ``pattern``
-    :param int count: (optional) the maximum number of substitutions to perform on the input value. Default is to replace
+    :param pattern: regular expression to search for
+    :param repl: string to substitute for occurrences of ``pattern``
+    :param count: (optional) the maximum number of substitutions to perform on the input value. Default is to replace
       all occurrences
     :param flags: (optional) flags. Default is no flags. See below for details
     
     :return: the cleaned (**pattern** replaced with **repl**) value
-    :rtype: str
 
     Return the string obtained by replacing the leftmost non-overlapping occurrences of `pattern` in the input value
     by the replacement `repl`. If the pattern is not found in the input value, the value is returned unchanged.

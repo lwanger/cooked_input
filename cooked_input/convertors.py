@@ -57,11 +57,10 @@ class IntConvertor(Convertor):
     """
     convert the cleaned input to an integer.
 
-    :param int base:  the radix base to use for the int conversion (default=10)
-    :param str value_error_str: (optional) the error string to use when an improper value is input
+    :param base:  the radix base to use for the int conversion (default=10)
+    :param value_error_str: (optional) the error string to use when an improper value is input
 
     :return: ``value`` converted to `int`
-    :rtype: int
     :raises ConvertorError: if ``value`` cannot be converted to `int`
 
 
@@ -87,10 +86,9 @@ class FloatConvertor(Convertor):
     """
     convert to a floating point number.
 
-    :param str value_error_str: (optional) the error string to use when an improper value is input
+    :param value_error_str: (optional) the error string to use when an improper value is input
 
     :return: ``value`` converted to `float`
-    :rtype: float
     :raises ConvertorError: if ``value`` cannot be converted to `float`
     """
     def __init__(self, value_error_str: str = 'a float number') -> None:
@@ -111,10 +109,9 @@ class BooleanConvertor(Convertor):
     """
     convert to a boolean value (**True** or **False**.)
 
-    :param str value_error_str: (optional) the error string to use when an improper value is input
+    :param value_error_str: (optional) the error string to use when an improper value is input
 
     :return: ``value`` converted to a `boolean`
-    :rtype: boolean (**True** or **False**)
     :raises ConvertorError: if ``value`` cannot be converted to `bool`
 
 
@@ -144,14 +141,13 @@ class ListConvertor(Convertor):
     """
     convert to a list.
 
-    :param GetInput elem_get_input: an instance of a :class:`GetInput` to apply to each element. If ``None`` (default)
+    :param elem_get_input: an instance of a :class:`GetInput` to apply to each element. If ``None`` (default)
         each element in the list is a string
-    :param str delimiter: (optional) the single character delimiter to use for parsing the list. If None, will sniff the value
+    :param delimiter: (optional) the single character delimiter to use for parsing the list. If None, will sniff the value
         (ala CSV library.)
-    :param str value_error_str: (optional) the error string for improper value inputs
+    :param value_error_str: (optional) the error string for improper value inputs
 
     :return: a `list` values, where each item in the list is of the type returned by ``elem_get_input``
-    :rtype: List[Any] (element type of list determined by ``elem_get_input``)
     :raises ConvertorError: if ``elem_get_input``'s :meth:`GetInput.process_value` fails
 
     Converts to a homogenous list of values. The :meth:`GetInput.process_value` method on the ``elem_get_input``
@@ -214,10 +210,9 @@ class DateConvertor(Convertor):
     """
     convert to a `datetime <https://docs.python.org/3/library/datetime.html#datetime.datetime>`_ value.
 
-    :param str value_error_str: (optional) the error string to use when an improper value is input
+    :param value_error_str: (optional) the error string to use when an improper value is input
 
     :return: ``value`` converted to a `datetime <https://docs.python.org/3/library/datetime.html#datetime.datetime>`_
-    :rtype: `datetime <https://docs.python.org/3/library/datetime.html#datetime.datetime>`_
     :raises ConvertorError: if dateparser is unable to convert ``value`` to a
         `datetime <https://docs.python.org/3/library/datetime.html#datetime.datetime>`_
 
@@ -245,10 +240,9 @@ class YesNoConvertor(Convertor):
     """
     convert to 'yes' or 'no'.
 
-    :param str value_error_str: (optional) the error string to use when an improper value is input
+    :param value_error_str: (optional) the error string to use when an improper value is input
 
     :return: a string set to either **"yes"** or **"no"**
-    :rtype: str (**"yes"** or **"no"**)
     :raises ConvertorError: if ``value`` cannot be converted to **"yes"** or **"no"**
 
     **YesNoConvertor** returns `yes` for input values: 'y', 'yes', 'yeah', 'yup', 'aye', 'qui', 'si', 'ja', 'ken',
@@ -278,13 +272,12 @@ class ChoiceConvertor(Convertor):
     """
     Convert a value to its mapped value in a dictionary.
 
-    :param Dict value_dict:  a dictionary containing keys to map from and values to map to
-    :param str value_error_str: (optional) the error string to use when an improper value is input
+    :param value_dict:  a dictionary containing keys to map from and values to map to
+    :param value_error_str: (optional) the error string to use when an improper value is input
 
     :raises ConvertorError if ``value`` key is not found in ``value_dict``
 
     :return: the `value` associated with the choice in ``value_dict`` (e.g. `value_dict[value]`)
-    :rtype: Any (type is dependent on mapped value in ``value_dict``)
 
     convert a value to it's return value in a dictionary (i.e. value_dict[value]). Can be used to map the row
     index from a table of values or to map multiple tags to a single choice.
@@ -314,13 +307,12 @@ class DecimalConvertor(Convertor):
     """
     convert the cleaned input to a Decimal value.
 
-    :param int precision: the fixed number of digits after the decimal point. **None** (the
+    :param precision: the fixed number of digits after the decimal point. **None** (the
         default) keeps every digit entered and rounds nothing.
-    :param str rounding:  rules used for rounding (default: "ROUND_HALF_UP")
-    :param str value_error_str: (optional) the error string to use when an improper value is input
+    :param rounding:  rules used for rounding (default: "ROUND_HALF_UP")
+    :param value_error_str: (optional) the error string to use when an improper value is input
 
     :return: ``value`` converted to `Decimal`
-    :rtype: Decimal
     :raises ConvertorError: if ``value`` cannot be converted to `Decimal`
     :raises ValueError: at construction, if ``rounding`` is not one of the legal names or
         ``precision`` is not a whole number

@@ -98,6 +98,33 @@ which is the cheapest validation the annotations get.
 whatever the caller asked for, so `Any` is sometimes the honest annotation — the `**options`
 bags and `Convertor.__call__` especially. Prefer a real type wherever one exists.
 
+### Docstrings do not restate types
+
+Write `:param precision:`, never `:param int precision:`, and do not write `:rtype:` at all.
+The docs build runs [`sphinx-autodoc-typehints`](https://github.com/tox-dev/sphinx-autodoc-typehints),
+which renders each parameter's type and the return type from the signature. A type written in
+a docstring as well is not merely redundant — it *wins*, so it silently shadows the annotation
+and is free to drift out of date. Several did: `get_int` was documented `:rtype: int` long
+after it had learned to return `None` for a blank optional response.
+
+Say in prose what the annotation cannot. Where the honest annotation is `Any` — `get_input`,
+`process_value`, `Convertor.__call__` — the `:return:` text has to carry the meaning that the
+bare `Any` does not, so it explains that the type is whatever the convertor produced.
+
+Two things to know about the docstrings themselves, both of which used to pass unnoticed and
+now fail the build:
+
+* Everything in a docstring must be indented consistently. A line at column 0 defeats the
+  dedent and leaves every *other* line looking over-indented to docutils.
+* The body of a `:param:` that wraps to a second line must be indented past the field marker.
+
+`sphinx-autodoc-typehints` is pinned to a compatible release for the same reason Sphinx is:
+the build runs with `-W`, so a release that reports forward references differently would break
+the docs without a commit here.
+
+This rule is about the library. `cooked_input/examples/` is exempt from `ANN`, so a type in one
+of those docstrings is the only type information there is — leave it alone.
+
 ### Faking console input
 
 `cooked_input` reads from the console, so nearly every test needs a fake keyboard. Use the
