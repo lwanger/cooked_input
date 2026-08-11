@@ -12,6 +12,62 @@ see TODO.md for list of TODO items
 
 * unreleased:
 
+  * added: type annotations on every function, method and class in the package, and a
+    ``py.typed`` marker (PEP 561) so that downstream projects actually see them -- without
+    that file in the installed package a consumer's type checker ignores the annotations
+    entirely. ``cooked_input`` is now a typed library: ``get_int()`` is understood to return
+    ``int | None``, and passing a ``str`` where an ``int`` belongs is reported at the call
+    site rather than at run time. The annotations describe the existing API and change no
+    behavior on their own; the fixes they turned up are listed separately below.
+
+    Two of them are worth knowing about because they make the *documented* type honest
+    rather than optimistic. The eight ``get_*`` convenience functions are annotated
+    ``X | None``, not ``X``: with ``required=False`` a blank response has always returned
+    **None**. And ``get_input``, ``process_value`` and ``Convertor.__call__`` are annotated
+    ``Any``, because what they return is whatever the convertor produced.
+  * added: ``ty`` and ``ruff`` run in CI as a ``types`` job. The two do different jobs:
+    ``ty`` checks that the annotations are correct, and Ruff's ``ANN`` rules check that they
+    exist at all, which ``ty`` has no way to report. ``ty`` is pinned exactly rather than
+    floored -- it is pre-1.0 and its diagnostics move between releases. A ``docs`` job was
+    added at the same time, mirroring the Python version and ``fail_on_warning`` of the Read
+    the Docs build.
+  * docs: parameter and return types are rendered from the annotations by
+    ``sphinx-autodoc-typehints`` instead of being restated in the docstrings, and the 171
+    ``:param <type> <name>:`` fields and 46 ``:rtype:`` fields have been reduced to one
+    source of truth. A docstring type does not merely duplicate the signature -- it wins --
+    so several had quietly gone stale: ``get_int`` was documented ``:rtype: int`` long after
+    it learned to return **None** for a blank optional response, ``get_date`` likewise, and
+    ``Table.get_action`` was documented ``:rtype: Callable`` when returning one of the
+    ``TABLE_ITEM_*`` sentinel strings is normal. ``Table.get_row`` had taken its summary and
+    its ``:return:`` from ``get_num_rows`` by copy-paste, and so claimed to return the number
+    of rows in the table.
+  * fixed: ``TableStyle(rows_per_page=None)`` -- documented as "no maximum" -- crashed on
+    any attempt to move around the table. ``page_up``, ``page_down``, ``goto_end`` and
+    ``refresh_items`` all did arithmetic on ``rows_per_page`` without checking it first, so
+    each raised ``TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'``;
+    ``refresh_items`` did the same whenever an item filter shrank the table below the
+    current start row. With no maximum the whole table is one page, so all four are now
+    no-ops that leave every row on screen.
+  * fixed: ``get_money`` was the one ``get_*`` function that could not accept a single
+    cleaner. It built its cleaner list with ``list(cleaners)`` rather than
+    ``put_in_a_list(cleaners)``, so ``get_money(cleaners=StripCleaner())`` raised
+    ``TypeError: 'StripCleaner' object is not iterable`` while every sibling accepted it.
+  * fixed: ``Table.do_action`` raised ``'str' object is not callable`` for a
+    ``default_action`` that was neither one of the ``TABLE_RETURN_*`` names nor a function.
+    It tested ``default_action is not None``, which it never is -- ``Table.__init__`` maps
+    **None** to ``return_tag_action``. ``Table.run`` already tested the same value with
+    ``callable()`` and reported it on stderr instead, so ``do_action`` now agrees with it and
+    with its own contract of handing the row back when there is no action to run.
+  * fixed: ``GetInput.process_value`` returned a bare ``(False, None)`` tuple on a
+    conversion error rather than a ``ProcessValueResponse``. It unpacks the same, so the
+    common ``valid, value = ...`` spelling was unaffected, but a caller reaching for
+    ``.valid`` or ``.value`` -- which the docstring invites -- got ``AttributeError`` on
+    exactly the failure path they were checking for.
+  * fixed: ``string.Formatter.vformat`` was passed **None** where the sequence of positional
+    format arguments belongs, at four places in ``get_table.py``. Header, footer and cell
+    format strings reference ``action_dict`` by name only, so nothing ever indexed it, but a
+    caller who wrote ``{0}`` got a ``TypeError`` rather than the ``IndexError`` that says
+    what is actually wrong.
   * tests: package coverage reached 100% (branch coverage, source only) and the suite grew to
     456 tests. The CI floor is now ``--cov-fail-under=99`` -- deliberately one point below the
     measured value, so that a genuinely awkward line does not have to be answered with a

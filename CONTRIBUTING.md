@@ -85,9 +85,16 @@ pre-1.0, and its diagnostics change between releases; an unpinned checker turns 
 someone else's release schedule. Bump the pin deliberately, in its own commit, so that a
 new checker's findings are never mixed into an unrelated change.
 
-**The annotation ratchet.** `per-file-ignores` in `pyproject.toml` lists the modules that
-are not yet annotated. Like the coverage floor, that list only ever shrinks, and it shrinks
-in the PR that types the module. Never add a module back to it.
+**The annotation ratchet is finished.** `per-file-ignores` in `pyproject.toml` once listed
+the modules that were not yet annotated, and shrank by one line per PR. Every source module
+is annotated now, so what remains in that list is the tests-and-examples policy exemption
+below — not a backlog. Never add a source module back to it: a new module arrives annotated.
+
+`[[tool.ty.overrides]]` holds one suppression, `invalid-assignment` on `get_table.py`. That
+one is not a checker artifact — it marks issue #65, where `TableStyle` documents the four
+`RULE_*` constants for `vrules` but they are all `HRuleStyle` members, so
+`TableStyle(vrules=RULE_HEADER)` raises. Fixing it changes behavior, so it wants its own PR;
+the suppression goes away with it.
 
 Tests and examples are exempt from `ANN` by policy — annotations buy little in a test, and
 the examples are demo scripts rather than library code. `ty` still checks the tests, and

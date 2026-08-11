@@ -150,6 +150,18 @@ jobs:
           cd /tmp
           /tmp/clean/bin/python -c "import cooked_input; print(cooked_input.__version__)"
 
+      # PEP 561: without this marker inside the *installed* package, a downstream project's
+      # type checker ignores our annotations and cooked_input is untyped for everyone but us.
+      # It fails silently, so it is asserted rather than assumed.
+      - name: Confirm py.typed ships in the installed package
+        run: |
+          /tmp/clean/bin/python -c "
+          import pathlib, cooked_input
+          marker = pathlib.Path(cooked_input.__file__).parent / 'py.typed'
+          assert marker.is_file(), f'py.typed missing from the installed package at {marker}'
+          print(f'py.typed present: {marker}')
+          "
+
       - uses: actions/upload-artifact@v7
         with:
           name: distributions
