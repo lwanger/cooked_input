@@ -113,25 +113,39 @@ class TestPageNavigation:
 
 
 class TestSingleRowScrolling:
-    # These two assert what the code does today, which is the opposite of what the
-    # method names say: scroll_up_one_row moves the window toward *later* rows and
-    # scroll_down_one_row toward *earlier* ones. It is user-visible, because
+    # Regression guards for #46: these two bodies used to be the wrong way round, so a
+    # command bound to "scroll up one row" scrolled the view down. User-visible, because
     # Table._get_choice wires UpOneRowRequest straight to scroll_up_one_row.
-    #
-    # Left as characterization rather than xfail because the fix is a real choice --
-    # swap the bodies, or rename the methods and their command actions -- and that
-    # decision belongs in the issue, not here. Whichever way it goes, these two
-    # tests fail and force the update.
 
-    def test_scroll_up_one_row_currently_moves_toward_later_rows(self, table):
-        table.show_rows(0)
+    def test_scroll_up_one_row_moves_toward_earlier_rows(self, table):
+        table.show_rows(5)
         table.scroll_up_one_row()
+        assert window(table) == (4, 7)
+
+    def test_scroll_down_one_row_moves_toward_later_rows(self, table):
+        table.show_rows(0)
+        table.scroll_down_one_row()
         assert window(table) == (1, 4)
 
-    def test_scroll_down_one_row_currently_moves_toward_earlier_rows(self, table):
+    def test_scrolling_up_agrees_with_paging_up(self, table):
+        # The pair now moves the same way as page_up and page_down, just by one row.
         table.show_rows(5)
+        table.scroll_up_one_row()
+        after_scroll = window(table)[0]
+
+        table.show_rows(5)
+        table.page_up()
+        assert after_scroll > window(table)[0]
+
+    def test_scrolling_up_stops_at_the_first_row(self, table):
+        table.show_rows(0)
+        table.scroll_up_one_row()
+        assert window(table) == (0, 3)
+
+    def test_scrolling_down_stops_at_the_last_row(self, table):
+        table.goto_end()
         table.scroll_down_one_row()
-        assert window(table) == (4, 7)
+        assert window(table) == (NUM_ROWS - ROWS_PER_PAGE, NUM_ROWS)
 
 
 class TestRowLookup:

@@ -170,13 +170,19 @@ class TestNavigationCommandsMoveTheTable:
     def test_paging_up_past_the_start_clamps(self, fake_input, capsys):
         assert self.navigate(fake_input, "/p", "/p", "5") == (0, 3)
 
-    def test_scroll_up_command_moves_the_window_by_one_row(self, fake_input, capsys):
-        # Direction follows the method, which is inverted relative to its name --
-        # '/u' moves toward later rows. See the scroll direction issue.
-        assert self.navigate(fake_input, "/u", "5") == (1, 4)
+    def test_scroll_down_command_moves_the_window_by_one_row(self, fake_input, capsys):
+        assert self.navigate(fake_input, "/d", "5") == (1, 4)
 
-    def test_scroll_down_command_moves_back_by_one_row(self, fake_input, capsys):
-        assert self.navigate(fake_input, "/u", "/u", "/d", "5") == (1, 4)
+    def test_scroll_up_command_moves_back_by_one_row(self, fake_input, capsys):
+        # Regression guard for #46: '/u' used to move toward later rows, so this
+        # sequence drifted forward instead of back.
+        assert self.navigate(fake_input, "/d", "/d", "/u", "5") == (1, 4)
+
+    def test_scroll_up_command_from_the_last_page_moves_back(self, fake_input, capsys):
+        assert self.navigate(fake_input, "/e", "/u", "5") == (6, 9)
+
+    def test_scrolling_up_past_the_start_clamps(self, fake_input, capsys):
+        assert self.navigate(fake_input, "/u", "5") == (0, 3)
 
     def test_a_refresh_screen_interrupt_returns_to_the_first_page(self, fake_input, capsys):
         def refresh(cmd_str, cmd_vars, cmd_dict):
