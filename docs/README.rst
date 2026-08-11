@@ -79,10 +79,15 @@ upgrading:
     unaffected.
   - The module-level validation helpers, and :class:`SimpleValidator`, now return a real
     ``bool`` rather than passing a validator's truthy return value through.
-  - :class:`Table`, :func:`create_table` and :func:`get_menu` take their options as named
-    keyword-only parameters instead of a ``**options`` dictionary. An unrecognised option now
-    raises a ``TypeError`` rather than being silently ignored. Code that builds an options
-    dictionary still works by unpacking it: ``Table(rows, **options)``.
+  - :class:`GetInput` and every ``get_*`` function take their options as named keyword-only
+    parameters instead of a ``**options`` dictionary. An unrecognised option raises a ``TypeError``
+    rather than logging a warning and carrying on with the default, so ``get_int(promt="Age?")`` is
+    now reported instead of quietly asking the wrong question. Code that builds an options
+    dictionary still works by unpacking it: ``get_int(**options)``.
+  - :class:`Table`, :func:`create_table`, :func:`get_menu`, :meth:`Table.get_table_choice` and
+    :func:`get_table_input` changed the same way. An unrecognised option raises a ``TypeError``
+    rather than being silently ignored -- which is how two bugs in the shipped examples had gone
+    unnoticed.
   - :class:`Cleaner`, :class:`Convertor` and :class:`Validator` are now real abstract base
     classes. A subclass that never implemented ``__call__`` raises ``TypeError`` when
     instantiated, where before it silently returned **None** from every call.

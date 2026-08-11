@@ -2,7 +2,7 @@
 
 The per-type convenience wrappers are covered by test_get_int / test_get_str and
 friends. This file takes the options they do not exercise: retries, defaults,
-hidden prompts, and the unknown-option warning.
+hidden prompts, and rejection of unknown options.
 
 Len Wanger, 2026
 """
@@ -11,6 +11,8 @@ import decimal
 import logging
 
 import pytest
+
+import cooked_input as ci
 
 from cooked_input import (
     DateConvertor,
@@ -111,17 +113,26 @@ class TestHiddenInput:
 
 
 class TestUnknownOptions:
-    def test_an_unknown_option_is_logged_as_a_warning(self, caplog):
-        with caplog.at_level(logging.WARNING):
-            GetInput(bogus_option=1)
+    """The ten options are named parameters, so an unrecognised one is rejected.
 
-        assert "unknown option" in caplog.text
-        assert "bogus_option" in caplog.text
+    These used to assert the opposite: that an unknown option was logged as a warning and
+    construction carried on with the default. That let a misspelled option produce a prompt that
+    looked almost right -- ``get_int(promt="Age?")`` asked "Enter a whole (integer) number".
+    """
 
-    def test_an_unknown_option_does_not_stop_construction(self, fake_input, caplog):
-        fake_input("42")
-        with caplog.at_level(logging.WARNING):
-            assert get_input(convertor=IntConvertor(), bogus_option=1) == 42
+    def test_an_unknown_option_is_rejected(self):
+        with pytest.raises(TypeError, match="bogus_option"):
+            # ty is right that there is no such parameter -- that it can now say so is the
+            # point of the change, and calling it anyway is the point of the test.
+            GetInput(bogus_option=1)  # ty: ignore[unknown-argument]
+
+    def test_an_unknown_option_is_rejected_by_the_convenience_functions(self):
+        with pytest.raises(TypeError, match="bogus_option"):
+            get_input(convertor=IntConvertor(), bogus_option=1)  # ty: ignore[unknown-argument]
+
+    def test_a_misspelled_prompt_is_rejected_rather_than_ignored(self):
+        with pytest.raises(TypeError, match="promt"):
+            ci.get_int(promt="How old are you?")  # ty: ignore[unknown-argument]
 
 
 class TestGetListDefaults:
@@ -265,3 +276,66 @@ class TestGetMoney:
         feeder = fake_input("42")
         get_money(prompt="How much?")
         assert "How much?" in feeder.prompts[0]
+
+
+class TestMoneyPrecisionAndRounding:
+    """``precision`` and ``rounding`` are get_money's own parameters, not GetInput options.
+
+    They used to arrive through the ``**options`` bag, which copied them into the convertor's
+    arguments but never removed them from the bag -- so they were forwarded to GetInput as well,
+    which did not know them and logged an "unknown option" warning for each. The documented way to
+    ask for whole cents warned twice on every call.
+    """
+
+    def test_precision_rounds_to_whole_cents(self, fake_input):
+        fake_input("$1234.567")
+        assert get_money(precision=2) == decimal.Decimal("1234.57")
+
+    def test_rounding_selects_the_rule(self, fake_input):
+        fake_input("$1234.564")
+        assert get_money(precision=2, rounding="ROUND_UP") == decimal.Decimal("1234.57")
+
+    def test_no_precision_does_not_round(self, fake_input):
+        fake_input("$1234.5678")
+        assert get_money() == decimal.Decimal("1234.5678")
+
+    def test_precision_no_longer_warns(self, fake_input, caplog):
+        fake_input("$1234.567")
+        with caplog.at_level(logging.WARNING):
+            get_money(precision=2, rounding="ROUND_UP")
+
+        assert caplog.text == ""
+
+
+class TestValidatorsAsATuple:
+    """A tuple of validators works everywhere a list does.
+
+    ``get_int``, ``get_float`` and ``get_date`` built their validator list with
+    ``validators + [range_validator]``, which needs a list on the left -- so a tuple raised
+    TypeError as soon as a minimum or maximum was given too. ``get_string`` accepted one, because
+    it extends a list instead, so the functions disagreed about what ``validators`` could be.
+    """
+
+    def test_get_int_takes_a_tuple_with_a_range(self, fake_input):
+        fake_input("7")
+        validators = (RangeValidator(min_val=1), RangeValidator(max_val=10))
+        assert get_input(convertor=IntConvertor(), validators=validators) == 7
+
+    def test_get_int_takes_a_tuple_alongside_minimum(self, fake_input):
+        fake_input("7")
+        assert ci.get_int(validators=(RangeValidator(min_val=1),), minimum=5) == 7
+
+    def test_get_float_takes_a_tuple_alongside_minimum(self, fake_input):
+        fake_input("7.5")
+        assert ci.get_float(validators=(RangeValidator(min_val=1),), minimum=5) == 7.5
+
+    def test_get_date_takes_a_tuple_alongside_minimum(self, fake_input):
+        fake_input("2026-08-11")
+        result = get_date(validators=(SimpleValidator(lambda v: True),),
+                          minimum=DateConvertor()("2020-01-01", silent_error, ""))
+        assert result is not None
+        assert result.year == 2026
+
+    def test_a_single_validator_still_works_alongside_minimum(self, fake_input):
+        fake_input("7")
+        assert ci.get_int(validators=RangeValidator(min_val=1), minimum=5) == 7
