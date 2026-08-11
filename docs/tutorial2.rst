@@ -207,7 +207,7 @@ Lets create some action callbacks to out application to: add an event, list all 
         desc = ci.get_string(prompt="Event description? ", commands=cmds)
         tbl = ci.create_table(event_types, ["name", "desc"], ["Name", "Desc"],
             add_item_to_item_data=True)
-        event_type = tbl.get_table_choice(prompt='Type? ', commands=cmds'])
+        event_type = tbl.get_table_choice(prompt='Type? ', commands=cmds)
         date = ci.get_date(prompt='Date? ', default='today', commands=cmds)
         type_id = event_type.item_data['item'].id
         events.append(Event(len(events)+1, date, desc, type_id))
