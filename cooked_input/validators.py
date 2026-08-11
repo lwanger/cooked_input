@@ -5,6 +5,8 @@ Author: Len Wanger
 Copyright: Len Wanger, 2017-2026
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import string
@@ -12,12 +14,15 @@ import re
 
 from abc import ABCMeta, abstractmethod
 from collections.abc import Iterable
+from typing import Any, Callable
 
+from ._typing import ErrorCallback
 from .error_callbacks import print_error, silent_error, DEFAULT_VALIDATOR_ERROR
 from .input_utils import put_in_a_list, isstring
 
 
-def in_any(value, validators, error_callback, validator_fmt_str):
+def in_any(value: Any, validators: Any, error_callback: ErrorCallback,
+           validator_fmt_str: str) -> bool:
     """
     return **True** if the value passes any of the ``validators`` - OR's the list of supplied `validators <validators.html>`_.
 
@@ -56,7 +61,8 @@ def in_any(value, validators, error_callback, validator_fmt_str):
     return result
 
 
-def in_all(value, validators, error_callback, validator_fmt_str):
+def in_all(value: Any, validators: Any, error_callback: ErrorCallback,
+           validator_fmt_str: str) -> bool:
     """
     return **True** if the value passes all of the validators - AND's the list of supplied `validators <validators.html>`_.
 
@@ -80,7 +86,8 @@ def in_all(value, validators, error_callback, validator_fmt_str):
     return result
 
 
-def not_in(value, validators, error_callback, validator_fmt_str):
+def not_in(value: Any, validators: Any, error_callback: ErrorCallback,
+           validator_fmt_str: str) -> bool:
     """
     return **True** if the value does not pass any of the validators - NOT's the list of supplied `validators <validators.html>`_.
 
@@ -123,7 +130,8 @@ def not_in(value, validators, error_callback, validator_fmt_str):
         return False
 
 
-def validate(value, validators, error_callback=print_error, validator_fmt_str=DEFAULT_VALIDATOR_ERROR):
+def validate(value: Any, validators: Any, error_callback: ErrorCallback = print_error,
+             validator_fmt_str: str = DEFAULT_VALIDATOR_ERROR) -> bool | None:
     """
     return **True** is a value passes validation.
 
@@ -134,6 +142,11 @@ def validate(value, validators, error_callback=print_error, validator_fmt_str=DE
 
     :return: **True** if the input passed validation, else **False**
     :rtype: boolean
+
+    .. note::
+        Unlike :func:`in_any`, :func:`in_all` and :func:`not_in`, which all treat "no
+        validators" as passing, an empty iterable here returns **None** and **None**
+        raises `TypeError`. Hence the ``bool | None`` return type. See issue #71.
     """
     result = None
 
@@ -162,11 +175,11 @@ class Validator(metaclass=ABCMeta):
     reads as a validation failure, instead of failing loudly. ``__init__`` is deliberately not
     abstract, so a subclass that only implements ``__call__`` still works.
     """
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     @abstractmethod
-    def __call__(self, value, error_callback, validator_fmt_str):
+    def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
         pass
 
 
@@ -187,11 +200,11 @@ class LengthValidator(Validator):
         result = get_string(prompt="Enter a 3 to 5 char string", validators=lv)
 
     """
-    def __init__(self, min_len=None, max_len=None):
+    def __init__(self, min_len: int | None = None, max_len: int | None = None) -> None:
         self._min_len = min_len
         self._max_len = max_len
 
-    def __call__(self, value, error_callback, validator_fmt_str):
+    def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
         try:
             val_len = len(value)
         except (TypeError):
@@ -210,7 +223,7 @@ class LengthValidator(Validator):
             error_callback(validator_fmt_str, value, 'too long (max_len={})'.format(self._max_len))
             return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'LengthValidator(min_len=%s, max_len=%s)' % (self._min_len, self._max_len)
 
 
@@ -223,10 +236,10 @@ class EqualToValidator(Validator):
     :return: **True** if the input passed validation, else **False**
     :rtype: boolean
     """
-    def __init__(self, value):
+    def __init__(self, value: Any) -> None:
         self._value = value
 
-    def __call__(self, value, error_callback, validator_fmt_str):
+    def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
         condition1 = (self._value is None or value == self._value)
 
         if condition1:
@@ -235,7 +248,7 @@ class EqualToValidator(Validator):
             error_callback(validator_fmt_str, value, 'value not equal to {}'.format(self._value))
             return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'EqualToValidator(value=%s)' % self._value
 
 
@@ -256,11 +269,11 @@ class RangeValidator(Validator):
         result = get_int(prompt="Enter a number (1 to 10)", validators=rv)
 
     """
-    def __init__(self, min_val=None, max_val=None):
+    def __init__(self, min_val: Any = None, max_val: Any = None) -> None:
         self._min_val = min_val
         self._max_val = max_val
 
-    def __call__(self, value, error_callback, validator_fmt_str):
+    def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
         try:
             min_condition = (self._min_val is None or value >= self._min_val)
         except (TypeError):
@@ -282,7 +295,7 @@ class RangeValidator(Validator):
             error_callback(validator_fmt_str, value, 'too high (max_val={})'.format(self._max_val))
             return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'RangeValidator(min_val=%s, max_val=%s)' % (self._min_val, self._max_val)
 
 
@@ -303,11 +316,11 @@ class ChoiceValidator(Validator):
         result = get_string(prompt="Enter a color", validators=cv)
 
     """
-    def __init__(self, choices):
+    def __init__(self, choices: Any) -> None:
         # note: if choices is mutable, the choices can change after instantiation
         self._choices = put_in_a_list(choices)
 
-    def __call__(self, value, error_callback, validator_fmt_str):
+    def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
         result = value in self._choices
 
         if result:
@@ -317,7 +330,7 @@ class ChoiceValidator(Validator):
             error_callback(validator_fmt_str, value, 'value must be one of: {}'.format(', '.join(choice_strs)))
             return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'ChoiceValidator(choices={})'.format(self._choices)
 
 
@@ -343,16 +356,16 @@ class NoneOfValidator(Validator):
         result = get_int(prompt=prompt_str, validators = nv)
 
     """
-    def __init__(self, validators):
+    def __init__(self, validators: Any) -> None:
         self._validators = validators
 
-    def __call__(self, value, error_callback, validator_fmt_str):
+    def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
         result = not_in(value, self._validators, error_callback, validator_fmt_str)
 
         # error callback handled within not_in call
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'NoneOfValidator(validators={})'.format(self._validators)
 
 
@@ -378,14 +391,14 @@ class AnyOfValidator(Validator):
         result = get_int(prompt=prompt_str, validators = nv)
 
     """
-    def __init__(self, validators):
+    def __init__(self, validators: Any) -> None:
         self._validators = validators
 
-    def __call__(self, value, error_callback, validator_fmt_str):
+    def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
         result = in_any(value, self._validators, error_callback, validator_fmt_str)
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'AnyOfValidator(validators={})'.format(self._validators)
 
 
@@ -398,17 +411,17 @@ class IsFileValidator(Validator):
     :return: **True** if the input passed validation, else **False**
     :rtype: boolean
     """
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def __call__(self, value, error_callback, validator_fmt_str):
+    def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
         if os.path.isfile(value):
             return True
         else:
             error_callback(validator_fmt_str, value, '{} is not a valid file'.format(value))
             return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'IsFileValidator()'
 
 
@@ -433,14 +446,15 @@ class SimpleValidator(Validator):
         sv = SimpleValidator(is_even, "EvenNumberValidator")
         result = get_int(prompt="Enter an even number", validators = sv)
     """
-    def __init__(self, validator_func, name='SimpleValidator value'):
+    def __init__(self, validator_func: Callable[[Any], bool],
+                 name: str = 'SimpleValidator value') -> None:
         self._validator = validator_func
         # Fixing: this was `self._name = None`, which threw the caller's name away,
         # so every failure message read "is not a valid None" and the documented
         # `name` parameter did nothing.
         self._name = name
 
-    def __call__(self, value, error_callback, validator_fmt_str):
+    def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
         result = self._validator(value)
 
         if not result:
@@ -448,7 +462,7 @@ class SimpleValidator(Validator):
 
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'SimpleValidator(validators={})'.format(self._validator)
 
 
@@ -468,11 +482,11 @@ class RegexValidator(Validator):
         result = get_string(prompt="Enter a phone number", validators = rv)
 
     """
-    def __init__(self, pattern, regex_desc=None):
+    def __init__(self, pattern: str | re.Pattern[str], regex_desc: str | None = None) -> None:
         self._regex = pattern
         self._regex_desc = regex_desc
 
-    def __call__(self, value, error_callback, validator_fmt_str):
+    def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
         try:
             result = re.search(self._regex, value)
         except (TypeError):
@@ -488,7 +502,7 @@ class RegexValidator(Validator):
                 error_callback(validator_fmt_str, value, 'is not a valid {}'.format(self._regex_desc))
             return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'RegexValidator(regex={})'.format(self._regex)
 
 
@@ -515,8 +529,9 @@ class PasswordValidator(Validator):
         result = ci.get_string(prompt="Enter a password", validators=pv, hidden=True)
 
     """
-    def __init__(self, min_len=None, max_len=None, min_lower=0, min_upper=0, min_digits=0, min_puncts=0,
-                 allowed=None, disallowed=None):
+    def __init__(self, min_len: int | None = None, max_len: int | None = None, min_lower: int = 0,
+                 min_upper: int = 0, min_digits: int = 0, min_puncts: int = 0,
+                 allowed: str | None = None, disallowed: str | None = None) -> None:
         self._valid_chars = set(string.ascii_letters + string.digits + string.punctuation)
         self._min_len = min_len
         self._max_len = max_len
@@ -535,7 +550,7 @@ class PasswordValidator(Validator):
 
         self._valid_chars -= self._disallowed
 
-    def __call__(self, value, error_callback, validator_fmt_str):
+    def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
         if isstring(value) is False:
             print('PasswordValidator: value "{}" is not a string.'.format(value), file=sys.stderr)
             return False
@@ -574,7 +589,7 @@ class PasswordValidator(Validator):
 
         return True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'PasswordValidator(allowed=%r, min_len=%r, max_len=%r, min_lowercase=%r, min_uppercase=%r, min_digits=%r, min_puncts=%r)' %\
                (self._valid_chars, self._min_len, self._max_len, self._min_lower, self._min_upper, self._min_digits, self._min_puncts)
 
@@ -611,12 +626,13 @@ class ListValidator(Validator):
         result = ci.get_list(prompt=prompt_str, validators=lv)
 
     """
-    def __init__(self, len_validators=None, elem_validators=None, len_validator_fmt_str=None):
+    def __init__(self, len_validators: Any = None, elem_validators: Any = None,
+                 len_validator_fmt_str: str | None = None) -> None:
         self._len_validators = len_validators
         self._elem_validators = elem_validators
         self._len_validator_fmt_str = len_validator_fmt_str
 
-    def __call__(self, value, error_callback, validator_fmt_str):
+    def __call__(self, value: Any, error_callback: ErrorCallback, validator_fmt_str: str) -> bool:
         if self._len_validators:
             if self._len_validator_fmt_str is None:
                 use_llvfs = validator_fmt_str
@@ -638,5 +654,5 @@ class ListValidator(Validator):
 
         return True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'ListValidator()'.format()

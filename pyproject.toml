@@ -124,7 +124,6 @@ ignore = ["ANN401"]
 # same shape as the coverage floor: it only ever shrinks.
 "cooked_input/get_input.py" = ["ANN"]
 "cooked_input/get_table.py" = ["ANN"]
-"cooked_input/validators.py" = ["ANN"]
 
 [tool.ty.environment]
 # The floor, not the version CI happens to run. ty would infer this from
