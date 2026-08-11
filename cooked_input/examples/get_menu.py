@@ -18,6 +18,7 @@ from sqlalchemy import Sequence
 from sqlalchemy.orm import sessionmaker
 
 from cooked_input import get_menu, get_string, get_int, get_list, validate, Validator, ChoiceValidator
+from cooked_input import silent_error
 from cooked_input import Table
 from cooked_input import TableItem, TableStyle, TABLE_ITEM_DEFAULT, TABLE_ITEM_EXIT, TABLE_ITEM_RETURN, TABLE_ADD_RETURN, TABLE_ADD_EXIT
 from cooked_input import TABLE_RETURN_FIRST_VAL, RULE_NONE, RULE_ALL
@@ -230,7 +231,10 @@ def role_item_filter(row, action_dict):
 
     try:
         role_validator = IntersectionValidator(row.item_data['roles'])
-        if validate(action_dict['roles'], role_validator, error_callback=None):
+        # error_callback was None, which raises TypeError the moment a validator actually fails --
+        # here that is the ordinary case of a user without the role. silent_error is the supported
+        # way to ask for no message, and this filter wants none: it hides the row instead.
+        if validate(action_dict['roles'], role_validator, error_callback=silent_error):
             return (False, True)
 
     except (TypeError, KeyError):
