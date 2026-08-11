@@ -151,11 +151,17 @@ def validate(value, validators, error_callback=print_error, validator_fmt_str=DE
 ####
 #### Validators:
 ####
-class Validator(object):
-    # Abstract base class for validation classes
-    __metaclass__ = ABCMeta
+class Validator(metaclass=ABCMeta):
+    """
+    Abstract base class for validators. Subclasses must implement :meth:`__call__`, which
+    returns **True** if the value passes validation and **False** if it does not.
 
-    @abstractmethod
+    Fixing: this used to say ``__metaclass__ = ABCMeta``, the Python 2 spelling, which on
+    Python 3 is an inert class attribute. Nothing was enforced -- ``Validator()`` instantiated
+    happily and a subclass that forgot ``__call__`` returned **None** from every check, which
+    reads as a validation failure, instead of failing loudly. ``__init__`` is deliberately not
+    abstract, so a subclass that only implements ``__call__`` still works.
+    """
     def __init__(self):
         pass
 

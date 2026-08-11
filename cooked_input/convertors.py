@@ -23,10 +23,16 @@ TABLE_ID_OR_VALUE = -1
 ###
 ### Convertors:
 ###
-class Convertor(object):
-    # Abstract base class for conversion classes
-    __metaclass__ = ABCMeta
+class Convertor(metaclass=ABCMeta):
+    """
+    Abstract base class for convertors. Subclasses must implement :meth:`__call__`, which takes
+    the cleaned value and returns it converted to the target type.
 
+    Fixing: this used to say ``__metaclass__ = ABCMeta``, the Python 2 spelling, which on
+    Python 3 is an inert class attribute. Nothing was enforced -- ``Convertor('')``
+    instantiated happily and a subclass that forgot ``__call__`` returned **None** from every
+    conversion instead of failing.
+    """
     def __init__(self, value_error_str):
         self.value_error_str = value_error_str
 

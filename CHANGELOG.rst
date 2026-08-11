@@ -12,6 +12,19 @@ see TODO.md for list of TODO items
 
 * unreleased:
 
+  * changed: ``Cleaner``, ``Convertor`` and ``Validator`` are now real abstract base classes.
+    They declared ``__metaclass__ = ABCMeta``, the Python 2 spelling, which is an inert class
+    attribute on Python 3 -- so nothing was enforced: the bases instantiated and a subclass
+    that forgot ``__call__`` returned **None** from every call instead of failing. For a
+    validator that reads as "rejected", so the failure was silent as well as wrong.
+    ``__call__`` is the only abstract method; ``__init__`` is deliberately not abstract, so a
+    subclass that implements ``__call__`` alone still works. **A subclass that never
+    implemented** ``__call__`` **now raises TypeError when instantiated.**
+  * removed dead code in ``get_table.py``: an unreachable column-count ``RuntimeError``
+    (every branch above it derived the column count from the field names, so the two could
+    never disagree), a ``use_style`` in ``create_table`` whose two forwarded arguments were
+    not among the options ``Table`` reads and so were silently ignored, an unread loop
+    counter, and a commented-out ``refresh_buffer`` method. No behavior changes.
   * fixed: ``Table.scroll_up_one_row`` and ``Table.scroll_down_one_row`` had their bodies the
     wrong way round -- scrolling up moved the window toward *later* rows. Since
     ``Table._get_choice`` wires ``UpOneRowRequest`` straight through, a command bound to

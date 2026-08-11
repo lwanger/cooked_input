@@ -476,15 +476,13 @@ class Table(object):
             num_cols = len(self._table_items[0].values)
             field_names = ['col {}'.format(i) for i in range(1, num_cols+1)]
         elif isstring(col_names):
-            field_name_list = col_names.split()
-            field_names = field_name_list
-            num_cols = len(field_name_list)
+            field_names = col_names.split()
         else:
             field_names = col_names
-            num_cols = len(field_names)
 
-        if len(field_names) != num_cols:
-            raise RuntimeError('Table: number of column names does not match number of columns in the table'.format())
+        # Dropped a `if len(field_names) != num_cols: raise RuntimeError(...)` check here.
+        # Every branch above derives num_cols from field_names, so the two could never
+        # disagree and the check had never run.
 
         self.field_names = [self.tag_str] + field_names
         self.table.field_names = [self.tag_str] + field_names + ['action']
@@ -598,15 +596,6 @@ class Table(object):
             table_end = table_max_rows
 
         self.table.end = table_end
-
-    # def refresh_buffer(self, buffer):
-    #     if buffer:
-    #         buffer.text = self.table.get_string()
-    #     else:
-    #         print(self.table.get_string())
-    #         print()
-    #         raise RefreshScreenInterrupt
-
 
     def page_up(self):
         """
@@ -907,11 +896,9 @@ class Table(object):
 
         # refresh table
         self.table.clear_rows()
-        table_idx = 1
         for r in self._rows:
             if r.hidden is not True:
                 self.table.add_row([r.tag] + r.values + [r.action])
-            table_idx += 1
 
         if self.table.start > self.get_num_rows():
             # filtering can cause the table to not show any rows. If so, show last page of filtered table
@@ -1183,11 +1170,6 @@ def create_table(items, fields, field_names=None, gen_tags=None, item_data=None,
     else:
         use_tag_str = None
 
-    if style is None:
-        use_style = TableStyle()
-    else:
-        use_style = style
-
     if field_names is None:
         use_field_names = fields
 
@@ -1212,9 +1194,13 @@ def create_table(items, fields, field_names=None, gen_tags=None, item_data=None,
     new_options['tag_str'] = use_tag_str
 
     tis = create_rows(items, fields, gen_tags, item_data, add_item_to_item_data)
+    # Dropped `show_cols=` and `show_border=` arguments here, taken from a `use_style` built
+    # just above. Table reads named options only, so both landed in **options and were
+    # ignored; the style has always come from `style` alone, and `use_style` merely rebuilt
+    # the default TableStyle that Table builds for itself when style is None.
     tbl = Table(tis, col_names=use_field_names, default_choice=default_choice,
                 default_str=default_str, default_action=default_action, prompt=prompt, title=title,
-                show_cols=use_style.show_cols, show_border=use_style.show_border, style=style, **new_options)
+                style=style, **new_options)
     return tbl
 
 

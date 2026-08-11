@@ -87,10 +87,12 @@ exclude_also = [
     "if __name__ == .__main__.:",
     "raise NotImplementedError",
     "if TYPE_CHECKING:",
+    # Cleaner, Convertor and Validator used to declare `__metaclass__ = ABCMeta`, the
+    # Python 2 spelling, which is inert on Python 3 -- so these bodies really were
+    # reachable and the tests asserted it. Now that the three are real ABCs the bases
+    # cannot be instantiated, so an @abstractmethod body is genuinely unreachable.
+    "@abstractmethod",
 ]
-# Deliberately NOT excluding @abstractmethod: Cleaner, Convertor and Validator
-# declare `__metaclass__ = ABCMeta`, the Python 2 spelling, which is inert on
-# Python 3. Those bodies really are reachable, and tests assert that they are.
 
 [tool.setuptools.packages.find]
 # Matches the old find_packages() result: cooked_input and cooked_input.tests.
