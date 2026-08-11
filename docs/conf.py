@@ -46,7 +46,14 @@ rst_epilog = """
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc']
+# sphinx_autodoc_typehints must come after sphinx.ext.autodoc: it hooks autodoc's events
+# to move the annotations out of the rendered signature and into the parameter list, which
+# is why the docstrings below no longer restate the type of every parameter.
+extensions = ['sphinx.ext.autodoc', 'sphinx_autodoc_typehints']
+
+# An alias built from typing.Callable renders as Union[...] while everything else renders
+# with the | the source is written in. Same meaning, two spellings on one page.
+always_use_bars_union = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

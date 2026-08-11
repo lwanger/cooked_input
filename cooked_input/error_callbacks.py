@@ -44,10 +44,10 @@ def print_error(fmt_str: str, value: Any, error_content: str) -> None:
     """
     send errors to stdout. This displays errors on the screen.
 
-    :param str fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
+    :param fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
       for the error. Can use arguments **{value}** and **{error_content}** in the format string
-    :param Any value: the value the caused the error
-    :param str error_content: additional information for the error
+    :param value: the value the caused the error
+    :param error_content: additional information for the error
 
     :return: None
     """
@@ -58,10 +58,10 @@ def silent_error(fmt_str: str, value: Any, error_content: str) -> None:
     """
         Ignores errors, causing them to be silent.
 
-        :param str fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
+        :param fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
           for the error. Can use arguments **{value}** and **{error_content}** in the format string
-        :param Any value: the value the caused the error
-        :param str error_content: additional information for the error
+        :param value: the value the caused the error
+        :param error_content: additional information for the error
 
         :return: None
     """
@@ -72,10 +72,10 @@ def log_error(fmt_str: str, value: Any, error_content: str) -> None:
     """
         send errors to the log. See logging for details on using logs.
 
-        :param str fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
+        :param fmt_str: a Python `format string <https://docs.python.org/3/library/string.html#formatspec>`_
           for the error. Can use arguments **{value}** and **{error_content}** in the format string
-        :param Any value: the value the caused the error.
-        :param str error_content: additional information for the error
+        :param value: the value the caused the error.
+        :param error_content: additional information for the error
 
         :return: None
     """

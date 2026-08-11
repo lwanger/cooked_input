@@ -72,11 +72,10 @@ def return_table_item_action(row: TableItem, action_dict: dict[str, Any]) -> Tab
     """
     Action function for Tables. This function returns the TableItem instance. Used by the **TABLE_RETURN_TABLE_ITEM** action.
 
-    :param List row: the data associated with the selected row
-    :param Dict action_dict: the dictionary of values associated with the action - ignored in this function
+    :param row: the data associated with the selected row
+    :param action_dict: the dictionary of values associated with the action - ignored in this function
 
     :return: A list containing all of the data for the selected row of the table.
-    :rtype: List
     """
     return row
 
@@ -86,11 +85,10 @@ def return_row_action(row: TableItem, action_dict: dict[str, Any]) -> list[Any]:
     Default action function for Tables. This function returns the whole row of data including the tag. Used by
     the **TABLE_RETURN_ROW** action.
 
-    :param List row: the data associated with the selected row
-    :param Dict action_dict: the dictionary of values associated with the action - ignored in this function
+    :param row: the data associated with the selected row
+    :param action_dict: the dictionary of values associated with the action - ignored in this function
 
     :return: A list containing all of the data values for the selected row of the table.
-    :rtype: List
     """
     return [row.tag] + row.values
 
@@ -99,8 +97,8 @@ def return_tag_action(row: TableItem, action_dict: dict[str, Any]) -> Any:
     """
     Default action function for tables. This function returns the tag for the row of data. Used by the **TABLE_RETURN_TAG** action.
 
-    :param List row: the data associated with the selected row
-    :param Dict action_dict: the dictionary of values associated with the action - ignored in this function
+    :param row: the data associated with the selected row
+    :param action_dict: the dictionary of values associated with the action - ignored in this function
 
     :return: The tag for the selected row of the table.
     """
@@ -112,8 +110,8 @@ def return_first_col_action(row: TableItem, action_dict: dict[str, Any]) -> Any:
     Default action function for tables. This function returns the first data column value for the row of
         data. Used by the **TABLE_RETURN_FIRST_VAL** action.
 
-    :param List row: the data associated with the selected row
-    :param Dict action_dict: the dictionary of values associated with the action - ignored in this function
+    :param row: the data associated with the selected row
+    :param action_dict: the dictionary of values associated with the action - ignored in this function
 
     :return: The first value from the list of data values for the selected row of the table.
     """
@@ -207,11 +205,11 @@ class TableStyle():
     ``TableStyle`` is used to define the visual style of a ``Cooked_Input`` table. :class:`Table` objects take an
     instance of ``TableStyle`` as the style parameter.
 
-    :param Bool show_cols: if **True** (default) shows a the column names at the top of the table
-    :param Bool show_border: if **True** (default) shows a border around the table
+    :param show_cols: if **True** (default) shows a the column names at the top of the table
+    :param show_border: if **True** (default) shows a border around the table
     :param hrules: whether to draw horizontal lines between rows. See below for allowed RULE values.
     :param vrules: whether to draw vertical lines between rows. See below for allowed RULE values.
-    :param int rows_per_page: The maximum number of rows to display in the table. Used for paginated tables (None
+    :param rows_per_page: The maximum number of rows to display in the table. Used for paginated tables (None
         for no maximum).
 
     ``hrules`` and ``vrules`` can use the following ``RULE`` values for the rows and columns respectively:
@@ -244,15 +242,15 @@ class TableItem(object):
     """
     TableItem is used to represent individual rows in a table. This is also often used for menu items.
 
-    :param List col_values: A list of values for the row's columns.
+    :param col_values: A list of values for the row's columns.
     :param tag:  a value used to choose the item. If None, a default tag will be assigned by the :class:`Table`.
-    :param Callable action:  an action function called when the item is selected.
-    :param Dict item_data: a dictionary containing addtional contextual data for the table row. This is
+    :param action:  an action function called when the item is selected.
+    :param item_data: a dictionary containing addtional contextual data for the table row. This is
         not displayed as part of the table item but can be used for processing actions. For example, ``item_data`` can
         store the database ID associated for the item. ``item_data`` is also used for item filters.
-    :param bool hidden: The table row is hidden if **True**, or visible if **False** (default). Hidden table items
+    :param hidden: The table row is hidden if **True**, or visible if **False** (default). Hidden table items
         are still selectable, unless the enabled attribute is **False**.
-    :param bool enabled: The table row is selectable if **True **(default), and not selectable if **False**.
+    :param enabled: The table row is selectable if **True **(default), and not selectable if **False**.
 
     TableItem actions:
 
@@ -307,16 +305,16 @@ class Table(object):
     columns (specified by the ``col_name`` parameter) as is represented by a :class:`TableItem` instance. Tables are
     often used for menus.
 
-    :param List rows: The rows of the table. Each row is a :class:`TableItem` instance.
-    :param List col_names: An optional list of the column names (strings) for the table. If no list is given the number
+    :param rows: The rows of the table. Each row is a :class:`TableItem` instance.
+    :param col_names: An optional list of the column names (strings) for the table. If no list is given the number
         of columns is determined by the length of the data list for the first row (:class:`TableItem`).
-    :param str title: An optional title for the table.
-    :param str prompt: The prompt for choosing a table value.
-    :param str default_choice: An optional default tag value to use for the table selection.
-    :param str default_str: An optional string to display for the default table selection.
-    :param Callable default_action: The default action function to call a table item is selected. See below for details.
-    :param TableStyle style: a :class:`TableStyle` defining the look of the table.
-    :param Dict options: see below for a list of valid options
+    :param title: An optional title for the table.
+    :param prompt: The prompt for choosing a table value.
+    :param default_choice: An optional default tag value to use for the table selection.
+    :param default_str: An optional string to display for the default table selection.
+    :param default_action: The default action function to call a table item is selected. See below for details.
+    :param style: a :class:`TableStyle` defining the look of the table.
+    :param options: see below for a list of valid options
 
     Options:
 
@@ -549,16 +547,15 @@ class Table(object):
         Get the number of rows in the table.
 
         :return: the number of rows in the table
-        :rtype: int
         """
         return len(self._rows)
 
     def get_row(self, tag: Any) -> TableItem:
         """
-        Get the number of rows in the table.
+        Get the first row matching the specified tag.
 
-        :return: the number of rows in the table
-        :rtype: :class:`TableItem`
+        :param tag: the tag to search for
+        :return: the first row containing the tag. Raises a **ValueError** exception if the tag is not found
         """
         for row in self._rows:
             if row.tag == tag:
@@ -570,8 +567,9 @@ class Table(object):
         Return the action callback function for the first row matching the specified tag.
 
         :param tag: the tag to search for
-        :return: the action for the first row containing the tag. Raises a **ValueError** exception if the tag is not found
-        :rtype: Callable
+        :return: the action for the first row containing the tag -- either a function to call, or
+            one of the ``TABLE_ITEM_*`` sentinel strings. Raises a **ValueError** exception if the
+            tag is not found
         """
         row = self.get_row(tag)
         return row.action
@@ -580,7 +578,7 @@ class Table(object):
         """
         Call the action function for the specified row
 
-        :param TableItem row: the table row to call the action on
+        :param row: the table row to call the action on
         :return:  returns the return value for the action. Returns **None** for a row whose action
             is ``TABLE_ITEM_EXIT`` or ``TABLE_ITEM_RETURN``, since choosing one of those is the
             same as choosing no row. Returns the original row if no action is defined for the row.
@@ -636,7 +634,7 @@ class Table(object):
         Set the starting row for to display in the table. Last row shown is the ``start_row`` plus the number of
         rows per page (or the last row if ``start_row`` is within ``rows_per_page`` of the end of the table).
 
-        :param int start_row: the first row of the table to show
+        :param start_row: the first row of the table to show
 
         :return: None
         """
@@ -875,10 +873,10 @@ class Table(object):
         This is useful in case some TableItems have dynamic data. Can also be used by action to change table items.
         For instance a search action might filter for row entries using an item filter.
 
-        :param List rows: a list of rows to show. If **None**, will use all rows.
-        :param bool add_exit: if **TABLE_ADD_EXIT** add an entry to exit, if **TABLE_ADD_RETURN** add an entry to
+        :param rows: a list of rows to show. If **None**, will use all rows.
+        :param add_exit: if **TABLE_ADD_EXIT** add an entry to exit, if **TABLE_ADD_RETURN** add an entry to
                             return. Don't add an entry if **False** (default).
-        :param Callable item_filter: an optional function used to filter rows. See :class:`Table` for details regarding item filters.
+        :param item_filter: an optional function used to filter rows. See :class:`Table` for details regarding item filters.
 
         :return: None
         """
@@ -1077,11 +1075,11 @@ def create_rows(items: Any, fields: Sequence[str], gen_tags: bool | None = None,
     Create a list of TableItems from an iterable (items) of objects
 
     :param items: iterable containing items for the table.
-    :param List[str] fields: list of field/attribute names to use as column values for each item.
-    :param bool gen_tags: if **True** will generate sequentially numbered tags for table items, if False (default) uses
+    :param fields: list of field/attribute names to use as column values for each item.
+    :param gen_tags: if **True** will generate sequentially numbered tags for table items, if False (default) uses
             first column value of each item for the row's tag.
-    :param Dict item_data: An optional dictionary to be copied and  attached to the :class:`TableItem` for the row.
-    :param bool add_item_to_item_data: if **True** ``item_data['item']`` is set to `item`.
+    :param item_data: An optional dictionary to be copied and  attached to the :class:`TableItem` for the row.
+    :param add_item_to_item_data: if **True** ``item_data['item']`` is set to `item`.
 
     :return: List[TableItem] of  table items (:class:`TableItem`)
 
@@ -1202,18 +1200,18 @@ def create_table(items: Any, fields: Sequence[str], field_names: Sequence[str] |
     Convenience function to create ``cooked_input`` a table.
 
     :param items: iterable containing items for the table.
-    :param List[str] fields: list of field/attribute names to use as column values for each item.
-    :param List[str] field_names: a list of strings to use for the names of the table columns.
-    :param bool gen_tags: if **True** will generate sequentially numbered tags for table items, if False (default) uses
+    :param fields: list of field/attribute names to use as column values for each item.
+    :param field_names: a list of strings to use for the names of the table columns.
+    :param gen_tags: if **True** will generate sequentially numbered tags for table items, if False (default) uses
             first column value of each item for the row's tag.
-    :param Dict item_data: An optional dictionary to be copied and  attached to the :class:`TableItem` for the row.
-    :param bool add_item_to_item_data: if **True** ``item_data['item']`` is set to `item`.
-    :param str title: an optional string to use as the title for the table.
-    :param str prompt: an optional string to use for the table prompt.
-    :param str default_choice: an optional default value to use for when getting input from the table.
-    :param str default_str: an optional string to display for the default choice value.
+    :param item_data: An optional dictionary to be copied and  attached to the :class:`TableItem` for the row.
+    :param add_item_to_item_data: if **True** ``item_data['item']`` is set to `item`.
+    :param title: an optional string to use as the title for the table.
+    :param prompt: an optional string to use for the table prompt.
+    :param default_choice: an optional default value to use for when getting input from the table.
+    :param default_str: an optional string to display for the default choice value.
     :param default_action: the default action to take when a table item is picked. Defaults to **TABLE_RETURN_TABLE_ITEM***.
-    :param TableStyle style: an optional :class:`TableStyle` to use for the table.
+    :param style: an optional :class:`TableStyle` to use for the table.
     :param options: a dictionary of optional values for the table. See :class:`Table` for details.
 
     :return: an instance of a ``cooked_input`` :class:`Table`
@@ -1305,8 +1303,8 @@ def get_table_input(table: Table, **options: Any) -> Any:
     :param table: a :class:`Table` instance
     :param options: all :class:`Table` options supported, see :class:`Table` documentation for details
 
-    :return: the value from calling :func:`Table.get_table_choice` on the table
-    :rtype: Any (dependent on the action function of the :class:`TableItem` selected)
+    :return: the value from calling :func:`Table.get_table_choice` on the table. The return type
+        is **Any** because it is whatever the selected row's action function returns.
     """
     return table.get_table_choice(**options)
 
@@ -1327,7 +1325,6 @@ def get_menu(choices: Iterable[Any], title: str | None = None, prompt: str | Non
     :return: the result of calling :func:`Table.get_table_choice` on the menu table. Will return the index (one based) of
         the choice selected, unless a different default action is provided in the options. Returns 'exit' if the input
         value is `None` or the menu was exited.
-    :rtype: int or str (dependent on default action specified)
 
     This is a convenience function to create a Table that acts as a simple menu. It takes a list of text strings
     to use for the menu items, and returns the text string of the item picked. `get_menu` is just syntactic sugar
