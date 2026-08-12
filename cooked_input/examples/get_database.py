@@ -1,6 +1,9 @@
 """
 cooked input example showing how to use with entries from database tables.
 
+TODO:
+    - use get_list to get the extras?
+
 Len Wanger, 2017
 """
 

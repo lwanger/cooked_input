@@ -19,6 +19,8 @@ a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version 
   just add "3.15" to the CI matrix, tox envlist and classifiers if the suite passes.
 - [ ] Improve documentation and examples
   - [ ] Example of get_money, showing why not to use floats to keep exact decimal amounts and do proper rounding
+- get_input.py is very long (>1100 lines). Split into multiple files? Maybe classes and constants in one file
+  and convenience functions in another?
 
 ## Completed:
 

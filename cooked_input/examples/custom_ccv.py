@@ -1,5 +1,5 @@
 """
-Example code showing how to create custome cooked_input cleaners, convertors and validators
+Example code showing how to create custom cooked_input cleaners, convertors and validators
 
 Len Wanger, 9/3/2018
 """
