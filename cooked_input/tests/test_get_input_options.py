@@ -18,6 +18,8 @@ import pytest
 import cooked_input as ci
 
 from cooked_input import (
+    Convertor,
+    ConvertorError,
     DateConvertor,
     GetInput,
     IntConvertor,
@@ -37,6 +39,24 @@ from cooked_input import (
 def _as_date(text):
     """Parse a date the same way get_date does, for building range bounds."""
     return DateConvertor()(text, silent_error, "{value}")
+
+
+class _AsciiBytesConvertor(Convertor):
+    """str -> bytes, standing in for the string-to-string-like conversion issue #83 raised.
+
+    The library ships no such convertor; this is here to exercise the route get_string's
+    docstring recommends. Reports and raises the way IntConvertor does.
+    """
+
+    def __init__(self, value_error_str="ascii text"):
+        super().__init__(value_error_str)
+
+    def __call__(self, value, error_callback, convertor_fmt_str):
+        try:
+            return value.encode("ascii")
+        except UnicodeEncodeError as uee:
+            error_callback(convertor_fmt_str, value, self.value_error_str)
+            raise ConvertorError(str(uee)) from uee
 
 
 class TestRetries:
@@ -388,3 +408,68 @@ class TestOverloadsMatchTheirImplementations:
         true_arm, false_arm = typing.get_overloads(func)  # ty: ignore[unresolved-attribute]
         assert inspect.signature(true_arm).parameters["required"].default is Ellipsis
         assert inspect.signature(false_arm).parameters["required"].default is inspect.Parameter.empty
+
+
+class TestEveryGetterTakesTheSameOptions:
+    """The get_* functions must accept one identical set of :class:`GetInput` options.
+
+    docs/get_input_convenience.rst promises exactly this -- "Every function below accepts the
+    same set of GetInput options" -- and callers lean on it to build an option dict once and
+    splat it at whichever getter they need. A function quietly dropping one turns that into a
+    TypeError at the call site, so the promise is asserted rather than left to review.
+
+    ``get_string`` is the case that makes this worth pinning. It applies no convertor, so its
+    ``convertor_error_fmt`` is accepted and ignored. Issue #83 settled that it stays: uniformity
+    is the contract, and the rare case of converting a string to a string-like type (`bytes`,
+    `bytearray`) belongs to ``get_input``, which does apply a convertor. The two tests at the end
+    of this class pin both halves of that -- the option is harmless on ``get_string``, and the
+    route it points at really works.
+    """
+
+    SHARED_OPTIONS = ("prompt", "required", "default", "default_str", "hidden", "retries",
+                      "commands", "error_callback", "convertor_error_fmt", "validator_error_fmt")
+
+    # The prompting functions documented as sharing the option set. process_value is excluded:
+    # it takes a value instead of prompting, so prompt/required/retries do not apply to it.
+    GETTERS = (get_string, ci.get_int, ci.get_float, ci.get_boolean, get_date,
+               ci.get_yes_no, get_money, get_list, get_input)
+
+    @pytest.mark.parametrize("func", GETTERS, ids=lambda f: f.__name__)
+    def test_the_function_takes_every_shared_option(self, func):
+        parameters = inspect.signature(func).parameters
+        missing = [name for name in self.SHARED_OPTIONS if name not in parameters]
+        assert not missing, f"{func.__name__} does not accept {missing}"
+
+    @pytest.mark.parametrize("func", GETTERS, ids=lambda f: f.__name__)
+    def test_the_shared_options_are_keyword_only(self, func):
+        parameters = inspect.signature(func).parameters
+        positional = [name for name in self.SHARED_OPTIONS
+                      if parameters[name].kind is not inspect.Parameter.KEYWORD_ONLY]
+        assert not positional, f"{func.__name__} takes {positional} positionally"
+
+    # prompt is left out on purpose: each function supplies its own wording.
+    @pytest.mark.parametrize("name", SHARED_OPTIONS[1:])
+    def test_a_shared_option_defaults_the_same_way_everywhere(self, name):
+        defaults = {func.__name__: inspect.signature(func).parameters[name].default
+                    for func in self.GETTERS}
+        first, *rest = defaults.values()
+        assert all(default == first for default in rest), f"{name} defaults disagree: {defaults}"
+
+    def test_get_string_accepts_the_ignored_convertor_error_fmt(self, fake_input):
+        """Issue #83: passing it is a no-op, but it must not raise."""
+        fake_input("hello")
+        assert get_string(convertor_error_fmt="never used {value}") == "hello"
+
+    def test_get_input_is_the_route_for_converting_a_string(self, fake_input, capsys):
+        """The alternative get_string's docstring points at, kept honest.
+
+        Converting to a string-like type goes through get_input, where a convertor really is
+        applied -- so the value comes back converted and a failure reaches the caller's
+        convertor_error_fmt, the two things get_string cannot do.
+        """
+        fake_input("café", "cafe")
+        result = get_input(convertor=_AsciiBytesConvertor(),
+                           convertor_error_fmt=">> {value} is not {error_content} <<")
+
+        assert result == b"cafe"
+        assert ">> café is not ascii text <<" in capsys.readouterr().err

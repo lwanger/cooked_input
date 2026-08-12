@@ -574,9 +574,11 @@ def get_string(cleaners: CleanerArg = (StripCleaner()), validators: GetInputVali
     :param retries: maximum attempts before raising :class:`MaxRetriesError`
     :param commands: dictionary of commands callable from the prompt
     :param error_callback: called when a value is rejected. Defaults to :func:`print_error`
-    :param convertor_error_fmt: unused here -- this function applies no convertor, so there are no
-        convertor errors to format. Accepted so that the whole option set is uniform across the
-        ``get_*`` functions.
+    :param convertor_error_fmt: accepted and ignored -- this function applies no convertor, so there
+        are no conversion errors to word. It is accepted so that the whole option set stays uniform
+        across the ``get_*`` functions. For the rare case of converting a string to a string-like
+        type, such as `bytes` or `bytearray`, use :func:`get_input` with a `convertor
+        <convertors.html>`_; there the format string does fire.
     :param validator_error_fmt: format string for `validator <validators.html>`_ errors
 
     :return: the cleaned, converted, validated string
