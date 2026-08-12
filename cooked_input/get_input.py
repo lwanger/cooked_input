@@ -200,11 +200,6 @@ class GetInput(object):
     Class to get cleaned, converted, validated input from the command line. This is the central class used for
     cooked_input.
 
-    Typical use::
-
-        gi = GetInput(prompt="What is your name?")
-        name = gi.get_input()
-
     :param cleaners: list of `cleaners <cleaners.html>`_ to apply to clean the value
     :param convertor: the `convertor <convertors.html>`_ to apply to the cleaned value
     :param validators: list of `validators <validators.html>`_ to apply to validate the cleaned and converted value
