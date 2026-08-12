@@ -8,7 +8,10 @@ Len Wanger, 2026
 """
 
 import decimal
+import inspect
 import logging
+import sys
+import typing
 
 import pytest
 
@@ -132,7 +135,10 @@ class TestUnknownOptions:
 
     def test_a_misspelled_prompt_is_rejected_rather_than_ignored(self):
         with pytest.raises(TypeError, match="promt"):
-            ci.get_int(promt="How old are you?")  # ty: ignore[unknown-argument]
+            # no-matching-overload rather than unknown-argument, because get_int declares two
+            # overloads on `required`: an unknown keyword makes every arm fail to match rather
+            # than pointing at the one bad parameter. The runtime TypeError is unchanged.
+            ci.get_int(promt="How old are you?")  # ty: ignore[no-matching-overload]
 
 
 class TestGetListDefaults:
@@ -339,3 +345,46 @@ class TestValidatorsAsATuple:
     def test_a_single_validator_still_works_alongside_minimum(self, fake_input):
         fake_input("7")
         assert ci.get_int(validators=RangeValidator(min_val=1), minimum=5) == 7
+
+
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="typing.get_overloads() needs 3.11")
+class TestOverloadsMatchTheirImplementations:
+    """The @overload pairs must keep the same parameters as the function they describe.
+
+    Each get_* function states its signature three times: twice as overloads keyed on
+    ``required``, once as the implementation. Nothing in Python keeps those in step, and a
+    checker will not complain -- an option added to the implementation but missed on the
+    overloads simply stops being callable for everyone using a type checker. That is the
+    standing cost of writing them inline, so it is asserted rather than left to review.
+
+    ``typing.get_overloads()`` arrived in 3.11 and ty checks against the 3.10 floor declared in
+    pyproject.toml, so each use carries an ignore. The skipif above is what makes that safe: on
+    3.10 the registry does not exist and none of this runs.
+    """
+
+    OVERLOADED = (get_string, ci.get_int, ci.get_float, ci.get_boolean,
+                  get_date, ci.get_yes_no, get_money, get_list)
+
+    @pytest.mark.parametrize("func", OVERLOADED, ids=lambda f: f.__name__)
+    def test_both_overloads_take_the_implementation_s_parameters(self, func):
+        overloads = typing.get_overloads(func)  # ty: ignore[unresolved-attribute]
+        assert len(overloads) == 2, f"{func.__name__} should declare exactly two overloads"
+
+        expected = list(inspect.signature(func).parameters)
+        for overload_func in overloads:
+            assert list(inspect.signature(overload_func).parameters) == expected
+
+    @pytest.mark.parametrize("func", OVERLOADED, ids=lambda f: f.__name__)
+    def test_the_two_overloads_are_keyed_on_required(self, func):
+        # Strings, not typing objects: get_input.py uses `from __future__ import annotations`,
+        # so nothing evaluates these at import time.
+        annotations = [inspect.signature(f).parameters["required"].annotation
+                       for f in typing.get_overloads(func)]  # ty: ignore[unresolved-attribute]
+        assert annotations == ["Literal[True]", "Literal[False]"]
+
+    @pytest.mark.parametrize("func", OVERLOADED, ids=lambda f: f.__name__)
+    def test_only_the_required_true_arm_may_be_omitted(self, func):
+        """The False arm must not default, or it claims `required` can be left out and still be False."""
+        true_arm, false_arm = typing.get_overloads(func)  # ty: ignore[unresolved-attribute]
+        assert inspect.signature(true_arm).parameters["required"].default is Ellipsis
+        assert inspect.signature(false_arm).parameters["required"].default is inspect.Parameter.empty

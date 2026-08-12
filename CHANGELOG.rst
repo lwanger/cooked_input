@@ -16,15 +16,21 @@ see TODO.md for list of TODO items
     ``py.typed`` marker (PEP 561) so that downstream projects actually see them -- without
     that file in the installed package a consumer's type checker ignores the annotations
     entirely. ``cooked_input`` is now a typed library: ``get_int()`` is understood to return
-    ``int | None``, and passing a ``str`` where an ``int`` belongs is reported at the call
+    an ``int``, and passing a ``str`` where an ``int`` belongs is reported at the call
     site rather than at run time. The annotations describe the existing API and change no
     behavior on their own; the fixes they turned up are listed separately below.
 
-    Two of them are worth knowing about because they make the *documented* type honest
-    rather than optimistic. The eight ``get_*`` convenience functions are annotated
-    ``X | None``, not ``X``: with ``required=False`` a blank response has always returned
-    **None**. And ``get_input``, ``process_value`` and ``Convertor.__call__`` are annotated
+    One is worth knowing about because it makes the *documented* type honest rather than
+    optimistic: ``get_input``, ``process_value`` and ``Convertor.__call__`` are annotated
     ``Any``, because what they return is whatever the convertor produced.
+  * added: the eight ``get_*`` convenience functions each declare a pair of
+    :func:`typing.overload` signatures keyed on ``required``, so a type checker narrows the
+    result. ``get_int()`` is an ``int``; only ``get_int(required=False)`` is ``int | None``.
+    A blank response is the sole way any of them returns **None**, and a blank response is
+    only accepted when ``required=False`` -- so every caller using the default was being
+    asked to test for a **None** that could not arrive, and arithmetic on the result was
+    reported as an error. This is a checking change only: the functions return exactly what
+    they always did.
   * added: ``ty`` and ``ruff`` run in CI as a ``types`` job. The two do different jobs:
     ``ty`` checks that the annotations are correct, and Ruff's ``ANN`` rules check that they
     exist at all, which ``ty`` has no way to report. ``ty`` is pinned exactly rather than

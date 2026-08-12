@@ -64,6 +64,23 @@ The full set, in rough order of how often you will reach for them:
 See :class:`GetInput` for the full description of each. An option these functions do not have raises
 a ``TypeError``, so a misspelling is reported rather than quietly ignored.
 
+``required`` and the return value
+---------------------------------
+
+These functions only ever return **None** for a blank response, and a blank response is only accepted
+when ``required=False``. So ``get_int()`` always returns an ``int``, and only ``get_int(required=False)``
+can hand back **None**::
+
+    total = ci.get_int(prompt="How many?") + 1        # fine -- this is an int
+    maybe = ci.get_int(prompt="How many?", required=False)
+    if maybe is not None:                             # this one needs the check
+        total = maybe + 1
+
+Each function declares this to type checkers with a pair of :func:`typing.overload` signatures, so a
+checker narrows the result for you and does not ask for a **None** test that can never fire. The
+"Return type" shown for each function below is the underlying implementation's, which covers both
+cases at once.
+
 
 get_string
 ----------
