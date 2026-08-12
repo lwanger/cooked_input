@@ -3,7 +3,6 @@ cooked input example of using table input to pick from a menu.
 
 TODO:
 
-- change from sqlalchemy to straight sqlite3
 - simplify examples
 
 Len Wanger, 2017
@@ -11,11 +10,8 @@ Len Wanger, 2017
 
 # from collections import namedtuple
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
-from sqlalchemy import Sequence
-from sqlalchemy.orm import sessionmaker
+import sqlite3
+from contextlib import closing
 
 from cooked_input import get_menu, get_string, get_int, get_list, validate, Validator, ChoiceValidator
 from cooked_input import GetInput
@@ -276,7 +272,7 @@ def test_item_filter():
 
 #### Dynamic menu from DB stuff ####
 def menu_item_factory(row, item_data):
-    return TableItem(row.fullname, None, TABLE_ITEM_DEFAULT, item_data)
+    return TableItem(row['fullname'], None, TABLE_ITEM_DEFAULT, item_data)
 
 
 def user_filter(table_item, action_dict):
@@ -287,49 +283,92 @@ def user_filter(table_item, action_dict):
     else:
         return (True, False)
 
-Base = declarative_base()
+CREATE_USERS_SQL = """
+    CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        fullname TEXT,
+        password TEXT
+    )
+"""
 
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
-    name = Column(String)
-    fullname = Column(String)
-    password = Column(String)
+INSERT_USER_SQL = 'INSERT INTO users (name, fullname, password) VALUES (?, ?, ?)'
 
-    def __repr__(self):
-        return "<User(name='%s', fullname='%s', password='%s')>" % (self.name, self.fullname, self.password)
+SEED_USERS = [
+    ('ed', 'Ed Jones', 'edspassword'),
+    ('wendy', 'Wendy Williams', 'foobar'),
+    ('mary', 'Mary Contrary', 'xxg527'),
+    ('fred', 'Fred Flinstone', 'blah'),
+]
+
+
+def make_users_db(echo=False):
+    """Create an in-memory users table seeded with SEED_USERS and return the open connection.
+
+    Args:
+        echo: if True, print each SQL statement as sqlite runs it.
+
+    Returns:
+        An open sqlite3.Connection whose rows come back as sqlite3.Row, so the table item
+        factories can address columns by name.
+    """
+    connection = sqlite3.connect(':memory:')
+    connection.row_factory = sqlite3.Row
+
+    if echo:
+        connection.set_trace_callback(print)
+
+    with connection:  # commits the schema and the seed rows as one transaction
+        connection.execute(CREATE_USERS_SQL)
+        connection.executemany(INSERT_USER_SQL, SEED_USERS)
+
+    return connection
+
+
+def load_menu_items(connection):
+    """Query the users table and build one TableItem per user, ordered by full name.
+
+    Args:
+        connection: an open sqlite3.Connection returned by make_users_db.
+
+    Returns:
+        A list of TableItem, one for each row currently in the users table.
+    """
+    cursor = connection.execute('SELECT name, fullname FROM users ORDER BY fullname')
+    return [menu_item_factory(row, item_data={'min_len': 3}) for row in cursor]
+
+
+def show_menu_items(label, items):
+    print(label)
+    for item in items:
+        print(item)
+
 
 def test_dynamic_menu_from_db(filter_items=False):
-    engine = create_engine('sqlite:///:memory:', echo=True)
-    Base.metadata.create_all(engine)
+    with closing(make_users_db(echo=True)) as connection:
+        tis = load_menu_items(connection)
+        show_menu_items('users before the insert:', tis)
 
-    session_maker = sessionmaker(bind=engine)
-    session = session_maker()
+        # Winnie's full name starts with W, so she survives user_filter too and the refresh
+        # is visible whether or not the menu is filtered.
+        print('adding winnie')
+        with connection:
+            connection.execute(INSERT_USER_SQL, ('winnie', 'Winnie Winn', 'winniespassword'))
 
-    session.add_all([
-        User(name='ed', fullname='Ed Jones', password='edspassword'),
-        User(name='wendy', fullname='Wendy Williams', password='foobar'),
-        User(name='mary', fullname='Mary Contrary', password='xxg527'),
-        User(name='fred', fullname='Fred Flinstone', password='blah')])
+        # Rebuilding tis from a second query is what picks up the new user: the first query's
+        # rows were read out of the cursor and turned into TableItems, so that list is a
+        # snapshot and cannot see later inserts. The menu below is built from the fresh list.
+        tis = load_menu_items(connection)
+        show_menu_items('users after the insert (refreshed from the db):', tis)
 
-    session.commit()
+        use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
 
-    qry = session.query(User.name, User.fullname).order_by(User.fullname)
-    tis = [menu_item_factory(row, item_data={'min_len': 3}) for row in qry]
-    for row in tis:
-        print(row)
+        if filter_items:
+            menu = Table(rows=tis, add_exit=True, style=use_style, item_filter=user_filter)
+        else:
+            menu = Table(rows=tis, add_exit=True, style=use_style)
 
-    print('adding foo')  # show that the stored query will update with data changes
-    session.add(User(name='foo', fullname='Foo Winn', password='foospassword'))
-    session.commit()
-    use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
-
-    if filter_items:
-        menu = Table(rows=tis, add_exit=True, style=use_style, item_filter=user_filter)
-    else:
-        menu = Table(rows=tis, add_exit=True, style=use_style)
-
-    menu()
+        menu()
 #### End of Dynamic menu from DB stuff ####
 
 

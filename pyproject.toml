@@ -132,9 +132,9 @@ python-version = "3.10"
 
 [tool.ty.src]
 exclude = [
-    # Demo scripts, not library code. Several import optional third-party packages
-    # (sqlalchemy, pyperclip) that are not install dependencies, so they cannot be
-    # resolved here at all.
+    # Demo scripts, not library code. Some import optional third-party packages
+    # (pyperclip) that are not install dependencies, so they cannot be resolved
+    # here at all.
     "cooked_input/examples",
     # A dev-only utility that imports tomllib and so requires 3.11+, which contradicts
     # the 3.10 floor set above. It is not shipped and not importable from the package.
