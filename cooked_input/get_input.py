@@ -15,7 +15,7 @@ import collections.abc
 import getpass
 from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal, overload
 
 from ._typing import CleanerArg, CommandAction, CommandsArg, ErrorCallback, GetInputValidatorArg
 from .error_callbacks import MaxRetriesError, ValidationError, ConvertorError
@@ -532,6 +532,22 @@ def process_value(value: Any, cleaners: CleanerArg = None, convertor: Convertor 
     return gi.process_value(value)
 
 
+# A blank response only returns None when required is False, so the default call cannot. The pair
+# below says that to a type checker; see the note above get_input's `if not self.required` return.
+@overload
+def get_string(cleaners: CleanerArg = ..., validators: GetInputValidatorArg = ...,
+               min_len: int | None = ..., max_len: int | None = ..., *,
+               prompt: str = ..., required: Literal[True] = ..., default: Any = ...,
+               default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+               commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+               convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> str: ...
+@overload
+def get_string(cleaners: CleanerArg = ..., validators: GetInputValidatorArg = ...,
+               min_len: int | None = ..., max_len: int | None = ..., *,
+               prompt: str = ..., required: Literal[False], default: Any = ...,
+               default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+               commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+               convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> str | None: ...
 def get_string(cleaners: CleanerArg = (StripCleaner()), validators: GetInputValidatorArg = None,
                min_len: int | None = None, max_len: int | None = None, *,
                prompt: str = 'Enter some text',
@@ -591,6 +607,20 @@ def get_string(cleaners: CleanerArg = (StripCleaner()), validators: GetInputVali
     return result
 
 
+@overload
+def get_int(cleaners: CleanerArg = ..., validators: GetInputValidatorArg = ...,
+            minimum: int | None = ..., maximum: int | None = ..., base: int = ..., *,
+            prompt: str = ..., required: Literal[True] = ..., default: Any = ...,
+            default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+            commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+            convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> int: ...
+@overload
+def get_int(cleaners: CleanerArg = ..., validators: GetInputValidatorArg = ...,
+            minimum: int | None = ..., maximum: int | None = ..., base: int = ..., *,
+            prompt: str = ..., required: Literal[False], default: Any = ...,
+            default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+            commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+            convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> int | None: ...
 def get_int(cleaners: CleanerArg = None, validators: GetInputValidatorArg = None, minimum: int | None = None,
             maximum: int | None = None, base: int = 10, *,
             prompt: str = 'Enter a whole (integer) number',
@@ -644,6 +674,20 @@ def get_int(cleaners: CleanerArg = None, validators: GetInputValidatorArg = None
     return result
 
 
+@overload
+def get_float(cleaners: CleanerArg = ..., validators: GetInputValidatorArg = ...,
+              minimum: float | None = ..., maximum: float | None = ..., *,
+              prompt: str = ..., required: Literal[True] = ..., default: Any = ...,
+              default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+              commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+              convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> float: ...
+@overload
+def get_float(cleaners: CleanerArg = ..., validators: GetInputValidatorArg = ...,
+              minimum: float | None = ..., maximum: float | None = ..., *,
+              prompt: str = ..., required: Literal[False], default: Any = ...,
+              default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+              commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+              convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> float | None: ...
 def get_float(cleaners: CleanerArg = None, validators: GetInputValidatorArg = None, minimum: float | None = None,
               maximum: float | None = None, *,
               prompt: str = 'Enter an real (floating point) number',
@@ -694,6 +738,18 @@ def get_float(cleaners: CleanerArg = None, validators: GetInputValidatorArg = No
     return result
 
 
+@overload
+def get_boolean(cleaners: CleanerArg = ..., validators: GetInputValidatorArg = ..., *,
+                prompt: str = ..., required: Literal[True] = ..., default: Any = ...,
+                default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+                commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+                convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> bool: ...
+@overload
+def get_boolean(cleaners: CleanerArg = ..., validators: GetInputValidatorArg = ..., *,
+                prompt: str = ..., required: Literal[False], default: Any = ...,
+                default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+                commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+                convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> bool | None: ...
 def get_boolean(cleaners: CleanerArg = (StripCleaner()), validators: GetInputValidatorArg = None, *,
                 prompt: str = 'Enter true or false',
                 required: bool = True,
@@ -741,6 +797,20 @@ def get_boolean(cleaners: CleanerArg = (StripCleaner()), validators: GetInputVal
     return result
 
 
+@overload
+def get_date(cleaners: CleanerArg = ..., validators: GetInputValidatorArg = ...,
+             minimum: datetime | None = ..., maximum: datetime | None = ..., *,
+             prompt: str = ..., required: Literal[True] = ..., default: Any = ...,
+             default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+             commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+             convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> datetime: ...
+@overload
+def get_date(cleaners: CleanerArg = ..., validators: GetInputValidatorArg = ...,
+             minimum: datetime | None = ..., maximum: datetime | None = ..., *,
+             prompt: str = ..., required: Literal[False], default: Any = ...,
+             default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+             commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+             convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> datetime | None: ...
 def get_date(cleaners: CleanerArg = (StripCleaner()), validators: GetInputValidatorArg = None,
              minimum: datetime | None = None, maximum: datetime | None = None, *,
              prompt: str = 'Enter a date',
@@ -792,6 +862,18 @@ def get_date(cleaners: CleanerArg = (StripCleaner()), validators: GetInputValida
     return result
 
 
+@overload
+def get_yes_no(cleaners: CleanerArg = ..., validators: GetInputValidatorArg = ..., *,
+               prompt: str = ..., required: Literal[True] = ..., default: Any = ...,
+               default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+               commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+               convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> str: ...
+@overload
+def get_yes_no(cleaners: CleanerArg = ..., validators: GetInputValidatorArg = ..., *,
+               prompt: str = ..., required: Literal[False], default: Any = ...,
+               default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+               commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+               convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> str | None: ...
 def get_yes_no(cleaners: CleanerArg = (StripCleaner()), validators: GetInputValidatorArg = None, *,
                prompt: str = 'Enter yes or no',
                required: bool = True,
@@ -839,6 +921,22 @@ def get_yes_no(cleaners: CleanerArg = (StripCleaner()), validators: GetInputVali
     return result
 
 
+@overload
+def get_money(symbol: str = ..., separator: str = ..., cleaners: CleanerArg = ...,
+              validators: GetInputValidatorArg = ..., precision: int | None = ...,
+              rounding: str = ..., *,
+              prompt: str = ..., required: Literal[True] = ..., default: Any = ...,
+              default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+              commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+              convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> Decimal: ...
+@overload
+def get_money(symbol: str = ..., separator: str = ..., cleaners: CleanerArg = ...,
+              validators: GetInputValidatorArg = ..., precision: int | None = ...,
+              rounding: str = ..., *,
+              prompt: str = ..., required: Literal[False], default: Any = ...,
+              default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+              commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+              convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> Decimal | None: ...
 def get_money(symbol: str = "$", separator: str = ",", cleaners: CleanerArg = (StripCleaner(),),
               validators: GetInputValidatorArg = None, precision: int | None = None,
               rounding: str = "ROUND_HALF_UP", *,
@@ -912,6 +1010,22 @@ def get_money(symbol: str = "$", separator: str = ",", cleaners: CleanerArg = (S
     return result
 
 
+@overload
+def get_list(elem_get_input: GetInput | None = ..., cleaners: CleanerArg = ...,
+             validators: GetInputValidatorArg = ..., value_error_str: str = ...,
+             delimiter: str = ..., *,
+             prompt: str | None = ..., required: Literal[True] = ..., default: Any = ...,
+             default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+             commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+             convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> list[Any]: ...
+@overload
+def get_list(elem_get_input: GetInput | None = ..., cleaners: CleanerArg = ...,
+             validators: GetInputValidatorArg = ..., value_error_str: str = ...,
+             delimiter: str = ..., *,
+             prompt: str | None = ..., required: Literal[False], default: Any = ...,
+             default_str: str | None = ..., hidden: bool = ..., retries: int | None = ...,
+             commands: CommandsArg = ..., error_callback: ErrorCallback = ...,
+             convertor_error_fmt: str = ..., validator_error_fmt: str = ...) -> list[Any] | None: ...
 def get_list(elem_get_input: GetInput | None = None, cleaners: CleanerArg = None,
              validators: GetInputValidatorArg = None, value_error_str: str = 'list of values',
              delimiter: str = ',', *,

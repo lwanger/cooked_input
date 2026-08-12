@@ -97,6 +97,10 @@ exclude_also = [
     # reachable and the tests asserted it. Now that the three are real ABCs the bases
     # cannot be instantiated, so an @abstractmethod body is genuinely unreachable.
     "@abstractmethod",
+    # Same reason as above: an @overload stub's `...` body is never executed, since the
+    # implementation below it is what runs. The get_* functions declare two apiece so that
+    # a checker can tell required=True (never returns None) from required=False.
+    "@overload",
 ]
 
 # Two tools, two jobs. ty checks that the annotations are *correct*; it has no
