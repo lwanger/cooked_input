@@ -23,15 +23,15 @@ from cooked_input import TABLE_RETURN_FIRST_VAL, RULE_NONE, RULE_ALL
 
 # TODO - actions are wrong!
 
-def test_get_menu_1():
+def demo_get_menu_1():
     choices = ['red', 'blue', 'green']
-    print('test_get_menu:\n')
+    print('demo_get_menu:\n')
     print('simplest case:\n')
     result = get_menu(choices)
     print('result={}'.format(result))
 
 
-def test_get_menu_2():
+def demo_get_menu_2():
     choices = ['red', 'blue', 'green']
     print('\nwith options...\n')
     prompt_str = 'Enter a menu choice'
@@ -54,7 +54,7 @@ def show_choice(menu, choice):
     print('choice={}'.format(choice))
 
 
-def test_action_table():
+def demo_action_table():
     menu_choices = [
         TableItem("Choice 1 - no specified tag, no specified action", None, None),
         TableItem("Choice 2 - default action", 2, TABLE_ITEM_DEFAULT),
@@ -112,7 +112,7 @@ def sub_menu_action(row, action_dict):
     sub_menu.run()
 
 
-def test_sub_table():
+def demo_sub_table():
     sub_menu_1_items = [
         TableItem("sub menu 1: Choice 1", 1, TABLE_ITEM_DEFAULT),
         TableItem("sub menu 1: Choice 2", 2, TABLE_ITEM_DEFAULT),
@@ -149,7 +149,7 @@ def change_kwargs(row, action_dict):
     return action_dict
 
 
-def test_args_table():
+def demo_args_table():
     print('test sending args and kwargs to menus:\n')
 
     menu_choices = [
@@ -177,7 +177,7 @@ def change_last_name(row, action_dict):
     result = get_string(prompt='Enter a new last name', default=action_dict['last'])
     action_dict['last'] = result
 
-def test_refresh_table():
+def demo_refresh_table():
     print('test refresh option in a menu:\n')
     my_profile = {'first': 'Len', 'last': 'Wanger'}
 
@@ -251,7 +251,7 @@ def role_item_filter(row, action_dict):
     return (True, False)
 
 
-def test_item_filter():
+def demo_item_filter():
     all_roles = {'roles': {'admin', 'user'}}
     admin_only = {'roles': {'admin'}}
 
@@ -344,7 +344,7 @@ def show_menu_items(label, items):
         print(item)
 
 
-def test_dynamic_menu_from_db(filter_items=False):
+def demo_dynamic_menu_from_db(filter_items=False):
     with closing(make_users_db(echo=True)) as connection:
         tis = load_menu_items(connection)
         show_menu_items('users before the insert:', tis)
@@ -395,7 +395,7 @@ def user_filter2(table_item, action_dict):
         return (True, False)
 
 
-def test_dynamic_menu_from_list(filter_items=False):
+def demo_dynamic_menu_from_list(filter_items=False):
     users = [
         { 'name':'ed', 'fullname': 'Ed Jones', 'password': 'edspassword' },
         { 'name':'wendy', 'fullname': 'Wendy Williams', 'password': 'foobar' },
@@ -419,16 +419,16 @@ if __name__ == '__main__':
     if False:
         pass
 
-    test_get_menu_1()
-    test_get_menu_2()
-    test_action_table()
-    test_sub_table()
-    test_args_table()
-    test_refresh_table()
-    test_item_filter()
-    test_dynamic_menu_from_db(filter_items=False)
-    test_dynamic_menu_from_db(filter_items=True)
-    test_dynamic_menu_from_list()
+    demo_get_menu_1()
+    demo_get_menu_2()
+    demo_action_table()
+    demo_sub_table()
+    demo_args_table()
+    demo_refresh_table()
+    demo_item_filter()
+    demo_dynamic_menu_from_db(filter_items=False)
+    demo_dynamic_menu_from_db(filter_items=True)
+    demo_dynamic_menu_from_list()
 
 
 
