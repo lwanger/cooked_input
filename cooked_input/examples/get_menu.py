@@ -3,7 +3,6 @@ cooked input example of using table input to pick from a menu.
 
 TODO:
 
-- change from sqlalchemy to straight sqlite3
 - simplify examples
 
 Len Wanger, 2017
@@ -11,11 +10,8 @@ Len Wanger, 2017
 
 # from collections import namedtuple
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
-from sqlalchemy import Sequence
-from sqlalchemy.orm import sessionmaker
+import sqlite3
+from contextlib import closing
 
 from cooked_input import get_menu, get_string, get_int, get_list, validate, Validator, ChoiceValidator
 from cooked_input import GetInput
@@ -27,15 +23,15 @@ from cooked_input import TABLE_RETURN_FIRST_VAL, RULE_NONE, RULE_ALL
 
 # TODO - actions are wrong!
 
-def test_get_menu_1():
+def demo_get_menu_1():
     choices = ['red', 'blue', 'green']
-    print('test_get_menu:\n')
+    print('demo_get_menu:\n')
     print('simplest case:\n')
     result = get_menu(choices)
     print('result={}'.format(result))
 
 
-def test_get_menu_2():
+def demo_get_menu_2():
     choices = ['red', 'blue', 'green']
     print('\nwith options...\n')
     prompt_str = 'Enter a menu choice'
@@ -58,7 +54,7 @@ def show_choice(menu, choice):
     print('choice={}'.format(choice))
 
 
-def test_action_table():
+def demo_action_table():
     menu_choices = [
         TableItem("Choice 1 - no specified tag, no specified action", None, None),
         TableItem("Choice 2 - default action", 2, TABLE_ITEM_DEFAULT),
@@ -116,7 +112,7 @@ def sub_menu_action(row, action_dict):
     sub_menu.run()
 
 
-def test_sub_table():
+def demo_sub_table():
     sub_menu_1_items = [
         TableItem("sub menu 1: Choice 1", 1, TABLE_ITEM_DEFAULT),
         TableItem("sub menu 1: Choice 2", 2, TABLE_ITEM_DEFAULT),
@@ -153,7 +149,7 @@ def change_kwargs(row, action_dict):
     return action_dict
 
 
-def test_args_table():
+def demo_args_table():
     print('test sending args and kwargs to menus:\n')
 
     menu_choices = [
@@ -181,7 +177,7 @@ def change_last_name(row, action_dict):
     result = get_string(prompt='Enter a new last name', default=action_dict['last'])
     action_dict['last'] = result
 
-def test_refresh_table():
+def demo_refresh_table():
     print('test refresh option in a menu:\n')
     my_profile = {'first': 'Len', 'last': 'Wanger'}
 
@@ -255,7 +251,7 @@ def role_item_filter(row, action_dict):
     return (True, False)
 
 
-def test_item_filter():
+def demo_item_filter():
     all_roles = {'roles': {'admin', 'user'}}
     admin_only = {'roles': {'admin'}}
 
@@ -276,7 +272,7 @@ def test_item_filter():
 
 #### Dynamic menu from DB stuff ####
 def menu_item_factory(row, item_data):
-    return TableItem(row.fullname, None, TABLE_ITEM_DEFAULT, item_data)
+    return TableItem(row['fullname'], None, TABLE_ITEM_DEFAULT, item_data)
 
 
 def user_filter(table_item, action_dict):
@@ -287,49 +283,92 @@ def user_filter(table_item, action_dict):
     else:
         return (True, False)
 
-Base = declarative_base()
+CREATE_USERS_SQL = """
+    CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        fullname TEXT,
+        password TEXT
+    )
+"""
 
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
-    name = Column(String)
-    fullname = Column(String)
-    password = Column(String)
+INSERT_USER_SQL = 'INSERT INTO users (name, fullname, password) VALUES (?, ?, ?)'
 
-    def __repr__(self):
-        return "<User(name='%s', fullname='%s', password='%s')>" % (self.name, self.fullname, self.password)
+SEED_USERS = [
+    ('ed', 'Ed Jones', 'edspassword'),
+    ('wendy', 'Wendy Williams', 'foobar'),
+    ('mary', 'Mary Contrary', 'xxg527'),
+    ('fred', 'Fred Flinstone', 'blah'),
+]
 
-def test_dynamic_menu_from_db(filter_items=False):
-    engine = create_engine('sqlite:///:memory:', echo=True)
-    Base.metadata.create_all(engine)
 
-    session_maker = sessionmaker(bind=engine)
-    session = session_maker()
+def make_users_db(echo=False):
+    """Create an in-memory users table seeded with SEED_USERS and return the open connection.
 
-    session.add_all([
-        User(name='ed', fullname='Ed Jones', password='edspassword'),
-        User(name='wendy', fullname='Wendy Williams', password='foobar'),
-        User(name='mary', fullname='Mary Contrary', password='xxg527'),
-        User(name='fred', fullname='Fred Flinstone', password='blah')])
+    Args:
+        echo: if True, print each SQL statement as sqlite runs it.
 
-    session.commit()
+    Returns:
+        An open sqlite3.Connection whose rows come back as sqlite3.Row, so the table item
+        factories can address columns by name.
+    """
+    connection = sqlite3.connect(':memory:')
+    connection.row_factory = sqlite3.Row
 
-    qry = session.query(User.name, User.fullname).order_by(User.fullname)
-    tis = [menu_item_factory(row, item_data={'min_len': 3}) for row in qry]
-    for row in tis:
-        print(row)
+    if echo:
+        connection.set_trace_callback(print)
 
-    print('adding foo')  # show that the stored query will update with data changes
-    session.add(User(name='foo', fullname='Foo Winn', password='foospassword'))
-    session.commit()
-    use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
+    with connection:  # commits the schema and the seed rows as one transaction
+        connection.execute(CREATE_USERS_SQL)
+        connection.executemany(INSERT_USER_SQL, SEED_USERS)
 
-    if filter_items:
-        menu = Table(rows=tis, add_exit=True, style=use_style, item_filter=user_filter)
-    else:
-        menu = Table(rows=tis, add_exit=True, style=use_style)
+    return connection
 
-    menu()
+
+def load_menu_items(connection):
+    """Query the users table and build one TableItem per user, ordered by full name.
+
+    Args:
+        connection: an open sqlite3.Connection returned by make_users_db.
+
+    Returns:
+        A list of TableItem, one for each row currently in the users table.
+    """
+    cursor = connection.execute('SELECT name, fullname FROM users ORDER BY fullname')
+    return [menu_item_factory(row, item_data={'min_len': 3}) for row in cursor]
+
+
+def show_menu_items(label, items):
+    print(label)
+    for item in items:
+        print(item)
+
+
+def demo_dynamic_menu_from_db(filter_items=False):
+    with closing(make_users_db(echo=True)) as connection:
+        tis = load_menu_items(connection)
+        show_menu_items('users before the insert:', tis)
+
+        # Winnie's full name starts with W, so she survives user_filter too and the refresh
+        # is visible whether or not the menu is filtered.
+        print('adding winnie')
+        with connection:
+            connection.execute(INSERT_USER_SQL, ('winnie', 'Winnie Winn', 'winniespassword'))
+
+        # Rebuilding tis from a second query is what picks up the new user: the first query's
+        # rows were read out of the cursor and turned into TableItems, so that list is a
+        # snapshot and cannot see later inserts. The menu below is built from the fresh list.
+        tis = load_menu_items(connection)
+        show_menu_items('users after the insert (refreshed from the db):', tis)
+
+        use_style = TableStyle(show_cols=False, show_border=False, hrules=RULE_NONE, vrules=RULE_NONE)
+
+        if filter_items:
+            menu = Table(rows=tis, add_exit=True, style=use_style, item_filter=user_filter)
+        else:
+            menu = Table(rows=tis, add_exit=True, style=use_style)
+
+        menu()
 #### End of Dynamic menu from DB stuff ####
 
 
@@ -356,7 +395,7 @@ def user_filter2(table_item, action_dict):
         return (True, False)
 
 
-def test_dynamic_menu_from_list(filter_items=False):
+def demo_dynamic_menu_from_list(filter_items=False):
     users = [
         { 'name':'ed', 'fullname': 'Ed Jones', 'password': 'edspassword' },
         { 'name':'wendy', 'fullname': 'Wendy Williams', 'password': 'foobar' },
@@ -380,16 +419,16 @@ if __name__ == '__main__':
     if False:
         pass
 
-    test_get_menu_1()
-    test_get_menu_2()
-    test_action_table()
-    test_sub_table()
-    test_args_table()
-    test_refresh_table()
-    test_item_filter()
-    test_dynamic_menu_from_db(filter_items=False)
-    test_dynamic_menu_from_db(filter_items=True)
-    test_dynamic_menu_from_list()
+    demo_get_menu_1()
+    demo_get_menu_2()
+    demo_action_table()
+    demo_sub_table()
+    demo_args_table()
+    demo_refresh_table()
+    demo_item_filter()
+    demo_dynamic_menu_from_db(filter_items=False)
+    demo_dynamic_menu_from_db(filter_items=True)
+    demo_dynamic_menu_from_list()
 
 
 
