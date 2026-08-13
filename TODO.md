@@ -19,15 +19,26 @@ a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version 
   just add "3.15" to the CI matrix, tox envlist and classifiers if the suite passes.
 - [ ] Improve documentation and examples
   - [ ] Example of get_money, showing why not to use floats to keep exact decimal amounts and do proper rounding
-- [ ] Split `get_table.py` the same way `get_input.py` was split: `TableStyle`, `TableItem`, `Table` and the
-  action callbacks stay, and `create_rows`, `create_table`, `show_table`, `get_table_input` and `get_menu`
-  move to `table_convenience.py`. It is the larger file (1527 lines / 464 code, against get_input.py's
-  1102 / 372) and holds the 772-line `Table` class. Splitting that class is a separate design question --
-  this item is only the file move.
+- [ ] Consider breaking up the 772-line `Table` class in `get_table.py`. It is now by far the largest unit
+  left in the package -- `get_table.py` is 1142 lines and two thirds of that is this one class. Unlike the
+  two file splits, this is a design question rather than a move: the pagination state, the row/tag lookup
+  and the input loop are candidates to separate, but they share a lot of state. Worth a prototype before
+  committing to a shape.
 
 ## Completed:
 
 Items here move into CHANGELOG.rst when the version number is incremented.
+
+- [x] Split `get_table.py` the same way, after the `Table` class: `TableStyle`, `TableItem`, `Table`, the
+  row actions and the pagination commands stay (1527 lines -> 1142), and `create_rows`, `create_table`,
+  `show_table`, `get_table_input` and `get_menu` moved to `table_convenience.py` (424 lines). It was the
+  larger of the two files, which the TODO item naming only `get_input.py` had not noticed.
+
+  The 772-line `Table` class was deliberately left alone -- splitting it is a design question, not a file
+  move, and is now its own item above.
+
+  Package after both splits: get_table.py 1142, input_convenience.py 724, validators.py 655,
+  table_convenience.py 424, get_input.py 418, convertors.py 411.
 
 - [x] Split `get_input.py` along the classes / convenience-functions seam it already had, marked by the
   `### Convenience Functions ###` banner. `get_input.py` keeps the machinery -- `GetInput`,
