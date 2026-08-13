@@ -42,7 +42,8 @@ class IntervalConvertor(ci.Convertor):
         treats '-10' as [min_val: 10]. If negative numbers are needed change the interval designator to another
         character, such as ':'.
     """
-    def __init__(self, min_val=None, max_val=None, value_error_str='a number of range of numbers("x - y")'):
+    def __init__(self, min_val: int | None = None, max_val: int | None = None,
+                 value_error_str='a number of range of numbers("x - y")'):
         self.min_val = min_val
         self.max_val = max_val
         super(IntervalConvertor, self).__init__(value_error_str)
@@ -77,12 +78,17 @@ class IntervalConvertor(ci.Convertor):
                 upper_val = use_val[(dash_idx+1):]
 
         try:
+            # An empty bound only reaches here from the open-ended branches above, each of
+            # which has already rejected the matching None. The asserts say that where a
+            # checker can see it -- the guards are in sibling branches, out of its reach.
             if len(lower_val) == 0:
+                assert self.min_val is not None
                 low = self.min_val
             else:
                 low = int(lower_val)
 
             if len(upper_val) == 0:
+                assert self.max_val is not None
                 high = self.max_val + 1
             else:
                 high = int(upper_val) + 1
