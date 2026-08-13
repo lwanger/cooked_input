@@ -303,7 +303,8 @@ class TableItem(object):
 
     :param col_values: A list of values for the row's columns.
     :param tag:  a value used to choose the item. If None, a default tag will be assigned by the :class:`Table`.
-    :param action:  an action function called when the item is selected.
+    :param action:  an action function called when the item is selected. **None** means the row has
+        no action of its own, in which case the parent table's ``default_action`` handles it.
     :param item_data: a dictionary containing addtional contextual data for the table row. This is
         not displayed as part of the table item but can be used for processing actions. For example, ``item_data`` can
         store the database ID associated for the item. ``item_data`` is also used for item filters.
@@ -341,8 +342,11 @@ class TableItem(object):
             * **row** (TableItem) -- The ``TableItem`` instance selected (i.e. this table item)
             * **action_dict** (Dict) --  The parent table's ``action_dict``.
     """
+    # action includes None because _as_row_action -- the only thing that consumes it -- is
+    # annotated for None and handles it, returning "nothing to call". The narrower type here
+    # rejected TableItem(..., None), which the examples have always passed and which works.
     def __init__(self, col_values: Any, tag: Any = None,
-                 action: str | RowAction = TABLE_ITEM_DEFAULT,
+                 action: str | RowAction | None = TABLE_ITEM_DEFAULT,
                  item_data: dict[str, Any] | None = None, hidden: bool = False,
                  enabled: bool = True) -> None:
 
@@ -589,14 +593,14 @@ class Table(object):
                 return row
         raise ValueError('Table.get_row: tag ({}) not in the table'.format(tag))
 
-    def get_action(self, tag: Any) -> str | RowAction:
+    def get_action(self, tag: Any) -> str | RowAction | None:
         """
         Return the action callback function for the first row matching the specified tag.
 
         :param tag: the tag to search for
-        :return: the action for the first row containing the tag -- either a function to call, or
-            one of the ``TABLE_ITEM_*`` sentinel strings. Raises a **ValueError** exception if the
-            tag is not found
+        :return: the action for the first row containing the tag -- either a function to call,
+            one of the ``TABLE_ITEM_*`` sentinel strings, or **None** for a row that carries no
+            action of its own. Raises a **ValueError** exception if the tag is not found
         """
         row = self.get_row(tag)
         return row.action

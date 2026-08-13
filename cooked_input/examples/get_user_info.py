@@ -43,6 +43,7 @@ Len Wanger, 2017
 
 import re
 import sys
+from typing import Any
 
 from cooked_input import get_input
 from cooked_input.cleaners import StripCleaner, CapitalizationCleaner
@@ -127,7 +128,9 @@ class CheckPasswordValidator(Validator):
 
 if __name__ == '__main__':
     # The BBC would like to appologize for this fake list of users. passwords are encrypted with the Python hash function for simplicity. See warnings above!
-    user_list = {
+    # dict[str, Any] for the values: each profile mixes strings, a hashed int password and a
+    # list of roles, so the inferred union would reject ', '.join(old_data['roles']) below.
+    user_list: dict[str, dict[str, Any]] = {
         'gc': {'first_name': 'Graham', 'last_name': 'Chapman', 'email': 'king.arthur@camelot.com', 'password': hash('IWasBrian2!'), 'roles': ['admin', 'arthur'] },
         'jc': {'first_name': 'John', 'last_name': 'Cleese', 'email': 'basel@fawlty-towers.com', 'password': hash('&Now4SomethingCompletelyDifferent...'), 'roles': ['praline']},
         'tg': {'first_name': 'Terry', 'last_name': 'Gilliam', 'email': 'director@movie.com.br', 'password': hash('Its-Spelled-Color'), 'roles': ['animator']},

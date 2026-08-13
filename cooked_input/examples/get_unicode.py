@@ -14,7 +14,9 @@ import cooked_input as ci
 
 try:
     # Try to import pyperclip. If imports then can add the character to the clipboard
-    import pyperclip
+    # ty cannot resolve pyperclip -- it is not an install dependency. That is the whole
+    # point of this guard, so the diagnostic is ignored rather than the file excluded.
+    import pyperclip  # ty: ignore[unresolved-import]
     USE_CLIPBOARD = True
 except (ModuleNotFoundError):
     print('\nWarning: Install the pyperclip module to have the unicode character copied to the clipboard\n')

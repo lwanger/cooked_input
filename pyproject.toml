@@ -132,14 +132,15 @@ python-version = "3.10"
 
 [tool.ty.src]
 exclude = [
-    # Demo scripts, not library code. Some import optional third-party packages
-    # (pyperclip) that are not install dependencies, so they cannot be resolved
-    # here at all.
-    "cooked_input/examples",
     # A dev-only utility that imports tomllib and so requires 3.11+, which contradicts
     # the 3.10 floor set above. It is not shipped and not importable from the package.
     "scripts",
 ]
+# cooked_input/examples was excluded here until issue #85. The exclusion existed only
+# because two demos imported packages that are not install dependencies, and it cost us
+# twice: #82 and #84 were both defects a checker reports instantly. get_menu.py no longer
+# needs sqlalchemy, and get_unicode.py's optional pyperclip import carries a targeted
+# ignore, so all 17 examples are checked.
 
 [tool.setuptools.packages.find]
 # Matches the old find_packages() result: cooked_input and cooked_input.tests.

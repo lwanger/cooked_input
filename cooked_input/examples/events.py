@@ -5,6 +5,8 @@ Len Wanger, 2019
 """
 
 from collections import namedtuple
+from typing import Any
+
 import cooked_input as ci
 
 EventType = namedtuple('EventType', 'id name desc')
@@ -38,15 +40,18 @@ cancel_cmd = ci.GetInputCommand(cancel_cmd_action)
 app_cmds = {'/?': help_cmd, '/h': help_cmd, '/cancel': cancel_cmd}
 
 
-def reset_db_action(row, action_item):
-    cmds = action_dict['commands']
+# Each action receives the table's action_dict as its second argument. Reading the module
+# global instead worked only because __main__ happened to create one -- importing this module
+# and running a menu would have raised NameError.
+def reset_db_action(row, action_item: dict[str, Any]):
+    cmds = action_item['commands']
     if ci.get_yes_no(prompt='Delete all events? ', default='no', commands=cmds) == 'yes':
-        action_dict['events'] = []
+        action_item['events'] = []
 
-def add_event_action(row, action_item):
-    events = action_dict['events']
-    event_types = action_dict['event_types']
-    cmds = action_dict['commands']
+def add_event_action(row, action_item: dict[str, Any]):
+    events = action_item['events']
+    event_types = action_item['event_types']
+    cmds = action_item['commands']
     desc = ci.get_string(prompt="Event description? ", commands=cmds)
     tbl = ci.create_table(event_types, ["name", "desc"], ["Name", "Desc"], add_item_to_item_data=True)
     event_type = tbl.get_table_choice(prompt='Type? ', commands=cmds)
@@ -54,9 +59,9 @@ def add_event_action(row, action_item):
     type_id = event_type.item_data['item'].id
     events.append(Event(len(events)+1, date, desc, type_id))
 
-def list_event_action(row, action_item):
-    events = action_dict['events']
-    event_types = action_dict['event_types']
+def list_event_action(row, action_item: dict[str, Any]):
+    events = action_item['events']
+    event_types = action_item['event_types']
 
     if len(events) == 0:
         print('\nno events\n')
@@ -76,15 +81,17 @@ def list_event_action(row, action_item):
     tbl.show_table()
     print('\n')
 
-def db_submenu_action(row, action_item):
-    style = action_dict['menu_style']
+def db_submenu_action(row, action_item: dict[str, Any]):
+    # Was action_item['menu_style'], a key the dict below has never had -- choosing this
+    # menu item raised KeyError before it could draw the sub-menu.
+    style = action_item['style']
     items = [ ci.TableItem('Delete all events', action=reset_db_action) ]
-    menu = ci.Table(rows=items, add_exit=ci.TABLE_ADD_RETURN, style=style, action_dict=action_dict)
+    menu = ci.Table(rows=items, add_exit=ci.TABLE_ADD_RETURN, style=style, action_dict=action_item)
     menu.run()
 
 if __name__ == '__main__':
     style = ci.TableStyle(show_cols=False, show_border=False)
-    action_dict = { 'events': events, 'event_types': event_types, 'commands': app_cmds, 'style': style }
+    action_dict: dict[str, Any] = { 'events': events, 'event_types': event_types, 'commands': app_cmds, 'style': style }
 
     items = [
             ci.TableItem('Add an event', action=add_event_action),
