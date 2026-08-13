@@ -10,7 +10,41 @@ for the latest documentation, see: https://readthedocs.org/projects/cooked-input
 
 see TODO.md for list of TODO items
 
-* unreleased:
+* v0.7.0 (2026-08-12):
+
+  Almost all of this release is work on the inside of the package rather than new features.
+  cooked_input is now a typed library; the test suite went from 86 tests at 79.6% coverage to
+  661 at 100%; the ``**options`` bag was replaced by named parameters everywhere; and the two
+  largest modules were split along the seam they already had. Nothing here adds a capability
+  that 0.6.0 did not have.
+
+  What that work produced is the rest of this entry. Annotating and testing every function
+  turned up thirty-two defects that nine years of use had not surfaced -- a convertor that
+  ignored its own ``precision``, two scroll commands wired backwards, ``get_menu`` that could
+  never return ``'exit'``, an infinite loop on a blank required prompt -- and the examples,
+  which ship in the sdist and so are distributed code, turned out to contain calls that no
+  version of the library had ever accepted.
+
+  **Upgrading.** These are fixes, but nine of them change behavior that working code could have
+  been relying on. Each is described in full in the list below; in short:
+
+  * ``DecimalConvertor`` now honours ``precision`` and ``rounding``, so ``get_money(precision=2)``
+    returns different *numbers* than it used to.
+  * ``Table.scroll_up_one_row`` and ``Table.scroll_down_one_row`` move the view the opposite way
+    from before.
+  * ``get_menu`` returns ``'exit'`` where it used to return a ``TableItem``, and
+    ``Table.get_table_choice`` returns **None** for an exit row.
+  * A blank line at a ``required=True`` prompt is now reported through ``error_callback`` and
+    counts against ``retries``, instead of being skipped in silence.
+  * ``validate()`` and the validation helpers return a real ``bool``, and return **True** rather
+    than **None** or a passed-through value when there is nothing to validate.
+  * An unrecognised option to any ``get_*`` function, to ``Table`` or to ``show_table`` raises
+    ``TypeError`` naming it, instead of being logged and ignored or silently dropped.
+  * ``in_all``, ``in_any`` and ``not_in`` are no longer importable from ``cooked_input``.
+  * A ``Cleaner``, ``Convertor`` or ``Validator`` subclass that never implemented ``__call__``
+    now raises ``TypeError`` when instantiated, rather than returning **None** from every call.
+  * A single string given to ``AnyOfValidator`` or ``NoneOfValidator`` is one choice, rather than
+    being taken apart and matched one character at a time.
 
   * added: type annotations on every function, method and class in the package, and a
     ``py.typed`` marker (PEP 561) so that downstream projects actually see them -- without
@@ -188,6 +222,27 @@ see TODO.md for list of TODO items
     lines had been mangled into syntax errors -- ``commandscmd`` for ``commands=cmds``, and a
     bare ``'style'`` where ``style=style`` belongs -- and a prompt string had drifted from the
     script. The listing now matches the script line for line.
+  * changed: ``examples/get_menu.py`` uses ``sqlite3`` from the standard library instead of
+    SQLAlchemy. The example shipped in the sdist but SQLAlchemy was never a dependency of
+    cooked_input, declared or otherwise, so the file could not be run as installed -- it raised
+    ``ModuleNotFoundError`` on the first import. Nothing in the example needed an ORM: it reads
+    four rows out of an in-memory table to build a menu. Its nine demo functions were also
+    renamed from ``test_*`` to ``demo_*``; they are demonstrations rather than tests, and the
+    names collected them into anything pointed at the file with pytest.
+  * fixed: ``examples/events.py`` raised ``KeyError: 'menu_style'`` on choosing the database
+    submenu. The key the row carries is ``style``. The action functions also read the table they
+    were acting on from a module-level global rather than from the ``action_item`` dictionary
+    they are handed, which is what made the wrong key survive as long as it did.
+  * fixed: ``TableItem`` rejected ``TableItem(col_values, tag, None)`` under a type checker,
+    although passing **None** for the action is what several of the examples have always done
+    and works at run time -- ``_as_row_action``, the only thing that reads it, is written for
+    **None** and returns "nothing to call". The annotation was narrower than the code.
+  * changed: ``get_string``'s ``convertor_error_fmt`` is documented as accepted and ignored.
+    ``get_string`` applies no convertor, so there is no conversion error for the format string
+    to word; it is accepted so that the option set stays uniform across all nine ``get_*``
+    functions, and a test now pins that uniformity. For the rare case of converting a string
+    into a string-like type such as ``bytes`` or ``bytearray``, use :func:`get_input` with a
+    convertor, where the format string does fire. (#83)
   * tests: package coverage reached 100% (branch coverage, source only) and the suite grew to
     456 tests. The CI floor is now ``--cov-fail-under=99`` -- deliberately one point below the
     measured value, so that a genuinely awkward line does not have to be answered with a
@@ -294,6 +349,38 @@ see TODO.md for list of TODO items
     requires-python >= 3.10, and going lower would mean depending on older releases of
     both. Python 3.9 reached end of life in October 2025, so the older Pythons that
     would unlock are all unsupported anyway.
+
+  Internal restructuring (no change to the public API):
+
+  * the two largest modules were split along the classes / convenience-functions seam they
+    already had, marked in the source by a ``### Convenience Functions ###`` banner and in the
+    documentation by the "Convenience Functions" page. ``get_input.py`` keeps the machinery --
+    ``GetInput``, ``GetInputCommand``, the interrupt and page-request exceptions,
+    ``CommandResponse`` and ``ProcessValueResponse`` -- and goes from 1102 lines to 418; the
+    nine ``get_*`` functions and ``process_value`` moved to ``input_convenience.py`` (724
+    lines). ``get_table.py`` keeps ``Table``, ``TableItem``, ``TableStyle``, the row actions and
+    the pagination commands, and goes from 1527 lines to 1142; ``create_rows``,
+    ``create_table``, ``show_table``, ``get_table_input`` and ``get_menu`` moved to
+    ``table_convenience.py`` (424 lines).
+
+    Every name is still exported from ``cooked_input`` and imported from there by every test and
+    example, so ``from cooked_input import get_string`` is unaffected. Code that imports from the
+    *module* -- ``from cooked_input.get_input import get_string`` -- has to change, but that
+    spelling appears nowhere in the package, its tests, its examples or its documentation.
+    ``sorted(dir(cooked_input))`` was diffed across both splits and is identical.
+
+    The 772-line ``Table`` class was deliberately left alone. Breaking it up is a design
+    question rather than a file move, and is on the TODO list for a later release.
+  * the examples are type-checked now rather than excluded from ``ty``, which is how the
+    ``events.py`` and ``TableItem`` defects above were found. They stay exempt from Ruff's
+    annotation rules: an example is meant to read like the code someone would write.
+  * added a test that audits every keyword argument in the package, its tests, its examples and
+    the code blocks in the documentation against the signature it targets. A misspelled option
+    is a ``TypeError`` at run time now, but only if the line is executed -- the examples and the
+    documentation listings mostly are not, which is where ``elem_validators``, ``show_border``
+    and the rest survived for years. It resolves the call target through the module aliases in
+    scope, skips names that are shadowed locally, and exempts calls made inside
+    ``pytest.raises(TypeError)``, which the suite uses to prove the rejection works.
 
 * v0.6.0:
 

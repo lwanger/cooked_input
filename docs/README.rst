@@ -64,21 +64,31 @@ Python Support
 Release Notes
 -------------
 
-The next release is a large one by volume of change, even though it adds no new functionality.
-Every function, method and class in the package was annotated with types, and the package now
-ships a ``py.typed`` marker so downstream projects actually see them. Running the result through
-``ty`` and Ruff -- both now part of CI -- meant reading essentially all of the code, and that
-turned up a series of real defects that had been sitting behind an untyped signature. Those
-fixes are the bulk of the release.
+**v0.7.0** is a large release by volume of change, even though it adds no new functionality. It
+is almost entirely work on the inside of the package. Every function, method and class was
+annotated with types, and a ``py.typed`` marker now ships so downstream projects actually see
+them; the test suite went from 86 tests at 79.6% coverage to 661 at 100%; and the two largest
+modules were split along the seam they already had. Reading essentially all of the code that way
+turned up thirty-two real defects that had been sitting behind an untyped signature or an
+untested line, and those fixes are the bulk of the release.
 
 **There are breaking changes.** Most code will not notice, but they are worth a look before
 upgrading:
 
+  - :class:`DecimalConvertor` now honours ``precision`` and ``rounding``, which it had been
+    ignoring, so ``get_money(precision=2)`` returns different *numbers* than it used to.
+  - :meth:`Table.scroll_up_one_row` and :meth:`Table.scroll_down_one_row` had their bodies the
+    wrong way round and now move the view in the direction they are named for.
+  - :func:`get_menu` returns ``'exit'`` where it used to hand back a :class:`TableItem`, and
+    :meth:`Table.get_table_choice` returns **None** when the exit row is chosen.
+  - A blank line at a ``required=True`` prompt is reported through ``error_callback`` and counts
+    against ``retries``, instead of being skipped in silence -- which had been an infinite loop.
   - ``in_all``, ``in_any`` and ``not_in`` are no longer importable from ``cooked_input``. They
     were always internal plumbing and appeared in no documentation. :func:`validate` is
     unaffected.
   - The module-level validation helpers, and :class:`SimpleValidator`, now return a real
-    ``bool`` rather than passing a validator's truthy return value through.
+    ``bool`` rather than passing a validator's truthy return value through, and return **True**
+    rather than **None** when there is nothing to validate.
   - :class:`GetInput` and every ``get_*`` function take their options as named keyword-only
     parameters instead of a ``**options`` dictionary. An unrecognised option raises a ``TypeError``
     rather than logging a warning and carrying on with the default, so ``get_int(promt="Age?")`` is
