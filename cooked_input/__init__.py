@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from .get_input import GetInput, get_input, process_value
-from .get_input import get_string, get_int, get_float, get_boolean, get_date, get_yes_no, get_money, get_list
+from .get_input import GetInput
+from .input_convenience import get_input, process_value
+from .input_convenience import get_string, get_int, get_float, get_boolean, get_date, get_yes_no, get_money, get_list
 from .get_input import GetInputInterrupt
 from .get_input import RefreshScreenInterrupt
 from .get_input import PageUpRequest, PageDownRequest, FirstPageRequest, LastPageRequest, UpOneRowRequest, DownOneRowRequest

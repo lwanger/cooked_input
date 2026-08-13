@@ -19,12 +19,36 @@ a CHANGELOG.rst file. The CHANGELOG.rst file should be updated with the version 
   just add "3.15" to the CI matrix, tox envlist and classifiers if the suite passes.
 - [ ] Improve documentation and examples
   - [ ] Example of get_money, showing why not to use floats to keep exact decimal amounts and do proper rounding
-- get_input.py is very long (>1100 lines). Split into multiple files? Maybe classes and constants in one file
-  and convenience functions in another?
+- [ ] Split `get_table.py` the same way `get_input.py` was split: `TableStyle`, `TableItem`, `Table` and the
+  action callbacks stay, and `create_rows`, `create_table`, `show_table`, `get_table_input` and `get_menu`
+  move to `table_convenience.py`. It is the larger file (1527 lines / 464 code, against get_input.py's
+  1102 / 372) and holds the 772-line `Table` class. Splitting that class is a separate design question --
+  this item is only the file move.
 
 ## Completed:
 
 Items here move into CHANGELOG.rst when the version number is incremented.
+
+- [x] Split `get_input.py` along the classes / convenience-functions seam it already had, marked by the
+  `### Convenience Functions ###` banner. `get_input.py` keeps the machinery -- `GetInput`,
+  `GetInputCommand`, the interrupt and page-request exceptions, `CommandResponse` and
+  `ProcessValueResponse` -- and drops from 1102 lines to 417. The `get_*` functions, `process_value` and
+  `_add_range_validator` moved to `input_convenience.py` (724 lines). Nothing about the public API
+  changed: every name is still exported from `cooked_input`, verified by diffing `dir(cooked_input)`
+  across the change.
+
+  Worth recording for the next split, since measuring beat guessing twice:
+
+  - Both files are ~45% docstring, so the line counts overstate the reading burden. `get_input.py` was
+    only 372 lines of actual code, with no definition over 90 lines. The case for splitting was
+    structural, not size -- and the same measurement showed `get_table.py`, not `get_input.py`, is the
+    largest file in the package.
+  - Ruff selects only `ANN` here, so it reports neither unused nor undefined names. `ty` is what caught
+    `isstring` and `collections.abc` being used in `get_list` but left behind in the old module.
+  - The `-W` docs build caught what nothing else did: `CommandsArg` carries a *quoted* forward reference
+    to `GetInputCommand`, which sphinx resolves in the module that uses the alias, so all nine moved
+    functions failed with "Cannot resolve forward reference" until the new module imported the name.
+    `get_table.py` already carried that import, with a comment saying exactly why.
 
 - [x] Add type hints. Every function, method and class in `cooked_input/` is annotated, and
   `py.typed` ships in the wheel and the sdist so downstream projects actually see them --
