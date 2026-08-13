@@ -97,13 +97,15 @@ out of. Prefer an inline `# ty: ignore[rule-name]` with a comment saying why, so
 suppression is read alongside the code it applies to and disappears with it.
 
 Tests and examples are exempt from `ANN` by policy — annotations buy little in a test, and
-the examples are demo scripts rather than library code. `ty` still checks the tests, and
-that is deliberate: the suite calls the public API several hundred times from the outside,
-which is the cheapest validation the annotations get.
+the examples are demo scripts rather than library code. `ty` checks both anyway, and that is
+deliberate: between them they call the public API several hundred times from the outside,
+which is the cheapest validation the annotations get. The examples were excluded from `ty`
+until they were not, and the exclusion had been hiding a `KeyError` that crashed one of them.
 
 `Any` is allowed (`ANN401` is off). `cooked_input` converts unknown console text into
-whatever the caller asked for, so `Any` is sometimes the honest annotation — the `**options`
-bags and `Convertor.__call__` especially. Prefer a real type wherever one exists.
+whatever the caller asked for, so `Any` is sometimes the honest annotation —
+`Convertor.__call__` and the values it produces especially. Prefer a real type wherever one
+exists.
 
 ### Docstrings do not restate types
 
@@ -131,6 +133,25 @@ the docs without a commit here.
 
 This rule is about the library. `cooked_input/examples/` is exempt from `ANN`, so a type in one
 of those docstrings is the only type information there is — leave it alone.
+
+### Moving code between modules
+
+Two traps, both found the hard way when `get_input.py` and `get_table.py` were split:
+
+* **Ruff will not tell you which imports moved to the wrong file.** It selects only the `ANN`
+  rules here, so it reports neither unused (`F401`) nor undefined (`F821`) names. `ty` is what
+  catches a name that was left behind in the old module. Run `ruff check --select F401` as a
+  one-off after a move to find the imports the *old* file no longer needs.
+* **A quoted forward reference is resolved in the module that uses the alias, not the one that
+  defines it.** `CommandsArg` in `_typing.py` leaves `GetInputCommand` as a string, so every
+  module annotating a parameter with it must import that name — even though no code in the file
+  references it. Nothing but the `-W` docs build catches this: the tests stay green and the
+  build fails with "Cannot resolve forward reference" once per affected function. Both
+  convenience modules carry the import with a comment saying why.
+
+The check that matters most after a move is that the public API did not shift. Capture
+`sorted(dir(cooked_input))` before and after and diff the two; every name is exported from the
+package, so a move is only correct if that list is identical.
 
 ### Faking console input
 
